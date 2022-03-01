@@ -1,31 +1,42 @@
 # Transform list of constraint matrices as one big constraint matrix
-clist2cmat <- function(Clist){
-  # Get the objects from parent environments
-  # that cannot be passed through parameters
-  mt <- get("mt", envir = parent.frame(3)) 
+clist2cmat <- function(Clist, mt, x)
+{
+  Clist <- lapply(Clist, as.matrix)
+  #----- Extract number of variables in each term
+  # Extract variable names
   nterms <- length(attr(mt, "term.labels")) + attr(mt, "intercept")
   term_labs <- attr(mt, "term.labels")
+  # Add intercept if present
   if (attr(mt, "intercept")) term_labs <- c("(Intercept)", term_labs)
-  ncolterm <- table(attr(get("x", envir = parent.frame(2)), "assign"))
+  ncolterm <- table(attr(x, "assign"))
+  #----- Number of constraint for each term
   # Check the names of Clist
   if (any(!names(Clist) %in% term_labs))
     stop("unknown terms in Cmat")
-  # Create a list of matrices with each term in the right order
-  matlist <- rep(list(NULL), nterms)
-  # Add the provided matrices for each term
-  matlist[match(names(Clist), term_labs)] <- Clist
-  # Create empty matrices for missing terms
-  empty <- lengths(matlist) == 0
-  matlist[empty] <- lapply(ncolterm[empty], 
-    function(n) matrix(nrow = 0, ncol = n))
-  # Check that the number of columns matches the terms
-  diffncol <- sapply(matlist, ncol) != ncolterm
+  # 0 by default
+  nconsterm <- rep(0, nterms)
+  # Fill for terms with provided constrain matrix
+  whichcons <- match(names(Clist), term_labs)
+  nconsterm[whichcons] <- sapply(Clist, NROW)
+  # Check that number of columns match
+  diffncol <- sapply(Clist, ncol) != ncolterm[whichcons]
   if(any(diffncol)){
     stop(
       sprintf("constraint matrix of term(s) %s has the wrong number of columns",
         paste(term_labs[diffncol], sep = ", "))
     )
   }
-  # Put all matrices in a big constraint one
-  as.matrix(Matrix::bdiag(matlist))
+  #----- Fill the big constraint matrix
+  # Get where to replace matrix
+  cdim <- cbind(nconsterm, ncolterm)
+  end <- apply(cdim,2,cumsum)
+  start <- end - cdim + 1
+  matind <- array(seq(prod(colSums(cdim))),colSums(cdim))
+  ind <- unlist(lapply(whichcons,function(i)
+    matind[start[i,1]:end[i,1],start[i,2]:end[i,2]]))
+  # Initialize with zeros and replace
+  cmat <- matrix(0, sum(nconsterm), sum(ncolterm))
+  cmat[ind] <- unlist(Clist)
+  # Return
+  cmat
 }

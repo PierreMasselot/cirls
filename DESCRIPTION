@@ -1,24 +1,27 @@
 Package: cirls
 Title: Constrained iteratively reweighted least squares
-Version: 0.1.0
-Authors@R:c( 
+Version: 0.2.0
+Authors@R: c( 
     person(given = "Pierre",
            family = "Masselot",
            role = c("aut", "cre"),
            email = "pierre.masselot@lshtm.ac.uk",
-           comment = c(ORCID = "0000-0002-7326-1290"))
+           comment = c(ORCID = "0000-0002-7326-1290")),
 	person(given = "Antonio",
            family = "Gasparrini",
            role = c("aut"),
            email = "antonio.gasparrini@lshtm.ac.uk",
            comment = c(ORCID = "0000-0002-2271-3568"))
 	)
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+Description: Provides a method to fit generalized additive models with coefficients submitted to linear constraints. The provided method can be used within the base `glm` function to take advantage of its full machinery.
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Imports: 
-    quadprog
+    quadprog,
+    stats
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
