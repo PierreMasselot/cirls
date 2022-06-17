@@ -4,8 +4,12 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   family = stats::gaussian(), control = list(), intercept = TRUE,
   singular.ok = TRUE)
 {
+  ################################################
   # Prepare CIRLS parameters
   control <- do.call("cirls.control", control)
+  # Extract solver
+  solver_fun <- sprintf("%s.fit", control$qp_solver)
+  ################################################
   # Store variable names
   x <- as.matrix(x)
   xnames <- dimnames(x)[[2L]]
@@ -121,19 +125,21 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
       Rmat <- qr.R(wxqr)
       effects <- qr.qty(wxqr, wz)
       # Pivoting in Cmat
-      Cmat <- control$Cmat[,wxqr$pivot[seq_len(wxqr$rank)]]
-      bvec <- control$bvec
+      Cmat <- control$Cmat[,wxqr$pivot[seq_len(wxqr$rank)], drop = F]
+      lb <- control$lb
+      ub <- control$ub
       toremove <- apply(Cmat == 0, 1, all)
       if (any(toremove)){
-        Cmat <- Cmat[!toremove]
-        bvec <- bvec[!toremove]
+        Cmat <- Cmat[!toremove,,drop = F]
+        lb <- lb[!toremove]
+        ub <- ub[!toremove]
       }
       # Fit QP
-      fit <- quadprog::solve.QP(
+      fit <- do.call(solver_fun, list(
         Dmat = crossprod(Rmat[seq_len(wxqr$rank),seq_len(wxqr$rank)]),
         dvec = crossprod(effects[seq_len(wxqr$rank)],
           Rmat[seq_len(wxqr$rank),seq_len(wxqr$rank)]),
-        Amat = t(Cmat), bvec = bvec)
+        Cmat = Cmat, lb = lb, ub = ub, qp_pars = control$qp_pars))
       # Check results
       if (any(!is.finite(fit$solution))) {
         conv <- FALSE
@@ -248,7 +254,7 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
     }
     #######################################################################
     # Add warning if QR pivoting affects constraints (at last iteration)
-    consrem <- apply(control$Cmat[,-wxqr$pivot[seq_len(wxqr$rank)]] != 0,
+    consrem <- apply(control$Cmat[,-wxqr$pivot[seq_len(wxqr$rank)], drop = F] != 0,
       2, any)
     if (any(consrem)){
       warning("some constraints removed because of rank deficiency",
@@ -290,17 +296,16 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   n.ok <- nobs - sum(weights == 0)
   nulldf <- n.ok - as.integer(intercept)
   rank <- if (EMPTY) 0 else wxqr$rank
-  resdf <- n.ok - rank
-  aic.model <- aic(y, n, mu, weights, dev) + 2 * rank
+  resdf <- n.ok - rank + length(fit$iact) # We remove the number of active constraints from the df of the model
+  aic.model <- aic(y, nobs, mu, weights, dev) + 2 * rank
   list(coefficients = coef, residuals = residuals, fitted.values = mu,
     effects = if (!EMPTY) effects, R = if (!EMPTY) Rmat, qr = if (!EMPTY) wxqr,
     rank = rank, family = family, linear.predictors = eta,
     deviance = dev, aic = aic.model, null.deviance = nulldev,
-    iter = iter, inner.iter = fit$iterations[1],
-    weights = wt, prior.weights = weights, df.residual = resdf,
+    iter = iter, weights = wt, prior.weights = weights, df.residual = resdf,
     df.null = nulldf, y = y, converged = conv, boundary = boundary,
     ########################################################################
-    coef.unconstrained = fit$unconstrained.solution, active.cons = fit$iact,
-    Cmat = control$Cmat, bvec = control$bvec)
+    active.cons = fit$iact, inner.iter = fit$iterations,
+    Cmat = control$Cmat, lb = control$lb, ub = control$ub, class = "cirls")
   ##########################################################################
 }

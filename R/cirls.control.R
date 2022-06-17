@@ -2,7 +2,7 @@
 # Cmat is either a matrix with the right number of columns, or a named list of
 #   matrices for specific terms
 cirls.control <- function (epsilon = 1e-08, maxit = 25, trace = FALSE,
-  Cmat = NULL, bvec = 0L, bvectol = 1e-04)
+  Cmat = NULL, lb = 0L, ub = Inf, qp_solver = "osqp", qp_pars = list())
 {
   # Check valid convergence parameters
   if (!is.numeric(epsilon) || epsilon <= 0)
@@ -24,20 +24,40 @@ cirls.control <- function (epsilon = 1e-08, maxit = 25, trace = FALSE,
       }
     }
   }
-  # Check bvec and recycle if needed
-  if (NROW(bvec) != nrow(Cmat)){
-    bvec <- rep_len(bvec, nrow(Cmat))
+  # Check lb and recycle if needed
+  if (NROW(lb) != nrow(Cmat)){
+    lb <- rep_len(lb, nrow(Cmat))
   }
-  # tolerance level for bvec to avoid unfeasible solutions due to rounding
-  #   errors
-  bvec <- bvec + bvectol
+  # Same with ub and recycle if needed
+  if (NROW(ub) != nrow(Cmat)){
+    ub <- rep_len(ub, nrow(Cmat))
+  }
+  # Check that bounds are well specified
+  if (any(lb > ub)){
+    warning("lb should be lower than (or equal) ub")
+    lb2 <- pmin(lb, ub)
+    ub2 <- pmax(lb, ub)
+    lb <- lb2
+    ub <- ub2
+  }
   # Check that all constraints are proper
   zerocons <- rowSums(Cmat != 0) == 0
   if (any(zerocons)){
     warning("constraints containing only zeros have been removed")
     Cmat <- Cmat[!zerocons,]
-    bvec <- bvec[!zerocons]
+    lb <- lb[!zerocons]
+    ub <- ub[!zerocons]
   }
+  # Check row rank of Cmat
+  rowrk <- qr(t(Cmat))$rank
+  if (nrow(Cmat) > rowrk){
+    warning(paste0("Cmat does not have full row rank and inference won't ",
+      "be possible. Check for possibly redundant constraints"))
+  }
+  # Prepapre QP solver
+  qp_solver <- match.arg(qp_solver, c("quadprog", "osqp", "coneproj"))
+  qp_pars <- do.call(sprintf("%s.def", qp_solver), qp_pars)
+  # Return
   list(epsilon = epsilon, maxit = maxit, trace = trace, Cmat = Cmat,
-    bvec = bvec, bvectol = bvectol)
+    lb = lb, ub = ub, qp_solver = qp_solver, qp_pars = qp_pars)
 }
