@@ -11,6 +11,6 @@ osqp.fit <- function(Dmat, dvec, Cmat, lb, ub, qp_pars){
     pars = qp_pars)
   
   # Return
-  list(solution = 1 + res$x - 1, iterations = res$info$iter, 
+  list(solution = res$x, iterations = res$info$iter, 
     iact = which(res$y != 0))
 }

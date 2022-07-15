@@ -26,9 +26,9 @@ coneproj.fit <- function(Dmat, dvec, Cmat, lb, ub, qp_pars){
     msg = qp_pars$msg)
 
   # get active constraints
-  iact <- which((Amat %*% res$thetahat - bvec + 1) == 1)
+  iact <- which(mapply(all.equal, Amat %*% res$thetahat - bvec, 0))
 
   # Return
-  list(solution = res$thetahat - 1 + 1, iterations = res$steps,
+  list(solution = res$thetahat, iterations = res$steps,
     iact = unique(cmap[iact]))
 }

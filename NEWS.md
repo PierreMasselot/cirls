@@ -1,3 +1,15 @@
+# 0.2.1
+
+## New features
+- Initialization of a short documentation for several functions.
+
+## Bug fixes
+- `cirls.control` now checks for constraint matrix irreducibility.
+- `cirls.control` is now exported.
+- changed the function to determine redundant constraints in `check_cmat`
+- No warning message on row rank of `Cmat` anymore
+- `Cmat` is now checked only when there are more than one row
+
 # 0.2.0
 
 ## New features
@@ -12,5 +24,5 @@
 - Replaced bvec by lb (lower bound) and ub (upper bound). Allows equality constraints.
 - Added cirls class to glm output
 
-## Bug correction
+## Bug fixes
 - cirls.fit has the same behaviour as glm.fit when model overdetermined: fill with NAs

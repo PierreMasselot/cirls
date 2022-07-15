@@ -40,21 +40,23 @@ cirls.control <- function (epsilon = 1e-08, maxit = 25, trace = FALSE,
     lb <- lb2
     ub <- ub2
   }
-  # Check that all constraints are proper
-  zerocons <- rowSums(Cmat != 0) == 0
-  if (any(zerocons)){
-    warning("constraints containing only zeros have been removed")
-    Cmat <- Cmat[!zerocons,]
-    lb <- lb[!zerocons]
-    ub <- ub[!zerocons]
+  # Check irreducibility
+  if (nrow(Cmat) > 1){
+    chkc <- check_cmat(Cmat)
+    if (length(chkc$redundant) > 0){
+      Cmat <- Cmat[-chkc$redundant,,drop = F]
+      lb <- lb[-chkc$redundant]
+      ub <- ub[-chkc$redundant]
+      warning(paste0("Redundant constraints removed from Cmat: ",
+        paste(chkc$redundant, collapse = ", ")))
+    }
+    if (length(chkc$equality) > 0){
+      warning(paste0("Underlying equality constraints: ",
+        paste(chkc$equality, collapse = ", "), ". ",
+        "Consider using lb and ub to set equality constraints instead."))
+    }
   }
-  # Check row rank of Cmat
-  rowrk <- qr(t(Cmat))$rank
-  if (nrow(Cmat) > rowrk){
-    warning(paste0("Cmat does not have full row rank and inference won't ",
-      "be possible. Check for possibly redundant constraints"))
-  }
-  # Prepapre QP solver
+  # Prepare QP solver
   qp_solver <- match.arg(qp_solver, c("quadprog", "osqp", "coneproj"))
   qp_pars <- do.call(sprintf("%s.def", qp_solver), qp_pars)
   # Return

@@ -23,7 +23,7 @@ clist2cmat <- function(Clist, mt, x)
   if(any(diffncol)){
     stop(
       sprintf("constraint matrix of term(s) %s has the wrong number of columns",
-        paste(term_labs[diffncol], sep = ", "))
+        paste(term_labs[diffncol], collapse = ", "))
     )
   }
   #----- Fill the big constraint matrix

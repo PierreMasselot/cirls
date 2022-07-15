@@ -1,4 +1,3 @@
-#' @export
 cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   etastart = NULL, mustart = NULL, offset = rep.int(0, nobs),
   family = stats::gaussian(), control = list(), intercept = TRUE,
