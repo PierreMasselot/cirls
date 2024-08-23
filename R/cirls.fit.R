@@ -1,3 +1,65 @@
+#' Constrained Iteratively Reweighted Least-Squares
+#'
+#' @description Fits a generalized linear model with linear constraints on the coefficients through a Constrained Iteratively Reweighted Least-Squares (CIRLS) algorithm.
+#' This function is the constrained counterpart to [glm.fit][stats::glm.fit()] and is meant to be called by [glm][stats::glm()] through its `method` argument. See details for the main differences.
+#'
+#' @param x,y `x` is a design matrix and `y` is a vector of response observations. Usually internally computed by [glm][stats::glm()].
+#' @param weights An optional vector of observation weights.
+#' @param start Starting values for the parameters in the linear predictor.
+#' @param etastart Starting values for the linear predictor.
+#' @param mustart Starting values for the vector or means.
+#' @param offset An optional vector specifying a known component in the model. See [model.offset][stats::model.offset()].
+#' @param family The result of a call to a family function, describing the error distribution and link function of the model. See [family][stats::family()] for details of available family functions.
+#' @param control A list of parameters controlling the fitting process. See details and [cirls.control][cirls.control()].
+#' @param intercept Logical. Should an intercept be included in the null model?
+#' @param singular.ok Logical. If `FALSE`, the function returns an error for singular fits.
+#'
+#' @details This function is a plug-in for [glm][stats::glm()] and works similarly to [glm.fit][stats::glm.fit()]. In addition to the parameters already available in [glm.fit][stats::glm.fit()], `cirls.fit` allows the specification of a constraint matrix `Cmat` with bound vectors `lb` and `ub` on the regression coefficients. These additional parameters can be passed through the `control` list or through `...` in [glm][stats::glm()].
+#'
+#' The CIRLS algorithm is a modification of the classical IRLS algorithm in which each update of the regression coefficients is performed by a quadratic program (QP), ensuring the update stays within the feasible region defined by `Cmat`, `lb` and `ub`. More specifically, this feasible region is defined as
+#'
+#' `lb <= Cmat %*% coefficients <= ub`
+#'
+#' where `coefficients` is the coefficient vector returned by the model. This specification allows for any linear constraint, including equality ones.
+#'
+#' ## Specifying `Cmat`, `lb` and `ub`
+#'
+#' `Cmat` is a matrix that defines the linear constraints. If provided directly as a matrix, the number of columns in `Cmat` must match the number of coefficients estimated by [glm][stats::glm()]. This includes all variables that are not involved in any constraint potential expansion such as factors or splines for instance, as well as the intercept. Columns not involved in any constraint will be filled by 0s.
+#'
+#' Alternatively, it may be more convenient to pass `Cmat` as a list of constraint matrices for specific terms. This is advantageous if a single term should be constrained in a model containing many terms. If provided as a list, `Cmat` is internally expanded to create the full constraint matrix. See examples of constraint matrices below.
+#'
+#' `lb` and `ub` are vectors defining the bounds of the constraints. By default they are set to `0` and `Inf`, meaning that the linear combinations defined by `Cmat` should be positive, but any bounds are possible. When some elements of `lb` and `ub` are identical, they define equality constraints. Setting `lb = -Inf` and `ub = Inf` disable the constraints.
+#'
+#' ## Quadratic programming solvers
+#'
+#' The function [cirls.fit][cirls.fit()] relies on a quadratic programming solver. Several solver are currently available.
+#' - `"osqp"` (the default) solves the quadratic program via the Alternating Direction Method of Multipliers (ADMM). Internally it calls the function [solve_osqp][osqp::solve_osqp()].
+#' - `"quadprog"` performs a dual algorithm to solve the quadratic program. It relies on the function [solve.QP][quadprog::solve.QP()].
+#' - `"coneproj"` solves the quadratic program by a cone projection method. It relies on the function [qprog][coneproj::qprog()].
+#'
+#' Each solver has specific parameters that can be controlled through the argument `qp_pars`. Sensible defaults are set within [cirls.control][cirls.control()] and the user typically doesn't need to provide custom parameters.
+#'
+#' @return A `cirls` object inheriting from the class `glm`. At the moment, two non-standard methods specific to `cirls` objects are available: [vcov.cirls][vcov.cirls()] to obtain the coefficients variance-covariance matrix and [confint.cirls][confint.cirls()] to obtain confidence intervals. These custom methods account for the reduced degrees of freedom resulting from the constraints, see [vcov.cirls][vcov.cirls()] and [confint.cirls][confint.cirls()]. Any method for `glm` objects can be used, including the generic [coef][stats::coef()] or [summary][base::summary()] for instance.
+#'
+#' An object of class `cirls` includes all components from [glm][stats::glm()] objects, with the addition of:
+#' \item{active.cons}{vector of indices of the active constraints in the fitted model.}
+#' \item{inner.iter}{number of iterations performed by the last call to the QP solver.}
+#' \item{Cmat, lb, ub}{the (expanded) constraint matrix, and lower and upper bound vectors.}
+#'
+#' @seealso [vcov.cirls][vcov.cirls()], [confint.cirls][confint.cirls()] for methods specific to `cirls` objects. [cirls.control][cirls.control()] for fitting parameters specific to [cirls.fit][cirls.fit()]. [glm][stats::glm()] for details on `glm` objects.
+#'
+#' @references
+#' Goldfarb, D., Idnani, A., 1983. A numerically stable dual method for solving strictly convex quadratic programs. *Mathematical Programming* **27**, 1–33. [10.1007/BF02591962](https://doi.org/10.1007/BF02591962)
+#'
+#' Meyer, M.C., 2013. A Simple New Algorithm for Quadratic Programming with Applications in Statistics. *Communications in Statistics - Simulation and Computation* **42**, 1126–1139. [10.1080/03610918.2012.659820](https://doi.org/10.1080/03610918.2012.659820)
+#'
+#' Stellato, B., Banjac, G., Goulart, P., Bemporad, A., Boyd, S., 2020. OSQP: an operator splitting solver for quadratic programs. *Math. Prog. Comp.* **12**, 637–672. [10.1007/s12532-020-00179-2](https://doi.org/10.1007/s12532-020-00179-2)
+#'
+#' @examples
+#' # example code
+#'
+#'
+#' @export
 cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   etastart = NULL, mustart = NULL, offset = rep.int(0, nobs),
   family = stats::gaussian(), control = list(), intercept = TRUE,

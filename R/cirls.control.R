@@ -1,6 +1,23 @@
-
-# Cmat is either a matrix with the right number of columns, or a named list of
-#   matrices for specific terms
+#' Parameters controlling CIRLS fitting
+#'
+#' @description Internal function controlling the [glm][stats::glm()] fit with linear constraints. Typically only used internally by [cirls.fit][cirls.fit()], but may be used to construct a control argument.
+#'
+#' @param epsilon Positive convergence tolerance \eqn{\epsilon}; the algorithm converges when \eqn{|dev - dev_{old}|/(|dev| + 0.1) < \epsilon}.
+#' @param maxit Integer giving the maximal number of CIRLS iterations.
+#' @param trace Logical indicating if output should be produced for each iteration.
+#' @param Cmat Constraint matrix specifying the linear constraints applied to coefficients. Can also be provided as a list of matrices for specific terms.
+#' @param lb,ub Lower and upper bound vectors for the linear constraints. Identical values in `lb` and `ub` identify equality constraints. Recycled if length is different than the number of constraints defined by `Cmat`.
+#' @param qp_solver The quadratic programming solver. One of `"osqp"`, `"quadprog"` or `"coneproj"`.
+#' @param qp_pars List of parameters specific to the quadratic programming solver. See respective packages help.
+#'
+#' @details
+#' The `control` argument of [glm][stats::glm()] is by default passed to the `control` argument of [cirls.fit][cirls.fit()], which uses its elements as arguments for [cirls.control][cirls.control()]: the latter provides defaults and sanity checking. The control parameters can alternatively be passed through the `...` argument of [glm][stats::glm()]. See [glm.control][stats::glm.control()] for details on general GLM fitting control, and [cirls.fit][cirls.fit()] for details on arguments specific to constrained GLMs.
+#'
+#' @returns A named list containing arguments to be used in [cirls.fit][cirls.fit()].
+#'
+#' @seealso the main function [cirls.fit][cirls.fit()], and [glm.control][stats::glm.control()].
+#'
+#' @export
 cirls.control <- function (epsilon = 1e-08, maxit = 25, trace = FALSE,
   Cmat = NULL, lb = 0L, ub = Inf, qp_solver = "osqp", qp_pars = list())
 {

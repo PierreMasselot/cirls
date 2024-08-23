@@ -17,8 +17,8 @@ Description: Provides a method to fit generalized additive models with coefficie
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+Roxygen: list(markdown = TRUE, old_usage = TRUE)
+RoxygenNote: 7.3.1
 Imports: 
     quadprog,
 	osqp,

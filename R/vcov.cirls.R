@@ -4,6 +4,8 @@
 #
 ################################################################################
 
+#' @rdname confint.cirls
+#' @export
 vcov.cirls <- function(object, nsim = 1000, ...)
 {
   aliased <- summary(object)$aliased
