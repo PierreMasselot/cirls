@@ -1,9 +1,11 @@
 ################################################################################
 #
-#    Simulate coefficients from trunctaed multivariate normal
+#    Simulate coefficients from truncated multivariate normal
 #
 ################################################################################
 
+#' @rdname confint.cirls
+#' @export
 coef_simu <- function(object, nsim = 1000)
 {
   # Extract original covariance matrix

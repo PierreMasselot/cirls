@@ -140,7 +140,7 @@ betasum <- sum(betas)
 cone_eq <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = t(rep(1, p))),
   lb = betasum, ub = betasum, qp_solver = "coneproj")
 
-test_that("osqp solver is integrated", {
+test_that("coneproj solver is integrated", {
   expect_true(all(coef(cone_pos)[-1] >= (0 - 1e-6)))
   expect_true(all(diff(coef(cone_inc)[-1]) >= (0 - 1e-6)))
   expect_equal(sum(coef(cone_eq)[-1]), betasum)

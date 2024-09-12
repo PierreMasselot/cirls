@@ -2,7 +2,7 @@
 #'
 #' @description Internal function controlling the [glm][stats::glm()] fit with linear constraints. Typically only used internally by [cirls.fit][cirls.fit()], but may be used to construct a control argument.
 #'
-#' @param epsilon Positive convergence tolerance \eqn{\epsilon}; the algorithm converges when \eqn{|dev - dev_{old}|/(|dev| + 0.1) < \epsilon}.
+#' @param epsilon Positive convergence tolerance. The algorithm converges when the relative change in deviance is smaller than `epsilon`.
 #' @param maxit Integer giving the maximal number of CIRLS iterations.
 #' @param trace Logical indicating if output should be produced for each iteration.
 #' @param Cmat Constraint matrix specifying the linear constraints applied to coefficients. Can also be provided as a list of matrices for specific terms.
@@ -16,6 +16,8 @@
 #' @returns A named list containing arguments to be used in [cirls.fit][cirls.fit()].
 #'
 #' @seealso the main function [cirls.fit][cirls.fit()], and [glm.control][stats::glm.control()].
+#'
+#' @example man/examples/cirls.control.R
 #'
 #' @export
 cirls.control <- function (epsilon = 1e-08, maxit = 25, trace = FALSE,

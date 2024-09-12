@@ -8,7 +8,7 @@ cirls.control(epsilon = 1e-08, maxit = 25, trace = FALSE, Cmat = NULL,
   lb = 0L, ub = Inf, qp_solver = "osqp", qp_pars = list())
 }
 \arguments{
-\item{epsilon}{Positive convergence tolerance \eqn{\epsilon}; the algorithm converges when \eqn{|dev - dev_{old}|/(|dev| + 0.1) < \epsilon}.}
+\item{epsilon}{Positive convergence tolerance. The algorithm converges when the relative change in deviance is smaller than \code{epsilon}.}
 
 \item{maxit}{Integer giving the maximal number of CIRLS iterations.}
 
@@ -30,6 +30,27 @@ Internal function controlling the \link[stats:glm]{glm} fit with linear constrai
 }
 \details{
 The \code{control} argument of \link[stats:glm]{glm} is by default passed to the \code{control} argument of \link[=cirls.fit]{cirls.fit}, which uses its elements as arguments for \link[=cirls.control]{cirls.control}: the latter provides defaults and sanity checking. The control parameters can alternatively be passed through the \code{...} argument of \link[stats:glm]{glm}. See \link[stats:glm.control]{glm.control} for details on general GLM fitting control, and \link[=cirls.fit]{cirls.fit} for details on arguments specific to constrained GLMs.
+}
+\examples{
+# Simulate predictors and response with some negative coefficients
+set.seed(111)
+n <- 100
+p <- 10
+betas <- rep_len(c(1, -1), p)
+x <- matrix(rnorm(n * p), nrow = n)
+y <- x \%*\% betas + rnorm(n)
+
+# Define constraint matrix (includes intercept)
+# By default, bounds are 0 and +Inf
+Cmat <- cbind(0, diag(p))
+
+# Fit GLM by CIRLS
+res1 <- glm(y ~ x, method = cirls.fit, Cmat = Cmat)
+coef(res1)
+
+# Same as passing Cmat through the control argument
+res2 <- glm(y ~ x, method = cirls.fit, control = list(Cmat = Cmat))
+identical(coef(res1), coef(res2))
 }
 \seealso{
 the main function \link[=cirls.fit]{cirls.fit}, and \link[stats:glm.control]{glm.control}.

@@ -49,15 +49,13 @@
 #' @seealso [vcov.cirls][vcov.cirls()], [confint.cirls][confint.cirls()] for methods specific to `cirls` objects. [cirls.control][cirls.control()] for fitting parameters specific to [cirls.fit][cirls.fit()]. [glm][stats::glm()] for details on `glm` objects.
 #'
 #' @references
-#' Goldfarb, D., Idnani, A., 1983. A numerically stable dual method for solving strictly convex quadratic programs. *Mathematical Programming* **27**, 1–33. [10.1007/BF02591962](https://doi.org/10.1007/BF02591962)
+#' Goldfarb, D., Idnani, A., 1983. A numerically stable dual method for solving strictly convex quadratic programs. *Mathematical Programming* **27**, 1–33. \doi{10.1007/BF02591962}
 #'
-#' Meyer, M.C., 2013. A Simple New Algorithm for Quadratic Programming with Applications in Statistics. *Communications in Statistics - Simulation and Computation* **42**, 1126–1139. [10.1080/03610918.2012.659820](https://doi.org/10.1080/03610918.2012.659820)
+#' Meyer, M.C., 2013. A Simple New Algorithm for Quadratic Programming with Applications in Statistics. *Communications in Statistics - Simulation and Computation* **42**, 1126–1139. \doi{10.1080/03610918.2012.659820}
 #'
-#' Stellato, B., Banjac, G., Goulart, P., Bemporad, A., Boyd, S., 2020. OSQP: an operator splitting solver for quadratic programs. *Math. Prog. Comp.* **12**, 637–672. [10.1007/s12532-020-00179-2](https://doi.org/10.1007/s12532-020-00179-2)
+#' Stellato, B., Banjac, G., Goulart, P., Bemporad, A., Boyd, S., 2020. OSQP: an operator splitting solver for quadratic programs. *Math. Prog. Comp.* **12**, 637–672. \doi{10.1007/s12532-020-00179-2}
 #'
-#' @examples
-#' # example code
-#'
+#' @example man/examples/cirls.fit.R
 #'
 #' @export
 cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,

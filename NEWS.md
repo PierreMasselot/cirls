@@ -1,3 +1,12 @@
+# 0.3.0
+
+## New features
+- Added `check_cmat` and `coef_simu` to the list of exported functions as they can be useful for specific use cases.
+- Added full documentation.
+
+## Bug fixes
+- In `check_cmat`, removed the call to `limSolve::nnls()` to be replaced by `coneproj::coneB` (also a NNLS solver) to reduce the number of dependencies.
+
 # 0.2.1
 
 ## New features
@@ -25,4 +34,4 @@
 - Added cirls class to glm output
 
 ## Bug fixes
-- cirls.fit has the same behaviour as glm.fit when model overdetermined: fill with NAs
+- cirls.fit has the same behaviour as glm.fit when model is singular: fill with NAs

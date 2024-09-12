@@ -1,29 +1,55 @@
-# cirls: Constrained iteratively reweighted least-squares
+# cirls: Constrained Iteratively Reweighted Least Squares
+
+<!-- badges: start -->
+  [![R-CMD-check](https://github.com/PierreMasselot/cirls/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PierreMasselot/cirls/actions/workflows/R-CMD-check.yaml)
+  [![](https://www.r-pkg.org/badges/version/cirls?color=green)](https://cran.r-project.org/package=cirls)
+<!-- badges: end -->
 
 The package `cirls` provides routines to fit Generalized Linear Models (GLM) with coefficients subject to linear constraints, through a constrained iteratively reweighted least-squares algorithm. 
 
 ## Installation
 
-The package `cirls` is currently *under devopment* and not yet submitted to CRAN. The current version can be installed through the `devtools` package as
+The easiest way to install the `cirls` package is to install it from CRAN
 
 ```R
-install_github("PierreMasselot/cirls")
+
+install.packages("cirls")
+
 ```
 
-and can then be loaded as usual `library(cirls)`.
+Although not recommended, the development version can be installed from GitHub using the `devtools` package as
+
+```R
+devtools::install_github("PierreMasselot/cirls")
+```
 
 ## Usage
 
-The central function of the package is `cirls.fit` meant to be passed through the `method` argument of the `glm` function. The user is also expected to pass a either constraint matrix or a list of constraint matrices through the `Cmat` argument. Typical usage is then:
+The central function of the package is `cirls.fit` meant to be passed through the `method` argument of the `glm` function. The user is also expected to pass a either constraint matrix or a list of constraint matrices through the `Cmat` argument, and optionally lower and upper bound vectors `lb` and `ub`. 
+
+The package also contains dedicated methods to extract the variance-covariance matrix of the coefficients `vcov. cirls` as well as confidence intervals `confint.cirls`.
+
+The example below show how to use the package to perform nonnegative regression. See `?cirls.fit` for more comprehensive examples.
 
 ```R
-consres <- glm(y ~ x + z, method = "cirls.fit", Cmat = Cmat)
-```
+# Simulate predictors and response with some negative coefficients
+set.seed(111)
+n <- 100
+p <- 10
+betas <- rep_len(c(1, -1), p)
+x <- matrix(rnorm(n * p), nrow = n)
+y <- x %*% betas + rnorm(n)
 
-or equivalently
+# Define constraint matrix
+Cmat <- diag(p)
 
-```R
-consres <- glm(y ~ x + z, method = "cirls.fit", Cmat = list(x = cx, z = cz))
+# Fit GLM by CIRLS
+res <- glm(y ~ x, method = cirls.fit, Cmat = list(x = Cmat))
+coef(res)
+
+# Obtain vcov and confidence intervals
+vcov(res)
+confint(res)
 ```
 
 ## References
