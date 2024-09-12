@@ -1,7 +1,6 @@
 # cirls: Constrained Iteratively Reweighted Least Squares
 
 <!-- badges: start -->
-  [![R-CMD-check](https://github.com/PierreMasselot/cirls/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PierreMasselot/cirls/actions/workflows/R-CMD-check.yaml)
   [![](https://www.r-pkg.org/badges/version/cirls?color=green)](https://cran.r-project.org/package=cirls)
 <!-- badges: end -->
 
