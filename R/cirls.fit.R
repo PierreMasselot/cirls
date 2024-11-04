@@ -93,9 +93,8 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   dev.resids <- family$dev.resids
   aic <- family$aic
   mu.eta <- family$mu.eta
-  unless.null <- function(x, if.null) if (is.null(x)) if.null else x
-  valideta <- unless.null(family$valideta, function(eta) TRUE)
-  validmu <- unless.null(family$validmu, function(mu) TRUE)
+  valideta <- family$valideta %||% function(eta) TRUE
+  validmu <- family$validmu %||% function(mu) TRUE
   if (is.null(mustart)) {
     eval(family$initialize)
   } else {
@@ -184,7 +183,8 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
       Rmat <- qr.R(wxqr)
       effects <- qr.qty(wxqr, wz)
       # Pivoting in Cmat
-      Cmat <- control$Cmat[,wxqr$pivot[seq_len(wxqr$rank)], drop = F]
+      seqpiv <- seq_len(wxqr$rank)
+      Cmat <- control$Cmat[,wxqr$pivot[seqpiv], drop = F]
       lb <- control$lb
       ub <- control$ub
       toremove <- apply(Cmat == 0, 1, all)
@@ -195,9 +195,8 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
       }
       # Fit QP
       fit <- do.call(solver_fun, list(
-        Dmat = crossprod(Rmat[seq_len(wxqr$rank),seq_len(wxqr$rank)]),
-        dvec = crossprod(effects[seq_len(wxqr$rank)],
-          Rmat[seq_len(wxqr$rank),seq_len(wxqr$rank)]),
+        Dmat = crossprod(Rmat[seqpiv,seqpiv]),
+        dvec = crossprod(effects[seqpiv], Rmat[seqpiv,seqpiv]),
         Cmat = Cmat, lb = lb, ub = ub, qp_pars = control$qp_pars))
       # Check results
       if (any(!is.finite(fit$solution))) {
@@ -215,7 +214,7 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
       if (!singular.ok && wxqr$rank < nvars) stop("singular fit encountered")
       # Update objects
       start <- rep(0, nvars)
-      start[wxqr$pivot[seq_len(wxqr$rank)]] <- fit$solution
+      start[wxqr$pivot[seqpiv]] <- fit$solution
       ######################################################
       eta <- drop(x %*% start)
       mu <- linkinv(eta <- eta + offset)
@@ -313,8 +312,7 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
     }
     #######################################################################
     # Add warning if QR pivoting affects constraints (at last iteration)
-    consrem <- apply(control$Cmat[,-wxqr$pivot[seq_len(wxqr$rank)], drop = F] != 0,
-      2, any)
+    consrem <- apply(control$Cmat[,-wxqr$pivot[seqpiv], drop = F] != 0, 2, any)
     if (any(consrem)){
       warning("some constraints removed because of rank deficiency",
         call. = FALSE)
@@ -345,8 +343,7 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   names(weights) <- ynames
   names(y) <- ynames
   if (!EMPTY){
-    names(effects) <- c(xxnames[seq_len(wxqr$rank)], rep.int("",
-      sum(good) - wxqr$rank))
+    names(effects) <- c(xxnames[seqpiv], rep.int("", sum(good) - wxqr$rank))
   }
   # Null deviance
   wtdmu <- if (intercept) sum(weights * y)/sum(weights) else linkinv(offset)
