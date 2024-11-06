@@ -7,7 +7,7 @@
 #' @param trace Logical indicating if output should be produced for each iteration.
 #' @param Cmat Constraint matrix specifying the linear constraints applied to coefficients. Can also be provided as a list of matrices for specific terms.
 #' @param lb,ub Lower and upper bound vectors for the linear constraints. Identical values in `lb` and `ub` identify equality constraints. Recycled if length is different than the number of constraints defined by `Cmat`.
-#' @param qp_solver The quadratic programming solver. One of `"osqp"`, `"quadprog"` or `"coneproj"`.
+#' @param qp_solver The quadratic programming solver. One of `"quadprog"` (the default), `"osqp"` or `"coneproj"`.
 #' @param qp_pars List of parameters specific to the quadratic programming solver. See respective packages help.
 #'
 #' @details
@@ -21,7 +21,7 @@
 #'
 #' @export
 cirls.control <- function (epsilon = 1e-08, maxit = 25, trace = FALSE,
-  Cmat = NULL, lb = 0L, ub = Inf, qp_solver = "osqp", qp_pars = list())
+  Cmat = NULL, lb = 0L, ub = Inf, qp_solver = "quadprog", qp_pars = list())
 {
   # Check valid convergence parameters
   if (!is.numeric(epsilon) || epsilon <= 0)

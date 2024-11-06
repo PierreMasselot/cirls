@@ -1,3 +1,8 @@
+# Current development version
+
+## Changes
+- Changed the default QP solver to `quadprog` after some expriments.
+
 # 0.3.0
 
 ## New features

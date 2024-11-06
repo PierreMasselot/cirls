@@ -33,8 +33,8 @@
 #' ## Quadratic programming solvers
 #'
 #' The function [cirls.fit][cirls.fit()] relies on a quadratic programming solver. Several solver are currently available.
-#' - `"osqp"` (the default) solves the quadratic program via the Alternating Direction Method of Multipliers (ADMM). Internally it calls the function [solve_osqp][osqp::solve_osqp()].
-#' - `"quadprog"` performs a dual algorithm to solve the quadratic program. It relies on the function [solve.QP][quadprog::solve.QP()].
+#' - `"quadprog"` (the default) performs a dual algorithm to solve the quadratic program. It relies on the function [solve.QP][quadprog::solve.QP()].
+#' - `"osqp"` solves the quadratic program via the Alternating Direction Method of Multipliers (ADMM). Internally it calls the function [solve_osqp][osqp::solve_osqp()].
 #' - `"coneproj"` solves the quadratic program by a cone projection method. It relies on the function [qprog][coneproj::qprog()].
 #'
 #' Each solver has specific parameters that can be controlled through the argument `qp_pars`. Sensible defaults are set within [cirls.control][cirls.control()] and the user typically doesn't need to provide custom parameters.
