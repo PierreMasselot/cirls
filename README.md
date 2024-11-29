@@ -16,11 +16,13 @@ install.packages("cirls")
 
 ```
 
-Although not recommended, the development version can be installed from GitHub using the `devtools` package as
+The development version can be installed from GitHub using the `devtools` package as
 
 ```R
 devtools::install_github("PierreMasselot/cirls")
 ```
+
+Please check the file NEWS.md for changes in the development version compared to the CRAN one.
 
 ## Usage
 

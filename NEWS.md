@@ -1,5 +1,8 @@
 # Current development version
 
+## New features
+- New method `cons_shape` to build constraint matrices for shape-constrained splines. Currently works with classes `ns`, `bs` (from package `splines`), `ps` and `onebasis` (from `dlnm`). Also includes a default method for more general bases.
+
 ## Changes
 - Changed the default QP solver to `quadprog` after some expriments.
 

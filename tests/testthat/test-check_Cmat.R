@@ -23,7 +23,7 @@ test_that("check_cmat detects equality constraints", {
 
 #----- Reducible constraints
 
-p <- 5
+p <- 10
 
 # Increasing convex
 # because of convexity, the positive difference between coef 2 and 3 on is redundant

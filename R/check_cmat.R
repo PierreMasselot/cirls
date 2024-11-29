@@ -48,13 +48,20 @@ check_cmat <- function(Cmat){
     y <- tCmat[, i]
     x <- tCmat[, -c(i, which(redundant)), drop = F]
     # Check redundancy
-    res <- coneproj::coneB(y, x)
-    redundant[i] <- isTRUE(all.equal(y, drop(res$yhat)))
+    # res <- coneproj::coneB(y, x)$yhat # Returns error for some problems
+    # fit <- quadprog::solve.QP(crossprod(x), crossprod(y, x), diag(ncol(x))) # Does not accept non strictly positive definite matrices
+    # fit <- osqp::solve_osqp(crossprod(x), -crossprod(y, x), diag(ncol(x)),
+    #   pars = list(eps_abs = 1e-6, eps_rel = 1e-6, verbose = F)) # Not very accurate unless we increase the eps
+    # res <- x %*% fit$x
+    fit <- limSolve::nnls(x, y)
+    res <- x %*% fit$X
+    redundant[i] <- isTRUE(all.equal(y, drop(res)))
     if (!redundant[i]){
       # Check underlying equality constraint
-      # reseq <- limSolve::nnls(x, -y)
-      reseq <- coneproj::coneB(-y, x)
-      equality[i] <- isTRUE(all.equal(-y, drop(reseq$yhat)))
+      fiteq <- limSolve::nnls(x, -y)
+      reseq <- x %*% fiteq$X
+      # reseq <- coneproj::coneB(-y, x)$yhat # Returns error for some problems
+      equality[i] <- isTRUE(all.equal(-y, drop(reseq)))
     }
   }
   # Return indices

@@ -8,6 +8,7 @@
 
 osqp.def <- function(...){
   dots <- list(...)
-  default <- list(verbose = FALSE, polish = TRUE)
+  default <- list(verbose = FALSE, polish = TRUE,
+    eps_abs = 1e-6, eps_rel = 1e-6)
   utils::modifyList(default, dots)
 }
