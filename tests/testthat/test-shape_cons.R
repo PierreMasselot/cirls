@@ -6,7 +6,7 @@
 
 # Libraries containing splines
 library(splines)
-library(dlnm)
+suppressMessages(library(dlnm))
 
 #----- Generate data ------
 

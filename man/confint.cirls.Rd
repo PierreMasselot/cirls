@@ -6,16 +6,19 @@
 \alias{vcov.cirls}
 \title{Simulate coefficients, calculate Confidence Intervals and Variance-Covariance Matrix for a \code{cirls} object.}
 \usage{
-coef_simu(object, nsim = 1000)
+coef_simu(object, nsim = 1000, complete = TRUE)
 
-\method{confint}{cirls}(object, parm, level = 0.95, nsim = 1000, ...)
+\method{confint}{cirls}(object, parm, level = 0.95, nsim = 1000,
+  complete = TRUE, ...)
 
-\method{vcov}{cirls}(object, nsim = 1000, ...)
+\method{vcov}{cirls}(object, complete = TRUE, nsim = 1000, ...)
 }
 \arguments{
 \item{object}{A fitted \code{cirls} object.}
 
 \item{nsim}{The number of simulations to consider. Corresponds to \code{n} in \link[TruncatedNormal:tmvnorm]{rtmvnorm}. See details().}
+
+\item{complete}{If FALSE, doesn't return inference for undetermined coefficients in case of an over-determined model.}
 
 \item{parm}{A specification of which parameters to compute the confidence intervals for. Either a vector of numbers or a vector of names. If missing, all parameters are considered.}
 

@@ -13,6 +13,7 @@
 #' @param parm A specification of which parameters to compute the confidence intervals for. Either a vector of numbers or a vector of names. If missing, all parameters are considered.
 #' @param level The confidence level required.
 #' @param nsim The number of simulations to consider. Corresponds to `n` in [rtmvnorm][TruncatedNormal::tmvnorm()]. See details().
+#' @param complete If FALSE, doesn't return inference for undetermined coefficients in case of an over-determined model.
 #' @param ... Further arguments passed to or from other methods. Currently ignored.
 #'
 #' @details
@@ -44,43 +45,38 @@
 #' @example man/examples/new_methods.R
 #'
 #' @export
-confint.cirls <- function(object, parm, level = 0.95, nsim = 1000, ...)
+confint.cirls <- function(object, parm, level = 0.95, nsim = 1000,
+  complete = TRUE, ...)
 {
 
   # Select coefficients
-  pnames <- names(stats::coef(object))
+  aliased <- stats::summary.glm(object)$aliased
+  pnames <- names(aliased)
   if (missing(parm))
     parm <- pnames
   else if (is.numeric(parm))
     parm <- pnames[parm]
 
   # Remove if aliased
-  aliased <- stats::summary.glm(object)$aliased
-  parma <- parm[!aliased]
+  if (!complete) parm <- parm[!aliased[parm]]
 
   # Check constraint matrix
   Cmat <- object$Cmat
   rowrk <- qr(t(Cmat))$rank
   if (nrow(Cmat) > rowrk){
-    warning(paste0("Cannot perform inference because Cmat is not full row rank. ",
-      "Check for possibly redundant constraints"))
+    warning("Cannot perform inference because Cmat is not full row rank")
     return(matrix(NA, length(parm), 2, dimnames = list(parm, c("low", "high"))))
   }
 
   # Simulate from truncated multivariate normal
-  simures <- coef_simu(object, nsim)
+  simures <- coef_simu(object, nsim = nsim, complete = TRUE)
 
   # Compute limits
   lims <- c((1 - level) / 2, level + (1 - level) / 2)
-  res <- t(apply(simures[, parma, drop = F], 2, stats::quantile, lims))
+  res <- t(apply(simures[, parm, drop = F], 2, stats::quantile, lims,
+    na.rm = TRUE))
   colnames(res) <- c("low", "high")
 
-  # Add aliased and return
-  if(any(aliased)){
-    ares <- matrix(NA, length(parm), 2, dimnames = list(parm, c("low", "high")))
-    ares[parma,] <- res
-    return(ares)
-  } else {
-    return(res)
-  }
+  # Return
+  return(res)
 }

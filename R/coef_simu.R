@@ -6,7 +6,7 @@
 
 #' @rdname confint.cirls
 #' @export
-coef_simu <- function(object, nsim = 1000)
+coef_simu <- function(object, nsim = 1000, complete = TRUE)
 {
   # Extract original covariance matrix
   ovcov <- stats::summary.glm(object)$cov.scaled
@@ -47,12 +47,22 @@ coef_simu <- function(object, nsim = 1000)
 
   # Simulate from truncated MVN
   truncres[,!eqind] <- suppressWarnings(TruncatedNormal::rtmvnorm(n = nsim,
-    mu = rep(0, nrow(Bmat)), sigma = rectvcov, lb = lowervec, ub = uppervec))
+    mu = rep(0, nrow(Bmat)), sigma = rectvcov, lb = lowervec, ub = uppervec,
+    check = FALSE))
 
   # Backtransform simulations
   backtruncres <- betas + solve(Bmat) %*% t(truncres)
-  rownames(backtruncres) <- colnames(ovcov)
+
+  # Include NAs if complete = TRUE
+  if (complete) {
+    outsimu <- matrix(NA, nrow = nsim, ncol = length(aliased),
+      dimnames = list(NULL, names(aliased)))
+    outsimu[, which(!aliased)] <- t(backtruncres)
+  } else {
+    outsimu <- t(backtruncres)
+    colnames(outsimu) <- names(aliased[!aliased])
+  }
 
   # Export
-  t(backtruncres)
+  outsimu
 }

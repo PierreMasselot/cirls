@@ -329,6 +329,10 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
     # Update names
     names(coef) <- xnames
     colnames(wxqr$qr) <- xxnames
+    if (nr < nvars) {
+      Rmat <- diag(nvars)
+      Rmat[1L:nr,] <- qr.R(wxqr)
+    }
     dimnames(Rmat) <- list(xxnames, xxnames)
   }
   # Name to objects related to y

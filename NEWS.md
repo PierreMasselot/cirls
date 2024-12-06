@@ -5,6 +5,10 @@
 
 ## Changes
 - Changed the default QP solver to `quadprog` after some expriments.
+- Added the argument `complete` in inferential functions, to allow keeping or discarding aliased coefficients. Same interpretation as in `vcov.lm`.
+
+## Bug fixes
+- Fixed issue with R matrix when there was less observations than variables.
 
 # 0.3.0
 
