@@ -9,6 +9,7 @@
 
 ## Bug fixes
 - Fixed issue with R matrix when there was less observations than variables.
+- Fixed error from `solve.QP` when there are large values in the response.
 
 # 0.3.0
 

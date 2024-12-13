@@ -23,7 +23,7 @@ p <- length(betas)
 x <- matrix(rnorm(n * p), n, p)
 
 # Linear predictor
-eta <- 5 + x %*% betas
+eta <- 1 + x %*% betas
 
 # Simulate responses
 ynorm <- eta + rnorm(n, 0, .2)

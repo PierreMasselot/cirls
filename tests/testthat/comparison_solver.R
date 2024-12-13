@@ -58,3 +58,29 @@ coneprojres <- glm(y ~ x, method = "cirls.fit", Cmat = Cmat,
 # Compare
 plot(beta, pch = 16, xlab = "")
 matpoints(cbind(quadprogres, osqpres, coneprojres)[-1,])
+
+
+
+
+#--------------------
+# With large values
+#--------------------
+
+# Number of obs
+n <- 1000
+
+# Coefficients
+betas <- c(0, 1, 2, -1, 1)
+p <- length(betas)
+
+#----- Generate data
+
+# Uniform values between 0 and 1
+x <- matrix(rnorm(n * p), n, p)
+
+# Linear predictor
+eta <- 5 + x %*% betas
+
+# Simulate responses
+ynorm <- eta + rnorm(n, 0, .2)
+ypois <- rpois(n, exp(eta))

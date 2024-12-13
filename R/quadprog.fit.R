@@ -26,6 +26,13 @@ quadprog.fit <- function(Dmat, dvec, Cmat, lb, ub, qp_pars){
   cmap <- c(cmap, which(!iseq)[ubcons])
 
   #----- Fit QP
+
+  # Normalise the matrices to avoid erors due to huge numbers
+  sc <- norm(Dmat, "2")
+  Dmat <- Dmat / sc
+  dvec <- dvec / sc
+
+  # Fit
   res <- quadprog::solve.QP(Dmat, dvec, t(Amat), bvec, meq)
 
   # Extract active constraints
