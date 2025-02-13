@@ -10,7 +10,7 @@ dm <- function(l, knots, ord){
   kind <- (l + 1):(length(knots) - l)
   dlknots <- diff(knots[kind], ord - l)
 
-  # Average knot length (to avois very small or large numbers in Cmat)
+  # Average knot length (to avoid very small or large numbers in Cmat)
   avkl <- mean(diff(knots))
 
   # Compute the difference matrix

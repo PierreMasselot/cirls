@@ -8,4 +8,4 @@
 #' Constraint matrices for shape-constrained splines
 #'
 #' @export
-cons_shape <- function(x, ...) UseMethod("cons_shape")
+shapeConstr <- function(x, shape, ...) UseMethod("shapeConstr")

@@ -61,7 +61,7 @@ cirls.control <- function (epsilon = 1e-08, maxit = 25, trace = FALSE,
   }
   # Check irreducibility
   if (nrow(Cmat) > 1){
-    chkc <- check_cmat(Cmat)
+    chkc <- checkCmat(Cmat)
     if (length(chkc$redundant) > 0){
       Cmat <- Cmat[-chkc$redundant,,drop = F]
       lb <- lb[-chkc$redundant]

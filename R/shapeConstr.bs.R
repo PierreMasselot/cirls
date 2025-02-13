@@ -6,7 +6,7 @@
 ################################################################################
 
 #' @export
-cons_shape.bs <- function(x, diff = 0, sign = 1, ...){
+shapeConstr.bs <- function(x, shape, ...){
 
   # Extract specifications
   intercept <- attr(x, "intercept")
@@ -14,22 +14,16 @@ cons_shape.bs <- function(x, diff = 0, sign = 1, ...){
   knots <- c(rep(attr(x, "Boundary.knots"), ord), attr(x, "knots"))
   knots <- sort(knots)
 
-  # Check parameters
-  cpars <- chkcpars(diff, sign, intercept, ord)
-  ncons <- length(cpars$diff)
+  # Extract parameters
+  cpars <- chkshp(shape, ord)
 
-  # Initialise diagonal matrices
-  Cmat <- replicate(ncons, diag(length(knots) - ord), simplify = FALSE)
-
-  # Create Constraint matrices
-  ind <- cpars$diff > 0
-  Cmat[ind] <- Map(function(s, d) s * dmat(d, knots, ord),
-    cpars$sign[ind], cpars$diff[ind])
-
-  # Put together and remove redundant constraints
+  # Create Constraint matrix
+  Cmat <- lapply(cpars, function(cp) dmat(cp[1], cp[2], knots, ord))
   Cmat <- do.call(rbind, Cmat)
+
+  # Remove redundant constraints
   if (!intercept) Cmat <- Cmat[,-1]
-  chkc <- check_cmat(Cmat)
+  chkc <- checkCmat(Cmat)
   if (length(chkc$redundant) > 0) Cmat <- Cmat[-chkc$redundant, , drop = F]
 
   # Return

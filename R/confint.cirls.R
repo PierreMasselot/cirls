@@ -26,7 +26,7 @@
 #' `coef_simu` simulates from the TMVN above and transforms back the realisations into the coefficients space. These realisations are then used by the `confint` and `vcov` methods which compute empirical quantiles and variance-covariance matrix, respectively. `coef_simu` is called internally by `confint` and `vcov` and doesn't need to be used directly, but it can be used to check other summaries of the coefficients distribution.
 #'
 #' @note
-#' These methods only work when `Cmat` is of full row rank. If not the case, `Cmat` can be inspected through [check_cmat()].
+#' These methods only work when `Cmat` is of full row rank. If not the case, `Cmat` can be inspected through [checkCmat()].
 #'
 #' @returns
 #' For `confint`, a two-column matrix with columns giving lower and upper confidence limits for each parameter.
@@ -40,7 +40,7 @@
 #'
 #' Botev, Z.I., 2017, The normal law under linear restrictions: simulation and estimation via minimax tilting, *Journal of the Royal Statistical Society, Series B*, **79** (**1**), pp. 1–24.
 #'
-#' @seealso [rtmvnorm][TruncatedNormal::tmvnorm()] for the underlying routine to simulate from a TMVN. [check_cmat()] to check if the contraint matrix can be reduced.
+#' @seealso [rtmvnorm][TruncatedNormal::tmvnorm()] for the underlying routine to simulate from a TMVN. [checkCmat()] to check if the contraint matrix can be reduced.
 #'
 #' @example man/examples/new_methods.R
 #'

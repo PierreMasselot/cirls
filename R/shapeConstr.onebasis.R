@@ -6,19 +6,19 @@
 ################################################################################
 
 #' @export
-cons_shape.onebasis <- function(x, diff = 0, sign = 1, ...){
+shapeConstr.onebasis <- function(x, shape, ...){
 
   # Extract the right method
   fun <- attr(x, "fun")
-  met <- paste0("cons_shape.", fun)
-  if (!met %in% utils::methods("cons_shape")) {
-    warning(paste0("No existing 'cons_shape' method for '", fun,
+  met <- paste0("shapeConstr.", fun)
+  if (!met %in% utils::methods("shapeConstr")) {
+    warning(paste0("No existing 'shapeConstr' method for '", fun,
       "' functions. Using default method."))
-    met <- "cons_shape.default"
+    met <- "shapeConstr.default"
   }
 
   # Call the right method
-  pars <- list(x = x, diff = diff, sign = sign, intercept = attr(x, "intercept"))
+  pars <- list(x = x, shape = shape, intercept = attr(x, "intercept"))
   pars <- utils::modifyList(pars, list(...))
   pars <- pars[names(pars) %in% names(formals(met))]
   do.call(met, pars)

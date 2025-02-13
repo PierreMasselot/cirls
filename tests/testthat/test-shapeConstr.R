@@ -1,6 +1,6 @@
 ################################################################################
 #
-# Test that the cons_shape method works
+# Test that the shapeConstr method works
 #
 ################################################################################
 
@@ -40,7 +40,7 @@ for (b in tested_bases){
   basis <- do.call(b, list(x = X, df = p))
 
   # Generate constraint matrix
-  Cmat <- cons_shape(basis, diff = 1)
+  Cmat <- shapeConstr(basis, shape = "inc")
 
   # Fit model
   res <- apply(Y, 2, function(y) glm(y ~ basis, family = "quasipoisson",
@@ -49,7 +49,7 @@ for (b in tested_bases){
 
   # Test results
   test_that(paste0("Monotone increasing constraints work with ", b), {
-    expect_true(all(diff(res) >= -10^-10))
+    expect_true(all(diff(res) >= -sqrt(.Machine$double.eps)))
   })
   matplot(X, res, type = "l", col = "grey", main = paste0("Increasing: ", b))
   lines(X, eta, lwd = 2)
@@ -63,7 +63,7 @@ for (b in tested_bases){
   basis <- do.call(b, list(x = X, df = p))
 
   # Generate constraint matrix
-  Cmat <- cons_shape(basis, diff = 1, sign = -1)
+  Cmat <- shapeConstr(basis, shape = "dec")
 
   # Fit model
   res <- apply(Y, 2, function(y) glm(y ~ basis, family = "quasipoisson",
@@ -72,7 +72,7 @@ for (b in tested_bases){
 
   # Test results
   test_that(paste0("Monotone decreasing constraints work with ", b), {
-    expect_true(all(diff(res) <= 10^-10))
+    expect_true(all(diff(res) <= sqrt(.Machine$double.eps)))
   })
   matplot(X, res, type = "l", col = "grey", main = paste0("Decreasing: ", b))
   lines(X, eta, lwd = 2)
@@ -87,7 +87,7 @@ for (b in tested_bases){
   basis <- do.call(b, list(x = X, df = p))
 
   # Generate constraint matrix
-  Cmat <- cons_shape(basis, diff = 2)
+  Cmat <- shapeConstr(basis, shape = "cvx")
 
   # Fit model
   res <- apply(Y, 2, function(y) glm(y ~ basis, family = "quasipoisson",
@@ -96,7 +96,7 @@ for (b in tested_bases){
 
   # Test results
   test_that(paste0("Convex constraints work with ", b), {
-    expect_true(all(diff(res, diff = 2) >= -10^-10))
+    expect_true(all(diff(res, diff = 2) >= -sqrt(.Machine$double.eps)))
   })
   matplot(X, res, type = "l", col = "grey", main = paste0("Convex: ", b))
   lines(X, eta, lwd = 2)
@@ -111,7 +111,7 @@ for (b in tested_bases){
   basis <- do.call(b, list(x = X, df = p))
 
   # Generate constraint matrix
-  Cmat <- cons_shape(basis, diff = 2, sign = -1)
+  Cmat <- shapeConstr(basis, shape = "ccv")
 
   # Fit model
   res <- apply(Y, 2, function(y) glm(y ~ basis, family = "quasipoisson",
@@ -120,7 +120,7 @@ for (b in tested_bases){
 
   # Test results
   test_that(paste0("Concave constraints work with ", b), {
-    expect_true(all(diff(res, diff = 2) <= 10^-10))
+    expect_true(all(diff(res, diff = 2) <= sqrt(.Machine$double.eps)))
   })
   matplot(X, res, type = "l", col = "grey", main = paste0("Concave: ", b))
   lines(X, eta, lwd = 2)
@@ -139,8 +139,8 @@ for (b in tested_bases){
   basis2 <- do.call(b, list(x = X, df = p))
 
   # Generate constraint matrix
-  Cmat1 <- cons_shape(basis1, diff = 1)
-  Cmat2 <- cons_shape(basis2, diff = 1)
+  Cmat1 <- shapeConstr(basis1, shape = "inc")
+  Cmat2 <- shapeConstr(basis2, shape = "inc")
 
   # Test equality
   expect_true(all.equal(Cmat1, Cmat2))
@@ -149,6 +149,37 @@ for (b in tested_bases){
 # Test for basis with no method
 test_that("We get the default method for unknown onebasis", {
   strbasis <- onebasis(X, fun = "strata", df = p)
-  expect_warning(Cmat <- cons_shape(strbasis))
+  expect_warning(Cmat <- shapeConstr(strbasis, shape = "pos"))
   expect_true(all.equal(Cmat, diag(p)))
 })
+
+
+#-------------------------
+# Antonio's test
+#-------------------------
+
+# Generate data
+x1 <- 1:100
+mu <- x1/100 - (x1/100)^2 - 0.3*(x1/100)^3
+set.seed(13041975)
+y <- mu + rnorm(100,0,0.1)
+
+# Spline bases
+ks <- 1:4*20
+X <- ns(x1, knots = ks)
+
+# Fit
+Cmat <- shapeConstr(X, shape = c("dec", "ccv"))
+m <- glm(y ~ X, method = cirls.fit, Cmat = list(X=Cmat))
+pred <- predict(m)
+
+# Formal test
+test_that("More challengin test for ns", {
+  expect_true(all(diff(pred, diff = 2) <= sqrt(.Machine$double.eps)))
+  expect_true(all(diff(pred) <= sqrt(.Machine$double.eps)))
+})
+
+# Plot
+plot(x1,y)
+lines(x1,mu,type="l",col=1,lwd=2)
+lines(x1,pred,lwd=2, col=3)

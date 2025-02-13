@@ -1,15 +1,17 @@
 # Current development version
 
 ## New features
-- New method `cons_shape` to build constraint matrices for shape-constrained splines. Currently works with classes `ns`, `bs` (from package `splines`), `ps` and `onebasis` (from `dlnm`). Also includes a default method for more general bases.
+- New method `shapeConstr` to build constraint matrices for shape-constrained splines. Currently works with classes `ns`, `bs` (from package `splines`), `ps` and `onebasis` (from `dlnm`). Also includes a default method for more general bases.
 
 ## Changes
 - Changed the default QP solver to `quadprog` after some expriments.
 - Added the argument `complete` in inferential functions, to allow keeping or discarding aliased coefficients. Same interpretation as in `vcov.lm`.
+- `check_cmat` has been renamed `checkCmat`.
 
 ## Bug fixes
 - Fixed issue with R matrix when there was less observations than variables.
 - Fixed error from `solve.QP` when there are large values in the response.
+- Now `checkCmat` also checks if there are "zero" constraints
 
 # 0.3.0
 

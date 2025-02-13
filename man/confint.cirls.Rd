@@ -46,7 +46,7 @@ where TMVN represents a truncated Multivariate Normal distribution. \eqn{C} is t
 \code{coef_simu} simulates from the TMVN above and transforms back the realisations into the coefficients space. These realisations are then used by the \code{confint} and \code{vcov} methods which compute empirical quantiles and variance-covariance matrix, respectively. \code{coef_simu} is called internally by \code{confint} and \code{vcov} and doesn't need to be used directly, but it can be used to check other summaries of the coefficients distribution.
 }
 \note{
-These methods only work when \code{Cmat} is of full row rank. If not the case, \code{Cmat} can be inspected through \code{\link[=check_cmat]{check_cmat()}}.
+These methods only work when \code{Cmat} is of full row rank. If not the case, \code{Cmat} can be inspected through \code{\link[=checkCmat]{checkCmat()}}.
 }
 \examples{
 ####################################################
@@ -91,5 +91,5 @@ Geweke, J.F., 1996. Bayesian Inference for Linear Models Subject to Linear Inequ
 Botev, Z.I., 2017, The normal law under linear restrictions: simulation and estimation via minimax tilting, \emph{Journal of the Royal Statistical Society, Series B}, \strong{79} (\strong{1}), pp. 1–24.
 }
 \seealso{
-\link[TruncatedNormal:tmvnorm]{rtmvnorm} for the underlying routine to simulate from a TMVN. \code{\link[=check_cmat]{check_cmat()}} to check if the contraint matrix can be reduced.
+\link[TruncatedNormal:tmvnorm]{rtmvnorm} for the underlying routine to simulate from a TMVN. \code{\link[=checkCmat]{checkCmat()}} to check if the contraint matrix can be reduced.
 }

@@ -68,7 +68,7 @@ The function \link[=cirls.fit]{cirls.fit} relies on a quadratic programming solv
 \item \code{"coneproj"} solves the quadratic program by a cone projection method. It relies on the function \link[coneproj:qprog]{qprog}.
 }
 
-Each solver has specific parameters that can be controlled through the argument \code{qp_pars}. Sensible defaults are set within \link[=cirls.control]{cirls.control} and the user typically doesn't need to provide custom parameters. \code{"quadprog"} is set as the default being generally more reliable than the other solvers. \code{"osqp"} is faster but can sometimes result in inaccurate solutions, in which case it is recommended to increase convergence tolerance at the cost of speed.
+Each solver has specific parameters that can be controlled through the argument \code{qp_pars}. Sensible defaults are set within \link[=cirls.control]{cirls.control} and the user typically doesn't need to provide custom parameters. \code{"quadprog"} is set as the default being generally more reliable than the other solvers. \code{"osqp"} is faster but can be less accurate, in which case it is recommended to increase convergence tolerance at the cost of speed.
 }
 }
 \examples{
