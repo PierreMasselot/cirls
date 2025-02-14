@@ -5,6 +5,7 @@
 #
 ################################################################################
 
+#' @rdname shapeConstr
 #' @export
 shapeConstr.ns <- function(x, shape, ...){
 

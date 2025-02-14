@@ -5,6 +5,7 @@
 #
 ################################################################################
 
+#' @rdname shapeConstr
 #' @export
 shapeConstr.default <- function(x, shape, intercept = FALSE, ...) {
 

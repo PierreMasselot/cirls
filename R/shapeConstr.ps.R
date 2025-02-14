@@ -5,6 +5,7 @@
 #
 ################################################################################
 
+#' @rdname shapeConstr
 #' @export
 shapeConstr.ps <- function(x, shape, ...){
 

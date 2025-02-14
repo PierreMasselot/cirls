@@ -5,6 +5,7 @@
 #
 ################################################################################
 
+#' @rdname shapeConstr
 #' @export
 shapeConstr.onebasis <- function(x, shape, ...){
 
