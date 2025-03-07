@@ -9,12 +9,15 @@
 #' @export
 shapeConstr.default <- function(x, shape, intercept = FALSE, ...) {
 
+  # Matrix dimension
+  if (length(dim(x)) < 2) x <- as.matrix(x)
+  ord <- ncol(x)
+
   # Check parameters
-  cpars <- chkshp(shape)
+  cpars <- chkshp(shape, ord)
 
   # Create constraint matrices
-  ord <- max(sapply(cpars, "[", 1)) + 1
-  knots <- seq_len(ncol(x) + ord + !intercept)
+  knots <- seq_len(2 * ord + !intercept)
   Cmat <- lapply(cpars, function(cp) dmat(cp[1], cp[2], knots, ord))
   Cmat <- do.call(rbind, Cmat)
 

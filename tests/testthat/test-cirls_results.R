@@ -64,10 +64,10 @@ test_that("output contains all new elements", {
     names(poisinc)))
 
   # Cmat is correct
-  expect_equal(normpos$Cmat, cbind(0, cpos))
-  expect_equal(norminc$Cmat, cbind(0, cinc))
-  expect_equal(poispos$Cmat, cbind(0, cpos))
-  expect_equal(poisinc$Cmat, cbind(0, cinc))
+  expect_equal(normpos$Cmat, cbind(0, cpos), ignore_attr = T)
+  expect_equal(norminc$Cmat, cbind(0, cinc), ignore_attr = T)
+  expect_equal(poispos$Cmat, cbind(0, cpos), ignore_attr = T)
+  expect_equal(poisinc$Cmat, cbind(0, cinc), ignore_attr = T)
 
   # bounds are well computed
   expect_equal(normpos$lb, rep(0, p))

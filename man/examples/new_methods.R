@@ -24,12 +24,12 @@ vcov(resiso)
 # Extract confidence intervals
 confint(resiso)
 
-# We can extract the usual unconstrained vcov
-summary(resiso)$cov.scaled
-all.equal(vcov(resiso), summary(resiso)$cov.scaled)
+# We can extract the usual unconstrained matrix
+vcov(resiso, constrained = FALSE)
+all.equal(vcov(resiso, constrained = FALSE), summary(resiso)$cov.scaled)
 
 # Simulate from the distribution of coefficients
-sims <- coef_simu(resiso, nsim = 10)
+sims <- simulCoef(resiso, nsim = 10)
 
 # Check that all simulated coefficient vectors are feasible
 apply(resiso$Cmat %*% t(sims) >= resiso$lb, 2, all)

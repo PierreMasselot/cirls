@@ -36,14 +36,14 @@ A \code{cirls} object inheriting from the class \code{glm}. At the moment, two n
 An object of class \code{cirls} includes all components from \link[stats:glm]{glm} objects, with the addition of:
 \item{active.cons}{vector of indices of the active constraints in the fitted model.}
 \item{inner.iter}{number of iterations performed by the last call to the QP solver.}
-\item{Cmat, lb, ub}{the (expanded) constraint matrix, and lower and upper bound vectors.}
+\item{Cmat, lb, ub}{the constraint matrix, and lower and upper bound vectors. If provided as lists, the full expanded matrix and vectors are returned.}
 }
 \description{
 Fits a generalized linear model with linear constraints on the coefficients through a Constrained Iteratively Reweighted Least-Squares (CIRLS) algorithm.
 This function is the constrained counterpart to \link[stats:glm]{glm.fit} and is meant to be called by \link[stats:glm]{glm} through its \code{method} argument. See details for the main differences.
 }
 \details{
-This function is a plug-in for \link[stats:glm]{glm} and works similarly to \link[stats:glm]{glm.fit}. In addition to the parameters already available in \link[stats:glm]{glm.fit}, \code{cirls.fit} allows the specification of a constraint matrix \code{Cmat} with bound vectors \code{lb} and \code{ub} on the regression coefficients. These additional parameters can be passed through the \code{control} list or through \code{...} in \link[stats:glm]{glm}.
+This function is a plug-in for \link[stats:glm]{glm} and works similarly to \link[stats:glm]{glm.fit}. In addition to the parameters already available in \link[stats:glm]{glm.fit}, \code{cirls.fit} allows the specification of a constraint matrix \code{Cmat} with bound vectors \code{lb} and \code{ub} on the regression coefficients. These additional parameters can be passed through the \code{control} list or through \code{...} in \link[stats:glm]{glm} \emph{but not both}. If any parameter is passed through \code{control}, then \code{...} will be ignored.
 
 The CIRLS algorithm is a modification of the classical IRLS algorithm in which each update of the regression coefficients is performed by a quadratic program (QP), ensuring the update stays within the feasible region defined by \code{Cmat}, \code{lb} and \code{ub}. More specifically, this feasible region is defined as
 

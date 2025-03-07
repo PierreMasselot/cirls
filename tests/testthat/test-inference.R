@@ -37,13 +37,22 @@ cinc <- diff(diag(p))
 res <- glm(y ~ x, method = cirls.fit, Cmat = list(x = cinc))
 
 #------------------------------
+# Test methods
+#------------------------------
+
+test_that("S3 methods work", {
+  expect_true(identical(vcov(res, seed = 1), vcov.cirls(res, seed = 1)))
+  expect_true(identical(confint(res, seed = 1), confint.cirls(res, seed = 1)))
+})
+
+#------------------------------
 # Perform inference
 #------------------------------
 
 #----- Simulations
 
 # Simulate coefficients
-simcoef <- coef_simu(res, nsim = 100)
+simcoef <- simulCoef(res, nsim = 100)
 
 # Test they all respect constraint
 test_that("simulated coefficients respect constraints", {
@@ -56,9 +65,13 @@ test_that("simulated coefficients respect constraints", {
 # Get variance covariance
 cvcov <- vcov.cirls(res)
 
+# Check that we get the right vcov when unconstrained
+uvcov <- vcov.cirls(res, constrained = FALSE)
+
 # Check variance are all positive
 test_that("vcov matrix is well defined", {
   expect_true(all(diag(cvcov) > 0))
+  expect_true(identical(uvcov, stats:::vcov.glm(res)))
 })
 
 #----- Confidence intervals

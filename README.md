@@ -1,4 +1,4 @@
-# cirls: Constrained Iteratively Reweighted Least Squares
+# Constrained Iteratively Reweighted Least Squares
 
 <!-- badges: start -->
   [![](https://www.r-pkg.org/badges/version/cirls?color=green)](https://cran.r-project.org/package=cirls)

@@ -14,7 +14,7 @@
 #' @param intercept Logical. Should an intercept be included in the null model?
 #' @param singular.ok Logical. If `FALSE`, the function returns an error for singular fits.
 #'
-#' @details This function is a plug-in for [glm][stats::glm()] and works similarly to [glm.fit][stats::glm.fit()]. In addition to the parameters already available in [glm.fit][stats::glm.fit()], `cirls.fit` allows the specification of a constraint matrix `Cmat` with bound vectors `lb` and `ub` on the regression coefficients. These additional parameters can be passed through the `control` list or through `...` in [glm][stats::glm()].
+#' @details This function is a plug-in for [glm][stats::glm()] and works similarly to [glm.fit][stats::glm.fit()]. In addition to the parameters already available in [glm.fit][stats::glm.fit()], `cirls.fit` allows the specification of a constraint matrix `Cmat` with bound vectors `lb` and `ub` on the regression coefficients. These additional parameters can be passed through the `control` list or through `...` in [glm][stats::glm()] *but not both*. If any parameter is passed through `control`, then `...` will be ignored.
 #'
 #' The CIRLS algorithm is a modification of the classical IRLS algorithm in which each update of the regression coefficients is performed by a quadratic program (QP), ensuring the update stays within the feasible region defined by `Cmat`, `lb` and `ub`. More specifically, this feasible region is defined as
 #'
@@ -44,7 +44,7 @@
 #' An object of class `cirls` includes all components from [glm][stats::glm()] objects, with the addition of:
 #' \item{active.cons}{vector of indices of the active constraints in the fitted model.}
 #' \item{inner.iter}{number of iterations performed by the last call to the QP solver.}
-#' \item{Cmat, lb, ub}{the (expanded) constraint matrix, and lower and upper bound vectors.}
+#' \item{Cmat, lb, ub}{the constraint matrix, and lower and upper bound vectors. If provided as lists, the full expanded matrix and vectors are returned.}
 #'
 #' @seealso [vcov.cirls][vcov.cirls()], [confint.cirls][confint.cirls()] for methods specific to `cirls` objects. [cirls.control][cirls.control()] for fitting parameters specific to [cirls.fit][cirls.fit()]. [glm][stats::glm()] for details on `glm` objects.
 #'
@@ -358,6 +358,12 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   rank <- if (EMPTY) 0 else wxqr$rank
   resdf <- n.ok - rank + length(fit$iact) # We remove the number of active constraints from the df of the model
   aic.model <- aic(y, nobs, mu, weights, dev) + 2 * rank
+
+  # Modifying control list for output
+  glmenv <- parent.frame()
+  glmenv[["control"]][c("Cmat", "ub", "lb")] <- NULL
+
+  # Returning results
   list(coefficients = coef, residuals = residuals, fitted.values = mu,
     effects = if (!EMPTY) effects, R = if (!EMPTY) Rmat, qr = if (!EMPTY) wxqr,
     rank = rank, family = family, linear.predictors = eta,
@@ -366,6 +372,7 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
     df.null = nulldf, y = y, converged = conv, boundary = boundary,
     ########################################################################
     active.cons = fit$iact, inner.iter = fit$iterations,
-    Cmat = control$Cmat, lb = control$lb, ub = control$ub, class = "cirls")
+    Cmat = control$Cmat, lb = control$lb, ub = control$ub,
+    class = "cirls")
   ##########################################################################
 }

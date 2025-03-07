@@ -16,7 +16,7 @@ cirls.control(epsilon = 1e-08, maxit = 25, trace = FALSE, Cmat = NULL,
 
 \item{Cmat}{Constraint matrix specifying the linear constraints applied to coefficients. Can also be provided as a list of matrices for specific terms.}
 
-\item{lb, ub}{Lower and upper bound vectors for the linear constraints. Identical values in \code{lb} and \code{ub} identify equality constraints. Recycled if length is different than the number of constraints defined by \code{Cmat}.}
+\item{lb, ub}{Lower and upper bound vectors for the linear constraints. Identical values in \code{lb} and \code{ub} identify equality constraints. As for \code{Cmat} can be provided as a list of terms. If some terms are provided in \code{Cmat} but not in \code{lb} or \code{ub}, default values of 0 and Inf will be used, respectively.}
 
 \item{qp_solver}{The quadratic programming solver. One of \code{"quadprog"} (the default), \code{"osqp"} or \code{"coneproj"}.}
 
