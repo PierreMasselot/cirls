@@ -2,6 +2,9 @@
 
 ## New features
 - New method `shapeConstr` to build constraint matrices for shape-constrained splines. Currently works with classes `ns`, `bs` (from package `splines`), `ps` and `onebasis` (from `dlnm`). Also includes a default method for more general bases.
+- New function `edf` to compute observed and expected degrees of freedom for a fitted `cirls` object.
+- Method `logLik.cirls` for AIC and BIC computation.
+- New function `uncons` to return the unconstrained model.
 
 ## Changes
 - Changed the default QP solver to `quadprog` after some expriments.
@@ -11,11 +14,13 @@
 - `check_cmat` has been renamed `checkCmat`.
 - Now the `Cmat`, `lb` and `ub` used are not returned in the `control` object from the result of `glm` with `cirls.fit`.
 - Now `lb` and `ub` can be passed by term.
+- The element `aic` of a fitted `cirls` object is penalised by the number of active constraints.
 
 ## Bug fixes
 - Fixed issue with R matrix when there was less observations than variables.
 - Fixed error from `solve.QP` when there are large values in the response.
-- Now `checkCmat` also checks if there are "zero" constraints
+- Now `checkCmat` also checks if there are "zero" constraints.
+- Fixed a bug in `simulCoef`. Now includes a switch to simulate under the constrained or unconstrained model.
 
 # 0.3.0
 

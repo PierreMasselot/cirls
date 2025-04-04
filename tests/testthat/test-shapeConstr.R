@@ -183,3 +183,43 @@ test_that("More challengin test for ns", {
 plot(x1,y)
 lines(x1,mu,type="l",col=1,lwd=2)
 lines(x1,pred,lwd=2, col=3)
+
+#-------------------------
+# Factor
+#-------------------------
+
+# Parameters
+n <- 1000
+nsim <- 50
+
+# Generate a simple parabolic relationship
+X <- sample(1:10, n, replace = T)
+# eta <- log(10) + (x-.3)^2
+eta <- log(10) - .5 * sin(X * 1.6 * pi / 10)
+
+# Generate several
+set.seed(5)
+Y <- replicate(nsim, rpois(n, exp(eta)))
+
+#----- Factor
+
+# Transform as factor
+Xf <- factor(X)
+
+# Constraint matrix
+Cmat <- diff(diag(10))[,-1]
+
+# Basic test
+treat <- glm(Y[,1] ~ Xf, family = "quasipoisson", method = "cirls.fit",
+  Cmat = list(Xf = Cmat))
+plot(X, eta, pch = 16)
+points(X, predict(treat), pch = 15, col = 3)
+
+# Helmert contrasts
+Xf2 <- Xf
+contrasts(Xf2) <- "contr.sum"
+helm <- glm(Y[,1] ~ Xf2, family = "quasipoisson", method = "cirls.fit",
+  Cmat = list(Xf2 = Cmat))
+plot(X, eta, pch = 16)
+points(X, predict(treat), pch = 15, col = 3)
+model.matrix(helm)

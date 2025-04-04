@@ -48,11 +48,11 @@ clist2cmat <- function(Clist, mt, x)
 
   # Get where to replace matrix
   cdim <- cbind(nconsterm, ncolterm)
-  end <- apply(cdim,2,cumsum)
+  end <- cbind(cumsum(nconsterm), cumsum(ncolterm))
   start <- end - cdim + 1
-  matind <- array(seq(prod(colSums(cdim))),colSums(cdim))
-  ind <- unlist(lapply(whichcons,function(i)
-    matind[start[i,1]:end[i,1],start[i,2]:end[i,2]]))
+  matind <- array(seq(prod(colSums(cdim))), colSums(cdim))
+  ind <- unlist(lapply(whichcons, function(i)
+    matind[start[i,1]:end[i,1], start[i,2]:end[i,2]]))
 
   # Initialize with zeros and replace
   Cmat <- matrix(0, sum(nconsterm), sum(ncolterm))

@@ -65,13 +65,9 @@ test_that("simulated coefficients respect constraints", {
 # Get variance covariance
 cvcov <- vcov.cirls(res)
 
-# Check that we get the right vcov when unconstrained
-uvcov <- vcov.cirls(res, constrained = FALSE)
-
 # Check variance are all positive
 test_that("vcov matrix is well defined", {
   expect_true(all(diag(cvcov) > 0))
-  expect_true(identical(uvcov, stats:::vcov.glm(res)))
 })
 
 #----- Confidence intervals

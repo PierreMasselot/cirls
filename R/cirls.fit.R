@@ -356,8 +356,9 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   n.ok <- nobs - sum(weights == 0)
   nulldf <- n.ok - as.integer(intercept)
   rank <- if (EMPTY) 0 else wxqr$rank
-  resdf <- n.ok - rank + length(fit$iact) # We remove the number of active constraints from the df of the model
-  aic.model <- aic(y, nobs, mu, weights, dev) + 2 * rank
+  # We remove the number of active constraints from the df of the model
+  resdf <- n.ok - rank + length(fit$iact)
+  aic.model <- aic(y, nobs, mu, weights, dev) + 2 * (rank - length(fit$iact))
 
   # Modifying control list for output
   glmenv <- parent.frame()

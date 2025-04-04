@@ -44,7 +44,8 @@
 #'
 #' @order 1
 #' @export
-simulCoef <- function(object, nsim = 1, seed = NULL, complete = TRUE)
+simulCoef <- function(object, nsim = 1, seed = NULL, complete = TRUE,
+  constrained = TRUE)
 {
 
   # Set seed if necessary
@@ -54,58 +55,68 @@ simulCoef <- function(object, nsim = 1, seed = NULL, complete = TRUE)
     on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
   }
 
-  # Extract original covariance matrix
-  ovcov <- stats::summary.glm(object)$cov.scaled
+  # Extract unconstrained coefficients
+  ufit <- uncons(object)
+  ubeta <- stats::coef(ufit)
+  uvcov <- stats::vcov(ufit, complete = FALSE)
 
-  # Extract contraints
-  Cmat <- object$Cmat
-  lb <- object$lb
-  ub <- object$ub
+  # Aliased coefficients
+  aliased <- stats::summary.glm(ufit)$aliased
+  ubeta <- ubeta[!aliased]
 
-  # Check if any aliased coefficients and remove constraint if necessary
-  aliased <- stats::summary.glm(object)$aliased
-  betas <- stats::coef(object)[!aliased]
-  Cmat <- Cmat[,!aliased, drop = F]
-  keep <- rowSums(Cmat != 0)
-  Cmat <- Cmat[as.logical(keep),, drop = F]
-  lb <- lb[as.logical(keep)]
-  ub <- ub[as.logical(keep)]
+  #----- Extract constraints and transform to "square" domain then simulate
+  if (constrained){
+    # Extract contraints
+    Cmat <- object$Cmat
+    lb <- object$lb
+    ub <- object$ub
 
-  #----- We simulate from a truncated normal with covariance CVCt
+    # Remove constraints affected by aliased coefficients
+    Cmat <- Cmat[,!aliased, drop = F]
+    keep <- rowSums(Cmat != 0)
+    Cmat <- Cmat[as.logical(keep),, drop = F]
+    lb <- lb[as.logical(keep)]
+    ub <- ub[as.logical(keep)]
 
-  # To allow back transformation, we "augment" the covariance matrix with
-  #   its row null space
-  Hmat <- nullspace(t(Cmat))
-  Bmat <- rbind(Cmat, t(Hmat))
+    # To allow back transformation, we "augment" the constraint matrix with
+    #   its row null space (Tallis 1965)
+    Hmat <- nullspace(t(Cmat))
+    Bmat <- rbind(Cmat, t(Hmat))
 
-  # Transofrm V
-  rectvcov <- Bmat %*% ovcov %*% t(Bmat)
+    # Transform parameters
+    simvcov <- Bmat %*% uvcov %*% t(Bmat)
+    simbeta <- drop(Bmat %*% ubeta)
 
-  # Compute bounds of TMVN
-  lbaug <- c(lb, rep(-Inf, ncol(Hmat)))
-  lowervec <- lbaug - (Bmat %*% betas)
-  ubaug <- c(ub, rep(Inf, ncol(Hmat)))
-  uppervec <- ubaug - (Bmat %*% betas)
+    # Expand bounds for simulation
+    lowervec <- c(lb, rep(-Inf, ncol(Hmat)))
+    uppervec <- c(ub, rep(Inf, ncol(Hmat)))
 
-  # Initiate matrix with zeros for equality constraints
-  truncres <- matrix(0, nrow = nsim, ncol = nrow(Bmat))
-  eqind <- lowervec == uppervec
+    # Initiate matrix with zeros for equality constraints
+    truncres <- matrix(0, nrow = nsim, ncol = nrow(Bmat))
+    eqind <- lowervec == uppervec
 
-  # Simulate from truncated MVN
-  truncres[,!eqind] <- suppressWarnings(TruncatedNormal::rtmvnorm(n = nsim,
-    mu = rep(0, nrow(Bmat)), sigma = rectvcov, lb = lowervec, ub = uppervec,
-    check = FALSE))
+    # Simulate from truncated MVN
+    truncres[,!eqind] <- suppressWarnings(TruncatedNormal::rtmvnorm(n = nsim,
+      mu = simbeta, sigma = simvcov, lb = lowervec, ub = uppervec,
+      check = FALSE))
 
-  # Backtransform simulations
-  backtruncres <- betas + solve(Bmat) %*% t(truncres)
+    # Backtransform simulations
+    simu <- t(solve(Bmat) %*% t(truncres))
+  } else {
 
-  # Include NAs if complete = TRUE
+    #----- If not, simulate without bounds
+    simu <- TruncatedNormal::rtmvnorm(n = nsim, mu = ubeta, sigma = uvcov,
+      check = FALSE)
+  }
+
+  #----- Return, including NAs if complete == TRUE
+
   if (complete) {
     outsimu <- matrix(NA, nrow = nsim, ncol = length(aliased),
       dimnames = list(NULL, names(aliased)))
-    outsimu[, which(!aliased)] <- t(backtruncres)
+    outsimu[, which(!aliased)] <- simu
   } else {
-    outsimu <- t(backtruncres)
+    outsimu <- simu
     colnames(outsimu) <- names(aliased[!aliased])
   }
 

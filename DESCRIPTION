@@ -1,6 +1,6 @@
 Package: cirls
 Title: Constrained Iteratively Reweighted Least Squares
-Version: 0.3.1.9002
+Version: 0.3.1.9003
 Authors@R: c( 
     person(given = "Pierre",
            family = "Masselot",
@@ -25,7 +25,8 @@ Imports:
     coneproj,
     TruncatedNormal,
     stats,
-    limSolve
+    limSolve,
+	methods
 Suggests: 
     dlnm,
     splines,
