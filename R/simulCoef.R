@@ -15,7 +15,8 @@
 #' @param complete If FALSE, doesn't return inference for undetermined coefficients in case of an over-determined model.
 #' @param parm A specification of which parameters to compute the confidence intervals for. Either a vector of numbers or a vector of names. If missing, all parameters are considered.
 #' @param level The confidence level required.
-#' @param constrained If set to `FALSE` the unmodified GLM variance-covariance computed within [summary.glm()] is returned.
+#' @param constrained A logical switch indicating Whether to simulate from the constrained (the default) or unconstrained coefficients distribution.
+#' @param trunc If set to `FALSE` the unmodified GLM variance-covariance computed within [summary.glm()] is returned.
 #' @param ... Further arguments passed to or from other methods. For `vcov` and `confint` can be used to provide a `seed` for the internal coefficient simulation.
 #'
 #' @details
@@ -48,21 +49,25 @@ simulCoef <- function(object, nsim = 1, seed = NULL, complete = TRUE,
   constrained = TRUE)
 {
 
+  # Extract unconstrained coefficients
+  ufit <- uncons(object)
+  ubeta <- stats::coef(ufit, complete = FALSE)
+  uvcov <- stats::vcov(ufit, complete = FALSE)
+  aliased <- stats::summary.glm(ufit)$aliased
+
+  # Check uvcov exists
+  if (any(is.na(uvcov))){
+    warning("Impossible to perform inference: unconstrained vcov matrix undefined. Returning NAs")
+    return(matrix(NA, nsim, ifelse(complete, length(aliased), sum(aliased)),
+      dimnames = list(NULL, names(aliased))))
+  }
+
   # Set seed if necessary
   if (!is.null(seed)){
     R.seed <- get(".Random.seed", envir = .GlobalEnv)
     set.seed(seed)
     on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
   }
-
-  # Extract unconstrained coefficients
-  ufit <- uncons(object)
-  ubeta <- stats::coef(ufit)
-  uvcov <- stats::vcov(ufit, complete = FALSE)
-
-  # Aliased coefficients
-  aliased <- stats::summary.glm(ufit)$aliased
-  ubeta <- ubeta[!aliased]
 
   #----- Extract constraints and transform to "square" domain then simulate
   if (constrained){
@@ -77,6 +82,14 @@ simulCoef <- function(object, nsim = 1, seed = NULL, complete = TRUE,
     Cmat <- Cmat[as.logical(keep),, drop = F]
     lb <- lb[as.logical(keep)]
     ub <- ub[as.logical(keep)]
+
+    # Check constraint matrix
+    rowrk <- qr(t(Cmat))$rank
+    if (nrow(Cmat) > rowrk){
+      warning("Impossible to perform inference: constraint matrix not of full row rank. Returning NAs")
+      return(matrix(NA, nsim, ifelse(complete, length(aliased), sum(aliased)),
+        dimnames = list(NULL, names(aliased))))
+    }
 
     # To allow back transformation, we "augment" the constraint matrix with
     #   its row null space (Tallis 1965)

@@ -9,7 +9,7 @@
 #' @description
 #' Estimate expected degrees of freedom of a [cirls][cirls.fit()] object through simulations.
 #'
-#' @param object A `cirls` object or any object inheriting from `lm`.
+#' @param object A `cirls` object or any object inheriting from `lm`, see details.
 #' @param nsim The number of simulations.
 #' @param seed An optional seed for the random number generator. See [set.seed][set.seed()].
 #'
@@ -18,7 +18,9 @@
 #'
 #' This procedure allows to account for the randomness of degrees of freedom for the constrained model. Indeed, the observed degrees of freedom is the number of parameters minus the number of active constraints. However, the number of active constraints is random as, some constraints can be active or not depending on the observed data. For instance, in a model for which the constraints are binding, the expected degrees of freedom will be close to the observed one, while in a model in which the constraints are irrelevant, the expected degrees of freedom will be closer to the unconstrained (usual) ones.
 #'
-#' This function is implemented mainly for [cirls][cirls.fit()] objects. However, it also works for any object inheriting from `lm`. In this case, it will return the rank of the model, and attempt to find a value of effective degrees of freedom.
+#' # Note
+#'
+#' This function is implemented mainly for [cirls][cirls.fit()] objects and can return idiosyncratic results for other objects inheriting from `lm`. In this case, it will attempt to retrieve an 'edf' value, but simply return the rank of the model if this fails. For `glm` models for instance, it will return thrice the same value.
 #'
 #' @returns A vector of length three with components:
 #' \item{udf}{The *unconstrained* degrees of freedom, i.e. the rank plus any dispersion parameter for `glm` objects.}
@@ -59,11 +61,17 @@ edf <- function(object, nsim = 1000, seed = NULL){
     simures <- simulCoef(object, nsim = nsim, seed = seed, complete = TRUE,
       constrained = FALSE)
 
+    # Check aliased coefficients
+    aliased <- apply(is.na(simures), 2, all)
+    if (all(aliased)){
+      dfvec["edf"] <- NA
+      return(dfvec)
+    }
+
     # Remove aliased coefficients
     Cmat <- object$Cmat
     lb <- object$lb
     ub <- object$ub
-    aliased <- apply(is.na(simures), 2, all)
     Cmat <- Cmat[,!aliased, drop = F]
     keep <- rowSums(Cmat != 0)
     Cmat <- Cmat[as.logical(keep),, drop = F]
@@ -71,7 +79,7 @@ edf <- function(object, nsim = 1000, seed = NULL){
     ub <- ub[as.logical(keep)]
 
     # Check active constraints
-    cons <- Cmat %*% t(simures)
+    cons <- Cmat %*% t(simures[,!aliased])
     active <- cons <= lb | cons >= ub
 
     # Compute the number of active constraints for each simulations
@@ -83,7 +91,7 @@ edf <- function(object, nsim = 1000, seed = NULL){
     attr(dfvec, "actfreq") <- c(table(actdist)) / nsim
   } else {
     #----- If not constrained, try and extract a value
-    dfvec["edf"] <- object$edf
+    dfvec["edf"] <- object$edf %||% p
   }
 
   # Return

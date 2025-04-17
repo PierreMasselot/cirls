@@ -22,7 +22,7 @@ shapeConstr.default <- function(x, shape, intercept = FALSE, ...) {
   Cmat <- do.call(rbind, Cmat)
 
   # Put together and remove redundant constraints
-  if (!intercept) Cmat <- Cmat[,-1]
+  if (!intercept) Cmat <- Cmat[, -1, drop = F]
   chkc <- checkCmat(Cmat)
   if (length(chkc$redundant) > 0) Cmat <- Cmat[-chkc$redundant, , drop = F]
 

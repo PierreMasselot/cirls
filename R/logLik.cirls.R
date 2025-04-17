@@ -30,7 +30,7 @@ logLik.cirls <- function(object, df = "edf", ...){
   dfvec <- edf(object, ...)
 
   # Compute logLik
-  p <- dfvec["edf"]
+  p <- dfvec["odf"]
   val <- p - object$aic/2
 
   # Compute expected reduction in df due to constraints

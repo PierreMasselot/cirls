@@ -24,14 +24,6 @@ confint.cirls <- function(object, parm, level = 0.95, nsim = 1000,
   # Remove if aliased
   if (!complete) parm <- parm[!aliased[parm]]
 
-  # Check constraint matrix
-  Cmat <- object$Cmat
-  rowrk <- qr(t(Cmat))$rank
-  if (nrow(Cmat) > rowrk){
-    warning("Cannot perform inference because Cmat is not full row rank")
-    return(matrix(NA, length(parm), 2, dimnames = list(parm, c("low", "high"))))
-  }
-
   # simulate from truncated multivariate normal
   seed <- if ("seed" %in% names(dots)) dots$seed else NULL
   simures <- simulCoef(object, nsim = nsim, complete = TRUE, seed = seed)

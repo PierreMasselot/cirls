@@ -9,7 +9,7 @@
 ## Changes
 - Changed the default QP solver to `quadprog` after some expriments.
 - Added the argument `complete` in inferential functions, to allow keeping or discarding aliased coefficients. Same interpretation as in `vcov.lm`.
-- `vcov` now allows returning the usual variance-covariance returned by `vcov.glm` when `constrained = FALSE`.
+- `vcov` now allows returning the usual variance-covariance returned by `vcov.glm` when `trunc = FALSE`.
 - `simu_coef` renamed as `simulCoef` and now includes an argument to set the seed. 
 - `check_cmat` has been renamed `checkCmat`.
 - Now the `Cmat`, `lb` and `ub` used are not returned in the `control` object from the result of `glm` with `cirls.fit`.
@@ -21,6 +21,7 @@
 - Fixed error from `solve.QP` when there are large values in the response.
 - Now `checkCmat` also checks if there are "zero" constraints.
 - Fixed a bug in `simulCoef`. Now includes a switch to simulate under the constrained or unconstrained model.
+- `simulCoef` returns a NA matrix with a warning in the case of a staurated model.
 
 # 0.3.0
 
