@@ -15,6 +15,12 @@ A \link[stats:glm]{glm} object.
 \description{
 Takes a fitted \code{cirls} object and returns the corresponding unconstrained model. Works similarly to the \link[stats:update]{update} method by removing all argument specific to \link[=cirls.fit]{cirls.fit} from the call and evaluate it.
 }
+\details{
+\subsection{Note on starting values}{
+
+If any starting values were provided to fit the \code{cirls} object, they are not transferred to the fitting of the unconstrained model.
+}
+}
 \examples{
 # Generate some data
 n <- 1000

@@ -32,6 +32,9 @@
 #'
 #' In addition to the default method, `shapeConstr` currently supports several objects, creating an appropriate shape-constraint matrix depending on the object. The full list can be obtained by `methods(shapeConstr)`.
 #'
+#' ### General
+#' * [factor()]: for categorical variables. Extract the [contrasts][stats::contrasts()] to define the constraint matrix. here the `intercept` argument has the same interpretation as in the default method, i.e. if set to `TRUE` it means the `glm` model doesn't include an intercept externally to the factor. Note that, in this case, a simple dummy coding is done in R.
+#'
 #' ### From the [splines][splines::splines] package
 #'
 #' * [bs][splines::bs()]: B-splines.

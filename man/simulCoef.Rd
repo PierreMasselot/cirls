@@ -12,8 +12,8 @@ simulCoef(object, nsim = 1, seed = NULL, complete = TRUE,
 \method{confint}{cirls}(object, parm, level = 0.95, nsim = 1000,
   complete = TRUE, ...)
 
-\method{vcov}{cirls}(object, complete = TRUE, nsim = 1000,
-  constrained = TRUE, ...)
+\method{vcov}{cirls}(object, complete = TRUE, nsim = 1000, trunc = TRUE,
+  ...)
 }
 \arguments{
 \item{object}{A fitted \code{cirls} object.}
@@ -24,13 +24,15 @@ simulCoef(object, nsim = 1, seed = NULL, complete = TRUE,
 
 \item{complete}{If FALSE, doesn't return inference for undetermined coefficients in case of an over-determined model.}
 
-\item{constrained}{If set to \code{FALSE} the unmodified GLM variance-covariance computed within \code{\link[=summary.glm]{summary.glm()}} is returned.}
+\item{constrained}{A logical switch indicating Whether to simulate from the constrained (the default) or unconstrained coefficients distribution.}
 
 \item{parm}{A specification of which parameters to compute the confidence intervals for. Either a vector of numbers or a vector of names. If missing, all parameters are considered.}
 
 \item{level}{The confidence level required.}
 
 \item{...}{Further arguments passed to or from other methods. For \code{vcov} and \code{confint} can be used to provide a \code{seed} for the internal coefficient simulation.}
+
+\item{trunc}{If set to \code{FALSE} the unmodified GLM variance-covariance computed within \code{\link[=summary.glm]{summary.glm()}} is returned.}
 }
 \value{
 For \code{simulCoef}, a matrix with \code{nsim} rows containing simulated coefficients.

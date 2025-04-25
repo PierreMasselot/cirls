@@ -63,3 +63,17 @@ test_that("`uncons` can be used within another function", {
   expect_identical(coef(res0), f1)
   expect_identical(coef(res0), f2)
 })
+
+#------------------------
+# cirls.fit vs glm.fit without constraints
+#------------------------
+
+# With no actual constraint
+resu1 <- glm(y ~ x, method = cirls.fit,
+  Cmat = list(x = diff(diag(p))), lb = -Inf)
+# glm.fit
+resu2 <- glm(y ~ x)
+
+# Compare coefficients
+coef(resu1)
+coef(resu2)

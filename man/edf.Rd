@@ -7,7 +7,7 @@
 edf(object, nsim = 1000, seed = NULL)
 }
 \arguments{
-\item{object}{A \code{cirls} object or any object inheriting from \code{lm}.}
+\item{object}{A \code{cirls} object or any object inheriting from \code{lm}, see details.}
 
 \item{nsim}{The number of simulations.}
 
@@ -27,9 +27,11 @@ Estimate expected degrees of freedom of a \link[=cirls.fit]{cirls} object throug
 Simulates coefficient vectors from their unconstrained distribution, which is the non-truncated multivariate normal distribution. For each simulated vector, counts the number of violated constraints as the number of active constraints under the constrained distribution. The expected degrees of freedom is then the number of parameters minus the average number of active constraints.
 
 This procedure allows to account for the randomness of degrees of freedom for the constrained model. Indeed, the observed degrees of freedom is the number of parameters minus the number of active constraints. However, the number of active constraints is random as, some constraints can be active or not depending on the observed data. For instance, in a model for which the constraints are binding, the expected degrees of freedom will be close to the observed one, while in a model in which the constraints are irrelevant, the expected degrees of freedom will be closer to the unconstrained (usual) ones.
-
-This function is implemented mainly for \link[=cirls.fit]{cirls} objects. However, it also works for any object inheriting from \code{lm}. In this case, it will return the rank of the model, and attempt to find a value of effective degrees of freedom.
 }
+\section{Note}{
+This function is implemented mainly for \link[=cirls.fit]{cirls} objects and can return idiosyncratic results for other objects inheriting from \code{lm}. In this case, it will attempt to retrieve an 'edf' value, but simply return the rank of the model if this fails. For \code{glm} models for instance, it will return thrice the same value.
+}
+
 \examples{
 # Simulate a simple dataset
 set.seed(5)

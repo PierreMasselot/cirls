@@ -195,11 +195,10 @@ nsim <- 50
 # Generate a simple parabolic relationship
 X <- sample(1:10, n, replace = T)
 # eta <- log(10) + (x-.3)^2
-eta <- log(10) - .5 * sin(X * 1.6 * pi / 10)
+eta <- - .5 * sin(X * 1.6 * pi / 10)
 
 # Generate several
-set.seed(5)
-Y <- replicate(nsim, rpois(n, exp(eta)))
+Y <- rpois(n, exp(eta))
 
 #----- Factor
 
@@ -207,19 +206,40 @@ Y <- replicate(nsim, rpois(n, exp(eta)))
 Xf <- factor(X)
 
 # Constraint matrix
-Cmat <- diff(diag(10))[,-1]
+Cmat <- shapeConstr(Xf, "inc")
 
 # Basic test
-treat <- glm(Y[,1] ~ Xf, family = "quasipoisson", method = "cirls.fit",
+treat <- glm(Y ~ Xf, family = "quasipoisson", method = "cirls.fit",
   Cmat = list(Xf = Cmat))
 plot(X, eta, pch = 16)
 points(X, predict(treat), pch = 15, col = 3)
 
+# When intercept is "included" in the factor
+Cmat0 <- shapeConstr(Xf, "inc", intercept = TRUE)
+int <- glm(Y ~ 0 + Xf, family = "quasipoisson", method = "cirls.fit",
+  Cmat = list(Xf = Cmat0))
+plot(X, eta, pch = 16)
+points(X, predict(int), pch = 15, col = 3)
+
 # Helmert contrasts
 Xf2 <- Xf
-contrasts(Xf2) <- "contr.sum"
-helm <- glm(Y[,1] ~ Xf2, family = "quasipoisson", method = "cirls.fit",
-  Cmat = list(Xf2 = Cmat))
+contrasts(Xf2) <- "contr.helmert"
+Cmat2 <- shapeConstr(Xf2, "inc")
+helm <- glm(Y ~ Xf2, family = "quasipoisson", method = "cirls.fit",
+  Cmat = list(Xf2 = Cmat2))
 plot(X, eta, pch = 16)
-points(X, predict(treat), pch = 15, col = 3)
-model.matrix(helm)
+points(X, predict(helm), pch = 15, col = 3)
+# model.matrix(helm)
+
+# Tests
+test_that("Shape constraints on factors work", {
+  expect_true(all(
+    diff(predict(treat, newdata = data.frame(Xf = levels(Xf)))) >=
+      -sqrt(.Machine$double.eps)))
+  expect_true(all(
+    diff(predict(int, newdata = data.frame(Xf = levels(Xf)))) >=
+      -sqrt(.Machine$double.eps)))
+  expect_true(all(
+    diff(predict(helm, newdata = data.frame(Xf2 = levels(Xf2)))) >=
+      -sqrt(.Machine$double.eps)))
+})
