@@ -34,9 +34,11 @@ cirls.fit(x, y, weights = rep.int(1, nobs), start = NULL,
 A \code{cirls} object inheriting from the class \code{glm}. At the moment, two non-standard methods specific to \code{cirls} objects are available: \link[=vcov.cirls]{vcov.cirls} to obtain the coefficients variance-covariance matrix and \link[=confint.cirls]{confint.cirls} to obtain confidence intervals. These custom methods account for the reduced degrees of freedom resulting from the constraints, see \link[=vcov.cirls]{vcov.cirls} and \link[=confint.cirls]{confint.cirls}. Any method for \code{glm} objects can be used, including the generic \link[stats:coef]{coef} or \link[base:summary]{summary} for instance.
 
 An object of class \code{cirls} includes all components from \link[stats:glm]{glm} objects, with the addition of:
+\item{Cmat, lb, ub}{the constraint matrix, and lower and upper bound vectors. If provided as lists, the full expanded matrix and vectors are returned.}
 \item{active.cons}{vector of indices of the active constraints in the fitted model.}
 \item{inner.iter}{number of iterations performed by the last call to the QP solver.}
-\item{Cmat, lb, ub}{the constraint matrix, and lower and upper bound vectors. If provided as lists, the full expanded matrix and vectors are returned.}
+\item{etastart}{the initialisation of the linear predictor \code{eta}. The same as \code{etastart} when provided.}
+\item{singular.ok}{the value of the \code{singular.ok} argument.}
 }
 \description{
 Fits a generalized linear model with linear constraints on the coefficients through a Constrained Iteratively Reweighted Least-Squares (CIRLS) algorithm.

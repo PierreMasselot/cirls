@@ -58,7 +58,8 @@ clist2cmat <- function(Clist, mt, x)
   Cmat <- matrix(0, sum(nconsterm), sum(ncolterm))
   Cmat[ind] <- unlist(Clist)
 
-  # Add terms as attribute
+  # Add colnames and add terms as attribute
+  colnames(Cmat) <- dimnames(x)[[2L]]
   conslist <- lapply(whichcons, function(i) start[i,1]:end[i,1])
   names(conslist) <- names(Clist)
   attributes(Cmat)$terms <- conslist

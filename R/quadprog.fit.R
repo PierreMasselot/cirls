@@ -5,11 +5,12 @@
 ################################################################################
 
 quadprog.fit <- function(Dmat, dvec, Cmat, lb, ub, qp_pars){
+
   #----- Construct Cmat and bvec from lb and ub
   # Get equality constraints
   iseq <- lb == ub
   meq <- sum(iseq)
-  Amat <- Cmat[iseq,]
+  Amat <- Cmat[iseq,, drop = F]
   bvec <- lb[iseq]
   cmap <- which(iseq)
 
@@ -27,7 +28,7 @@ quadprog.fit <- function(Dmat, dvec, Cmat, lb, ub, qp_pars){
 
   #----- Fit QP
 
-  # Normalise the matrices to avoid erors due to huge numbers
+  # Normalise the matrices to avoid errors due to huge numbers
   sc <- norm(Dmat, "2")
   Dmat <- Dmat / sc
   dvec <- dvec / sc
@@ -40,5 +41,5 @@ quadprog.fit <- function(Dmat, dvec, Cmat, lb, ub, qp_pars){
 
   # Return
   list(solution = res$solution, iterations = res$iterations[1],
-    iact = unique(iact))
+    iact = sort(unique(iact)))
 }

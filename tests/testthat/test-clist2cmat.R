@@ -29,7 +29,7 @@ lmres <- lm(y ~ basis + basis1 + z, x = T)
 mt <- terms(lmres)
 x <- lmres$x
 
-#----- Test trasnformation of list into matrix
+#----- Test transformation of list into matrix
 test_that("it always returns a matrix", {
   expect_length(dim(clist2cmat(list(z = cz), mt, x)), 2)
 })

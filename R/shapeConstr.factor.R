@@ -23,7 +23,7 @@ shapeConstr.factor <- function(x, shape, intercept = FALSE, ...) {
   # Check if the "intercept" is not included, contrasts are applied
   # NB: no contrast is applied in R when the model does not include an intercept
   if (isFALSE(intercept)){
-    ctr <- contrasts(x)
+    ctr <- stats::contrasts(x)
     Cmat <- Cmat %*% ctr
   }
 

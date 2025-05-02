@@ -145,3 +145,27 @@ test_that("coneproj solver is integrated", {
   expect_true(all(diff(coef(cone_inc)[-1]) >= (0 - 1e-6)))
   expect_equal(sum(coef(cone_eq)[-1]), betasum)
 })
+
+
+
+#----- Test unconstrained model
+
+# Apply base GLM
+normglm <- glm(ynorm ~ x)
+poisglm <- glm(ypois ~ x, family = "poisson")
+
+# Apply CIRLS with no constraint (putting Inf)
+normuncons <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = cinc),
+  lb = -Inf, ub = Inf)
+poisuncons <- glm(ypois ~ x, family = "poisson",
+  method = cirls.fit, Cmat = list(x = cpos),
+  lb = -Inf, ub = Inf)
+
+# Check they are identical
+checkcomp <- c("coefficients", "residuals", "fitted.values", "effects", "R",
+  "rank", "family", "linear.predictors", "deviance", "aic", "null.deviance",
+  "weights", "df.residuals", "df.null")
+test_that("Unconstrained model return the same as base GLM", {
+  expect_equal(normglm[checkcomp], normuncons[checkcomp])
+  expect_equal(poisglm[checkcomp], poisuncons[checkcomp])
+})

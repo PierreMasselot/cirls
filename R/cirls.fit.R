@@ -42,9 +42,11 @@
 #' @return A `cirls` object inheriting from the class `glm`. At the moment, two non-standard methods specific to `cirls` objects are available: [vcov.cirls][vcov.cirls()] to obtain the coefficients variance-covariance matrix and [confint.cirls][confint.cirls()] to obtain confidence intervals. These custom methods account for the reduced degrees of freedom resulting from the constraints, see [vcov.cirls][vcov.cirls()] and [confint.cirls][confint.cirls()]. Any method for `glm` objects can be used, including the generic [coef][stats::coef()] or [summary][base::summary()] for instance.
 #'
 #' An object of class `cirls` includes all components from [glm][stats::glm()] objects, with the addition of:
+#' \item{Cmat, lb, ub}{the constraint matrix, and lower and upper bound vectors. If provided as lists, the full expanded matrix and vectors are returned.}
 #' \item{active.cons}{vector of indices of the active constraints in the fitted model.}
 #' \item{inner.iter}{number of iterations performed by the last call to the QP solver.}
-#' \item{Cmat, lb, ub}{the constraint matrix, and lower and upper bound vectors. If provided as lists, the full expanded matrix and vectors are returned.}
+#' \item{etastart}{the initialisation of the linear predictor `eta`. The same as `etastart` when provided.}
+#' \item{singular.ok}{the value of the `singular.ok` argument.}
 #'
 #' @seealso [vcov.cirls][vcov.cirls()], [confint.cirls][confint.cirls()] for methods specific to `cirls` objects. [cirls.control][cirls.control()] for fitting parameters specific to [cirls.fit][cirls.fit()]. [glm][stats::glm()] for details on `glm` objects.
 #'
@@ -63,38 +65,52 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   family = stats::gaussian(), control = list(), intercept = TRUE,
   singular.ok = TRUE)
 {
-  ################################################
-  # Prepare CIRLS parameters
+  #----- Prepare CIRLS parameters
   control <- do.call("cirls.control", control)
+  ### Separate the construction of Cmat and ub/lb from control
+  ### Allows to more easily pass mt and x typically
+  ### Also, now don't return an error if there is no constraint left, just a warning
+
+  # Keep terms in Cmat
+  ct <- attr(control$Cmat, "terms")
+
   # Extract solver
   solver_fun <- sprintf("%s.fit", control$qp_solver)
-  ################################################
+
+  #----- Initialize everything
+
   # Store variable names
   x <- as.matrix(x)
   xnames <- dimnames(x)[[2L]]
   ynames <- if (is.matrix(y)) rownames(y) else names(y)
+
   # initialize convergence to FALSE (i.e. not converged)
   conv <- FALSE
+
   # Dimensions
   nobs <- NROW(y)
   nvars <- ncol(x)
   EMPTY <- nvars == 0
+
   # Initialize weights
   if (is.null(weights)) weights <- rep.int(1, nobs)
+
   # Initialize offset
   if (is.null(offset)) offset <- rep.int(0, nobs)
-  # Intitalize family objects and check their validity
+
+  # Initialize family objects and check their validity
   variance <- family$variance
   linkinv <- family$linkinv
-  if (!is.function(variance) || !is.function(linkinv)){
+  if (!is.function(variance) || !is.function(linkinv))
     stop("'family' argument seems not to be a valid family object",
       call. = FALSE)
-  }
   dev.resids <- family$dev.resids
   aic <- family$aic
   mu.eta <- family$mu.eta
   valideta <- family$valideta %||% function(eta) TRUE
   validmu <- family$validmu %||% function(mu) TRUE
+
+  # Starting values
   if (is.null(mustart)) {
     eval(family$initialize)
   } else {
@@ -102,8 +118,11 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
     eval(family$initialize)
     mustart <- mukeep
   }
-  # Set the results if there is no variables
+
+  #----- If there is no variable, compute output
   if (EMPTY) {
+
+    # Linear predictor and response are just the offset
     eta <- rep.int(0, nobs) + offset
     if (!valideta(eta))
       stop("invalid linear predictor values in empty model",
@@ -112,21 +131,24 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
     if (!validmu(mu))
       stop("invalid fitted means in empty model",
         call. = FALSE)
+
+    # Compute deviance and residuals
     dev <- sum(dev.resids(y, mu, weights))
     w <- sqrt((weights * mu.eta(eta)^2)/variance(mu))
     residuals <- (y - mu)/mu.eta(eta)
+
+    # Other element: observations and convergence set to OK
     good <- rep_len(TRUE, length(residuals))
     boundary <- conv <- TRUE
     coef <- numeric()
     iter <- 0L
   } else {
-    # If variables not empty, estimate model
-    coefold <- NULL
-    # Intialize eta by user provided value
-    eta <- if (!is.null(etastart)){
-      etastart
-    } else {
-      # Or using user provided starting coefficients
+    #----- If model not empty, initialise model
+
+    # For starting value use, in order:
+    # 1) user provided eta
+    eta <- etastart %||% {
+      # 2) user provided start coefficients, 3) initialization of mu
       if (!is.null(start)){
         if (length(start) != nvars){
           stop(gettextf("length of 'start' should equal %d and correspond to initial coefs for %s",
@@ -138,23 +160,35 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
             x * start
             else x %*% start)
         }
-        # if not use defaul starting values
+        # 3) Default initialization of mu
       } else {
         family$linkfun(mustart)
       }
     }
-    mu <- linkinv(eta)
-    if (!(validmu(mu) && valideta(eta))){
+    etastart <- eta
+    mu <- family$linkinv(eta)
+    if (!(family$validmu(mu) && family$valideta(eta))){
       stop("cannot find valid starting values: please specify some",
         call. = FALSE)
     }
+
     # Initalize deviance for stopping criterion
     devold <- sum(dev.resids(y, mu, weights))
+
     # Initialize convergence flags
     boundary <- conv <- FALSE
-    #### Loop for IRLS
+
+    # Initialization of coefficients
+    coefold <- NULL
+
+    # Tolerance for QR decomposition (as in glm.fit)
+    tol <- min(1e-07, control$epsilon / 1000)
+
+    ################################################
+    # CIRLS
     for (iter in 1L:control$maxit) {
-      # Excluse observations with null weight
+
+      # Exclude observations with null weight
       good <- weights > 0
       varmu <- variance(mu)[good]
       if (anyNA(varmu)) stop("NAs in V(mu)")
@@ -168,20 +202,26 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
           iter), domain = NA)
         break
       }
+
       # Compute pseudo data
       z <- (eta - offset)[good] + (y - mu)[good]/mu.eta.val[good]
+
       # Compute pseudo weights
       w <- sqrt((weights[good] * mu.eta.val[good]^2)/variance(mu)[good])
+
       # Weigh data
       wx <- w * x
       wz <- w * z
+
       ######################################################
       # PART SPECIFIC TO CONSTRAINED GLM
       ######################################################
+
       # Compute QR decomposition of design matrix
-      wxqr <- qr(wx)
+      wxqr <- qr(wx, tol = tol)
       Rmat <- qr.R(wxqr)
       effects <- qr.qty(wxqr, wz)
+
       # Pivoting in Cmat
       seqpiv <- seq_len(wxqr$rank)
       Cmat <- control$Cmat[,wxqr$pivot[seqpiv], drop = F]
@@ -193,11 +233,13 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
         lb <- lb[!toremove]
         ub <- ub[!toremove]
       }
+
       # Fit QP
       fit <- do.call(solver_fun, list(
         Dmat = crossprod(Rmat[seqpiv,seqpiv]),
         dvec = crossprod(effects[seqpiv], Rmat[seqpiv,seqpiv]),
         Cmat = Cmat, lb = lb, ub = ub, qp_pars = control$qp_pars))
+
       # Check results
       if (any(!is.finite(fit$solution))) {
         conv <- FALSE
@@ -205,6 +247,7 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
           iter), domain = NA)
         break
       }
+
       # Check rank
       if (nobs < wxqr$rank) {
         stop(sprintf(ngettext(nobs, "X matrix has rank %d, but only %d observation",
@@ -212,31 +255,34 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
           wxqr$rank, nobs), domain = NA)
       }
       if (!singular.ok && wxqr$rank < nvars) stop("singular fit encountered")
-      # Update objects
+
+      # Update coefficients, linear predictor and deviance
       start <- rep(0, nvars)
       start[wxqr$pivot[seqpiv]] <- fit$solution
-      ######################################################
       eta <- drop(x %*% start)
       mu <- linkinv(eta <- eta + offset)
       dev <- sum(dev.resids(y, mu, weights))
+
       # If required display advancement
       if (control$trace){
         cat("Deviance = ", dev, " Iterations - ",
           iter, "\n", sep = "")
       }
+
+      # If deviance is not finite or predictor not valid, halve step
       boundary <- FALSE
-      # If deviance is not finite, divide the step by two until it is finite
-      if (!is.finite(dev)) {
+      if (!(is.finite(dev) && valideta(eta) && validmu(mu))) {
         if (is.null(coefold)){
           stop("no valid set of coefficients has been found: please supply starting values",
             call. = FALSE)
         }
-        warning("step size truncated due to divergence",
+        txt <- if(!is.finite(dev)) "divergence" else "out of bounds"
+        warning(sprintf("step size truncated due to %s", txt),
           call. = FALSE)
         ii <- 1
-        while (!is.finite(dev)) {
+        while (!(is.finite(dev) && valideta(eta) && validmu(mu))) {
           if (ii > control$maxit){
-            stop("inner loop 1; cannot correct step size",
+            stop("inner loop; cannot correct step size",
               call. = FALSE)
           }
           ii <- ii + 1
@@ -251,32 +297,7 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
             "\n", sep = "")
         }
       }
-      # Idem, if valid coefficients not found, halve step
-      if (!(valideta(eta) && validmu(mu))) {
-        if (is.null(coefold)){
-          stop("no valid set of coefficients has been found: please supply starting values",
-            call. = FALSE)
-        }
-        warning("step size truncated: out of bounds",
-          call. = FALSE)
-        ii <- 1
-        while (!(valideta(eta) && validmu(mu))) {
-          if (ii > control$maxit){
-            stop("inner loop 2; cannot correct step size",
-              call. = FALSE)
-          }
-          ii <- ii + 1
-          start <- (start + coefold)/2
-          eta <- drop(x %*% start)
-          mu <- linkinv(eta <- eta + offset)
-        }
-        boundary <- TRUE
-        dev <- sum(dev.resids(y, mu, weights))
-        if (control$trace){
-          cat("Step halved: new deviance = ", dev,
-            "\n", sep = "")
-        }
-      }
+
       # Check convergence
       if (abs(dev - devold)/(0.1 + abs(dev)) < control$epsilon) {
         conv <- TRUE
@@ -288,6 +309,9 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
         coef <- coefold <- start
       }
     }
+
+    #----- Check results
+
     # Give warnings for special cases
     if (!conv){
       warning("cirls.fit: algorithm did not converge",
@@ -310,22 +334,24 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
           call. = FALSE)
       }
     }
-    #######################################################################
+
     # Add warning if QR pivoting affects constraints (at last iteration)
-    consrem <- apply(control$Cmat[,-wxqr$pivot[seqpiv], drop = F] != 0, 2, any)
-    if (any(consrem)){
+    if (any(toremove & (is.finite(lb) | is.finite(ub)))){
       warning("some constraints removed because of rank deficiency",
         call. = FALSE)
     }
+
     # If final X not of full rank, assign NA coefficients
     if (wxqr$rank < nvars) coef[wxqr$pivot][seq.int(wxqr$rank + 1, nvars)] <- NA
     xxnames <- xnames[wxqr$pivot]
-    #######################################################################
-    # Residuals
+
+    # Extract residuals
     residuals <- (y - mu)/mu.eta(eta)
+
     # Rank
     wxqr$qr <- as.matrix(wxqr$qr)
     nr <- min(sum(good), nvars)
+
     # Update names
     names(coef) <- xnames
     colnames(wxqr$qr) <- xxnames
@@ -335,34 +361,56 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
     }
     dimnames(Rmat) <- list(xxnames, xxnames)
   }
-  # Name to objects related to y
-  names(residuals) <- ynames
-  names(mu) <- ynames
-  names(eta) <- ynames
+
+  #----- Output
+
   # Final pseudo weights including discarded observations
   wt <- rep.int(0, nobs)
   wt[good] <- w^2
-  # names to weights
+
+  # Propagate obs names
+  names(residuals) <- ynames
+  names(mu) <- ynames
+  names(eta) <- ynames
   names(wt) <- ynames
   names(weights) <- ynames
   names(y) <- ynames
   if (!EMPTY){
     names(effects) <- c(xxnames[seqpiv], rep.int("", sum(good) - wxqr$rank))
   }
-  # Null deviance
+
+  # Compute null deviance
   wtdmu <- if (intercept) sum(weights * y)/sum(weights) else linkinv(offset)
   nulldev <- sum(dev.resids(y, wtdmu, weights))
+
   # Degrees of freedom
   n.ok <- nobs - sum(weights == 0)
   nulldf <- n.ok - as.integer(intercept)
   rank <- if (EMPTY) 0 else wxqr$rank
+
   # We remove the number of active constraints from the df of the model
   resdf <- n.ok - rank + length(fit$iact)
   aic.model <- aic(y, nobs, mu, weights, dev) + 2 * (rank - length(fit$iact))
 
-  # Modifying control list for output
-  glmenv <- parent.frame()
-  glmenv[["control"]][c("Cmat", "ub", "lb")] <- NULL
+  # Get final Cmat with names and terms
+  Cmat <- control$Cmat[,wxqr$pivot, drop = F]
+  attr(Cmat, "terms") <- ct
+
+  # Extract bounds and remove these fomr control list
+  lb <- control$lb
+  ub <- control$ub
+  control[c("Cmat", "ub", "lb")] <- NULL
+
+  # If the function was called from within glm, modify the control object of the
+  # parent environment
+  callenv <- sys.call(sys.parent())
+  if (!is.null(callenv) && as.character(as.list(callenv)[[1]]) == "glm"){
+    glmenv <- parent.frame()
+    glmenv[["control"]] <- control
+  }
+
+  # Add info to the QR
+  wxqr$tol <- tol
 
   # Returning results
   list(coefficients = coef, residuals = residuals, fitted.values = mu,
@@ -371,9 +419,9 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
     deviance = dev, aic = aic.model, null.deviance = nulldev,
     iter = iter, weights = wt, prior.weights = weights, df.residual = resdf,
     df.null = nulldf, y = y, converged = conv, boundary = boundary,
-    ########################################################################
-    active.cons = fit$iact, inner.iter = fit$iterations,
-    Cmat = control$Cmat, lb = control$lb, ub = control$ub,
+  ########################################################################
+    active.cons = fit$iact, inner.iter = fit$iterations, etastart = etastart,
+    Cmat = Cmat, lb = lb, ub = ub, singular.ok = singular.ok,
     class = "cirls")
   ##########################################################################
 }

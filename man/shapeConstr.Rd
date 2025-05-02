@@ -45,6 +45,12 @@ The \code{shape} argument allows to define a specific shape for the association 
 \subsection{Available methods}{
 
 In addition to the default method, \code{shapeConstr} currently supports several objects, creating an appropriate shape-constraint matrix depending on the object. The full list can be obtained by \code{methods(shapeConstr)}.
+\subsection{General}{
+\itemize{
+\item \code{\link[=factor]{factor()}}: for categorical variables. Extract the \link[stats:contrasts]{contrasts} to define the constraint matrix. here the \code{intercept} argument has the same interpretation as in the default method, i.e. if set to \code{TRUE} it means the \code{glm} model doesn't include an intercept externally to the factor. Note that, in this case, a simple dummy coding is done in R.
+}
+}
+
 \subsection{From the \link[splines:splines-package]{splines} package}{
 \itemize{
 \item \link[splines:bs]{bs}: B-splines.
