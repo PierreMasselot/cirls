@@ -4,19 +4,22 @@
 \alias{cirls.control}
 \title{Parameters controlling CIRLS fitting}
 \usage{
-cirls.control(epsilon = 1e-08, maxit = 25, trace = FALSE, Cmat = NULL,
-  lb = 0L, ub = Inf, qp_solver = "quadprog", qp_pars = list())
+cirls.control(constr = NULL, Cmat = NULL, lb = 0L, ub = Inf,
+  epsilon = 1e-08, maxit = 25, trace = FALSE, qp_solver = "quadprog",
+  qp_pars = list())
 }
 \arguments{
+\item{constr}{A formula specifying constraints to be applied to specific terms in the model.}
+
+\item{Cmat}{Constraint matrix specifying the linear constraints applied to coefficients. Can also be provided as a list of matrices for specific terms.}
+
+\item{lb, ub}{Lower and upper bound vectors for the linear constraints. Identical values in \code{lb} and \code{ub} identify equality constraints. As for \code{Cmat} can be provided as a list of terms. If some terms are provided in \code{Cmat} but not in \code{lb} or \code{ub}, default values of 0 and Inf will be used, respectively.}
+
 \item{epsilon}{Positive convergence tolerance. The algorithm converges when the relative change in deviance is smaller than \code{epsilon}.}
 
 \item{maxit}{Integer giving the maximal number of CIRLS iterations.}
 
 \item{trace}{Logical indicating if output should be produced for each iteration.}
-
-\item{Cmat}{Constraint matrix specifying the linear constraints applied to coefficients. Can also be provided as a list of matrices for specific terms.}
-
-\item{lb, ub}{Lower and upper bound vectors for the linear constraints. Identical values in \code{lb} and \code{ub} identify equality constraints. As for \code{Cmat} can be provided as a list of terms. If some terms are provided in \code{Cmat} but not in \code{lb} or \code{ub}, default values of 0 and Inf will be used, respectively.}
 
 \item{qp_solver}{The quadratic programming solver. One of \code{"quadprog"} (the default), \code{"osqp"} or \code{"coneproj"}.}
 

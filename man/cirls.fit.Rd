@@ -52,13 +52,11 @@ The CIRLS algorithm is a modification of the classical IRLS algorithm in which e
 \verb{lb <= Cmat \%*\% coefficients <= ub}
 
 where \code{coefficients} is the coefficient vector returned by the model. This specification allows for any linear constraint, including equality ones.
-\subsection{Specifying \code{Cmat}, \code{lb} and \code{ub}}{
+\subsection{Specifying constraints}{
 
-\code{Cmat} is a matrix that defines the linear constraints. If provided directly as a matrix, the number of columns in \code{Cmat} must match the number of coefficients estimated by \link[stats:glm]{glm}. This includes all variables that are not involved in any constraint potential expansion such as factors or splines for instance, as well as the intercept. Columns not involved in any constraint will be filled by 0s.
+The package includes several mechanisms to specify constraints. The most straightforward is to pass a matrix to \code{Cmat} with associated bound vectors in \code{lb} and \code{ub}. In this case, the number of columns in \code{Cmat} must match the number of coefficients estimated by \link[stats:glm]{glm}. This includes all variables that are not involved in any constraint potential expansion such as factors or splines for instance, as well as the intercept. By default \code{lb} and \code{ub} are set to \code{0} and \code{Inf}, respectively, meaning that the linear combinations defined by \code{Cmat} should be positive, but any bounds are possible. When some elements of \code{lb} and \code{ub} are identical, they define equality constraints. Setting \code{lb = -Inf} and \code{ub = Inf} disable the constraints.
 
-Alternatively, it may be more convenient to pass \code{Cmat} as a list of constraint matrices for specific terms. This is advantageous if a single term should be constrained in a model containing many terms. If provided as a list, \code{Cmat} is internally expanded to create the full constraint matrix. See examples of constraint matrices below.
-
-\code{lb} and \code{ub} are vectors defining the bounds of the constraints. By default they are set to \code{0} and \code{Inf}, meaning that the linear combinations defined by \code{Cmat} should be positive, but any bounds are possible. When some elements of \code{lb} and \code{ub} are identical, they define equality constraints. Setting \code{lb = -Inf} and \code{ub = Inf} disable the constraints.
+In many cases, it is however more convenient to use the argument \code{constr} which allow specifying constraints through a formula. Additionally, \code{Cmat} (as well as \code{lb} and \code{ub}) can be passed as lists of matrices for specific terms. See \link[=buildCmat]{buildCmat} for full details on how to specify constraints.
 }
 
 \subsection{Quadratic programming solvers}{

@@ -22,13 +22,11 @@
 #'
 #' where `coefficients` is the coefficient vector returned by the model. This specification allows for any linear constraint, including equality ones.
 #'
-#' ## Specifying `Cmat`, `lb` and `ub`
+#' ## Specifying constraints
 #'
-#' `Cmat` is a matrix that defines the linear constraints. If provided directly as a matrix, the number of columns in `Cmat` must match the number of coefficients estimated by [glm][stats::glm()]. This includes all variables that are not involved in any constraint potential expansion such as factors or splines for instance, as well as the intercept. Columns not involved in any constraint will be filled by 0s.
+#' The package includes several mechanisms to specify constraints. The most straightforward is to pass a matrix to `Cmat` with associated bound vectors in `lb` and `ub`. In this case, the number of columns in `Cmat` must match the number of coefficients estimated by [glm][stats::glm()]. This includes all variables that are not involved in any constraint potential expansion such as factors or splines for instance, as well as the intercept. By default `lb` and `ub` are set to `0` and `Inf`, respectively, meaning that the linear combinations defined by `Cmat` should be positive, but any bounds are possible. When some elements of `lb` and `ub` are identical, they define equality constraints. Setting `lb = -Inf` and `ub = Inf` disable the constraints.
 #'
-#' Alternatively, it may be more convenient to pass `Cmat` as a list of constraint matrices for specific terms. This is advantageous if a single term should be constrained in a model containing many terms. If provided as a list, `Cmat` is internally expanded to create the full constraint matrix. See examples of constraint matrices below.
-#'
-#' `lb` and `ub` are vectors defining the bounds of the constraints. By default they are set to `0` and `Inf`, meaning that the linear combinations defined by `Cmat` should be positive, but any bounds are possible. When some elements of `lb` and `ub` are identical, they define equality constraints. Setting `lb = -Inf` and `ub = Inf` disable the constraints.
+#' In many cases, it is however more convenient to use the argument `constr` which allow specifying constraints through a formula. Additionally, `Cmat` (as well as `lb` and `ub`) can be passed as lists of matrices for specific terms. See [buildCmat][buildCmat()] for full details on how to specify constraints.
 #'
 #' ## Quadratic programming solvers
 #'
@@ -65,19 +63,11 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   family = stats::gaussian(), control = list(), intercept = TRUE,
   singular.ok = TRUE)
 {
-  #----- Prepare CIRLS parameters
-  control <- do.call("cirls.control", control)
-  ### Separate the construction of Cmat and ub/lb from control
-  ### Allows to more easily pass mt and x typically
-  ### Also, now don't return an error if there is no constraint left, just a warning
-
-  # Keep terms in Cmat
-  ct <- attr(control$Cmat, "terms")
-
-  # Extract solver
-  solver_fun <- sprintf("%s.fit", control$qp_solver)
 
   #----- Initialize everything
+
+  # control list
+  control <- do.call("cirls.control", control)
 
   # Store variable names
   x <- as.matrix(x)
@@ -118,6 +108,43 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
     eval(family$initialize)
     mustart <- mukeep
   }
+
+  #----- Initialise constraints
+
+  # Create an empty matrix if no constraint provided
+  if (is.null(control$Cmat) & is.null(control$constr)){
+    control$Cmat <- matrix(nrow = 0, ncol = length(xnames))
+  }
+
+  # Check if Cmat is a matrix
+  if (is.numeric(control$Cmat)){
+
+    # Check it has the right dimension
+    control$Cmat <- as.matrix(control$Cmat)
+    if (length(xnames) != ncol(control$Cmat)) stop(
+      sprintf("Cmat has %i columns while the design matrix has %i",
+        ncol(control$Cmat), length(xnames)))
+
+    # Expand bounds if necessary
+    control$lb <- rep_len(control$lb, NROW(control$Cmat))
+    control$ub <- rep_len(control$ub, NROW(control$Cmat))
+
+  } else {
+
+    # Get model.frame from parent environment
+    mf <- get("mf", envir = parent.frame())
+
+    # If not Build full constraint matrix
+    control[c("Cmat", "lb", "ub")] <- buildCmat(mf, Cmat = control$Cmat,
+      constr = control$constr, lb = control$lb, ub = control$ub)
+
+  }
+
+  # Keep terms in Cmat
+  ct <- attr(control$Cmat, "terms")
+
+  # Extract solver
+  solver_fun <- sprintf("%s.fit", control$qp_solver)
 
   #----- If there is no variable, compute output
   if (EMPTY) {

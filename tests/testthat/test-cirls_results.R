@@ -70,14 +70,14 @@ test_that("output contains all new elements", {
   expect_equal(poisinc$Cmat, cbind(0, cinc), ignore_attr = T)
 
   # bounds are well computed
-  expect_equal(normpos$lb, rep(0, p))
-  expect_equal(norminc$lb, rep(0, p - 1))
-  expect_equal(poispos$lb, rep(0, p))
-  expect_equal(poisinc$lb, rep(0, p - 1))
-  expect_equal(normpos$ub, rep(Inf, p))
-  expect_equal(norminc$ub, rep(Inf, p - 1))
-  expect_equal(poispos$ub, rep(Inf, p))
-  expect_equal(poisinc$ub, rep(Inf, p - 1))
+  expect_equal(normpos$lb, rep(0, p), ignore_attr = T)
+  expect_equal(norminc$lb, rep(0, p - 1), ignore_attr = T)
+  expect_equal(poispos$lb, rep(0, p), ignore_attr = T)
+  expect_equal(poisinc$lb, rep(0, p - 1), ignore_attr = T)
+  expect_equal(normpos$ub, rep(Inf, p), ignore_attr = T)
+  expect_equal(norminc$ub, rep(Inf, p - 1), ignore_attr = T)
+  expect_equal(poispos$ub, rep(Inf, p), ignore_attr = T)
+  expect_equal(poisinc$ub, rep(Inf, p - 1), ignore_attr = T)
 
 })
 

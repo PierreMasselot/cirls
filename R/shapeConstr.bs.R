@@ -26,6 +26,10 @@ shapeConstr.bs <- function(x, shape, ...){
   chkc <- checkCmat(Cmat)
   if (length(chkc$redundant) > 0) Cmat <- Cmat[-chkc$redundant, , drop = F]
 
+  # Add bound attributes
+  attr(Cmat, "lb") <- rep(0, NROW(Cmat))
+  attr(Cmat, "ub") <- rep(Inf, NROW(Cmat))
+
   # Return
   Cmat
 }

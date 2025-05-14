@@ -2,10 +2,12 @@
 
 ## New features
 - New method `shapeConstr` to build constraint matrices for shape-constrained splines. Currently works with classes `ns`, `bs` (from package `splines`), `ps` and `onebasis` (from `dlnm`). Also includes a default method for more general bases.
-- New function `zerosumConstr` for constraint matrices for a zero sum such as used in compositional regression for instance
+- New function `zerosumConstr` for constraint matrices for a zero sum such as used in compositional regression for instance.
 - New function `edf` to compute observed and expected degrees of freedom for a fitted `cirls` object.
 - Method `logLik.cirls` for AIC and BIC computation.
 - New function `uncons` to return the unconstrained model.
+- Constraints can now be passed as a formula through a new argument called `constr`.
+- New function `buildCmat` to build a constraint matrix using a model frame and a list of matrices or constraint formula (or both).
 
 ## Changes
 - Changed the default QP solver to `quadprog` after some expriments.

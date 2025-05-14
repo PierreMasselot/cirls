@@ -131,7 +131,7 @@ for (b in tested_bases){
 #-------------------------
 
 # Test that we get the right constraint matrix
-test_that("We get the right constraint matrix with one basis ", {
+test_that("We get the right constraint matrix with `onebasis`", {
 for (b in tested_bases){
 
   # Basis
@@ -147,10 +147,10 @@ for (b in tested_bases){
 }})
 
 # Test for basis with no method
-test_that("We get the default method for unknown onebasis", {
+test_that("We get the default method for unknown `onebasis`", {
   strbasis <- onebasis(X, fun = "strata", df = p)
   expect_warning(Cmat <- shapeConstr(strbasis, shape = "pos"))
-  expect_true(all.equal(Cmat, diag(p)))
+  expect_identical(Cmat, diag(p), ignore_attr = TRUE)
 })
 
 
@@ -211,14 +211,14 @@ Cmat <- shapeConstr(Xf, "inc")
 # Basic test
 treat <- glm(Y ~ Xf, family = "quasipoisson", method = "cirls.fit",
   Cmat = list(Xf = Cmat))
-plot(X, eta, pch = 16)
+plot(X, eta, pch = 16, ylim = range(c(eta, predict(treat))))
 points(X, predict(treat), pch = 15, col = 3)
 
 # When intercept is "included" in the factor
 Cmat0 <- shapeConstr(Xf, "inc", intercept = TRUE)
 int <- glm(Y ~ 0 + Xf, family = "quasipoisson", method = "cirls.fit",
   Cmat = list(Xf = Cmat0))
-plot(X, eta, pch = 16)
+plot(X, eta, pch = 16, ylim = range(c(eta, predict(int))))
 points(X, predict(int), pch = 15, col = 3)
 
 # Helmert contrasts
@@ -227,7 +227,7 @@ contrasts(Xf2) <- "contr.helmert"
 Cmat2 <- shapeConstr(Xf2, "inc")
 helm <- glm(Y ~ Xf2, family = "quasipoisson", method = "cirls.fit",
   Cmat = list(Xf2 = Cmat2))
-plot(X, eta, pch = 16)
+plot(X, eta, pch = 16, ylim = range(c(eta, predict(helm))))
 points(X, predict(helm), pch = 15, col = 3)
 # model.matrix(helm)
 

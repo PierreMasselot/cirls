@@ -40,15 +40,23 @@ uncons <- function(object){
   mf <- stats::model.frame(object)
   x <- stats::model.matrix(object)
   y <- object$y %||% stats::model.response(mf)
-  control <- c(object$control, list(Cmat = object$Cmat, lb = -Inf, ub = Inf))
+  control <- object$control
+  control[["constr"]] <- NULL
   mt <- stats::terms(object) # Needed within cirls.fit
   intercept <- attr(mt, "intercept") > 0L
 
   # Fit with cirls.fit
-  fit <- cirls.fit(x = x, y = y,
-    weights = object$prior.weights, etastart = object$etastart,
-    offset = object$offset, family = object$family, control = control,
-    intercept = intercept, singular.ok = object$singular.ok)
+  # ignores the warning message displayed when there is no constraint
+  withCallingHandlers(
+    fit <- cirls.fit(x = x, y = y,
+      weights = object$prior.weights, etastart = object$etastart,
+      offset = object$offset, family = object$family, control = control,
+      intercept = intercept, singular.ok = object$singular.ok),
+    warning = function(w) {
+      if (startsWith(conditionMessage(w), "No valid constraint"))
+        invokeRestart("muffleWarning")
+    }
+  )
 
   # Part to compute the null deviance in the case of an offset and no intercept
   if (length(object$offset) && attr(mt, "intercept") > 0L) {

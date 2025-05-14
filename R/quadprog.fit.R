@@ -7,24 +7,32 @@
 quadprog.fit <- function(Dmat, dvec, Cmat, lb, ub, qp_pars){
 
   #----- Construct Cmat and bvec from lb and ub
-  # Get equality constraints
-  iseq <- lb == ub
-  meq <- sum(iseq)
-  Amat <- Cmat[iseq,, drop = F]
-  bvec <- lb[iseq]
-  cmap <- which(iseq)
+  if (NROW(Cmat) > 0){
+    # Get equality constraints
+    iseq <- lb == ub
+    meq <- sum(iseq)
+    Amat <- Cmat[iseq,, drop = F]
+    bvec <- lb[iseq]
+    cmap <- which(iseq)
 
-  # Get lb constraints
-  lbcons <- lb[!iseq] > -Inf
-  Amat <- rbind(Amat, Cmat[!iseq,,drop = F][lbcons,])
-  bvec <- c(bvec, lb[!iseq][lbcons])
-  cmap <- c(cmap, which(!iseq)[lbcons])
+    # Get lb constraints
+    lbcons <- lb[!iseq] > -Inf
+    Amat <- rbind(Amat, Cmat[!iseq,,drop = F][lbcons,])
+    bvec <- c(bvec, lb[!iseq][lbcons])
+    cmap <- c(cmap, which(!iseq)[lbcons])
 
-  # Get ub constraints
-  ubcons <- ub[!iseq] < Inf
-  Amat <- rbind(Amat, -Cmat[!iseq,,drop = F][ubcons,])
-  bvec <- c(bvec, -ub[!iseq][ubcons])
-  cmap <- c(cmap, which(!iseq)[ubcons])
+    # Get ub constraints
+    ubcons <- ub[!iseq] < Inf
+    Amat <- rbind(Amat, -Cmat[!iseq,,drop = F][ubcons,])
+    bvec <- c(bvec, -ub[!iseq][ubcons])
+    cmap <- c(cmap, which(!iseq)[ubcons])
+  } else {
+    # Null matrix
+    Amat <- Cmat
+    bvec <- NULL
+    meq <- 0
+    cmap <- integer(0)
+  }
 
   #----- Fit QP
 
