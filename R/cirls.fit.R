@@ -420,7 +420,7 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   aic.model <- aic(y, nobs, mu, weights, dev) + 2 * (rank - length(fit$iact))
 
   # Get final Cmat with names and terms
-  Cmat <- control$Cmat[,wxqr$pivot, drop = F]
+  Cmat <- control$Cmat
   attr(Cmat, "terms") <- ct
 
   # Extract bounds and remove these fomr control list
