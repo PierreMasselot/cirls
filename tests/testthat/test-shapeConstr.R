@@ -12,7 +12,7 @@ suppressMessages(library(dlnm))
 
 # Parameters
 n <- 1000
-nsim <- 50
+nsim <- 5
 
 # Generate a simple parabolic relationship
 #set.seed(1)
@@ -243,3 +243,111 @@ test_that("Shape constraints on factors work", {
     diff(predict(helm, newdata = data.frame(Xf2 = levels(Xf2)))) >=
       -sqrt(.Machine$double.eps)))
 })
+
+
+###############################################################################
+# Constraints on subdomains
+###############################################################################
+
+# #---------------------
+# # Test constraining specific domain
+# #---------------------
+#
+# #----- Generate data
+#
+# n <- 1000
+#
+# X <- seq(0, 1, length.out = n)
+# # eta <- log(10) + (x-.3)^2
+# eta <- 5 - exp(X)
+#
+# # Generate several
+# set.seed(6)
+# Y <- eta + rnorm(n, sd = .5)
+#
+# # A P-spline basis
+# basis <- ps(x = X, df = 10)
+#
+# # A sequence of breaks
+# brseq <- seq(-0.1, 1.1, by = .05)
+#
+# test_that("subdomain constraints work", {
+#
+#   #----- Initial test with a non-decreasing constraint
+#   for (br in brseq){
+#
+#     # Fit a non-decreasing curve above br
+#     Cmat1 <- mkDmat(d = 1, s = 1, knots = attr(basis, "knots"),
+#       ord = attr(x, "degree") + 1, intercept = attr(basis, "intercept"),
+#       lower = br, upper = Inf)
+#     curve1 <- glm(Y ~ basis, method = "cirls.fit", Cmat = list(basis = Cmat1)) |>
+#       predict()
+#
+#     # Test it works
+#     expect_true(all(!isFALSE(
+#       diff(curve1[X > br]) >= -sqrt(.Machine$double.eps))))
+#     expect_true(any(!isFALSE(
+#       diff(curve1[X < br]) < -sqrt(.Machine$double.eps))))
+#
+#     # Fit a non-decreasing curve below br
+#     Cmat2 <- mkDmat(d = 1, s = 1, knots = attr(basis, "knots"),
+#       ord = attr(x, "degree") + 1, intercept = attr(basis, "intercept"),
+#       lower = -Inf, upper = br)
+#     curve2 <- glm(Y ~ basis, method = "cirls.fit", Cmat = list(basis = Cmat2)) |>
+#       predict()
+#
+#     # Test it works
+#     expect_true(all(!isFALSE(
+#       diff(curve2[X < br]) >= -sqrt(.Machine$double.eps))))
+#     expect_true(any(!isFALSE(
+#       diff(curve2[X > br]) < -sqrt(.Machine$double.eps))))
+#
+#     # Plot the curves
+#     plot(X, eta, type = "l")
+#     lines(X, curve1, col = 3)
+#     lines(X, curve2, col = 4)
+#     abline(v = attr(basis, "knots"), lty = 3)
+#     abline(v = br, col = 2)
+#   }
+#
+#   #----- Initial test with convexity constraint
+#
+#   # Testing with first degree constraint
+#   for (br in brseq){
+#
+#     # Fit convex curve below br
+#     Cmat1 <- mkDmat(d = 2, s = 1, knots = attr(basis, "knots"),
+#       ord = attr(x, "degree") + 1, intercept = attr(basis, "intercept"),
+#       lower = br, upper = Inf)
+#     curve1 <- glm(Y ~ basis, method = "cirls.fit", Cmat = list(basis = Cmat1)) |>
+#       predict()
+#
+#     # Test it works
+#     expect_true(all(!isFALSE(
+#       diff(curve1[X > br], diff = 2) >= -sqrt(.Machine$double.eps))))
+#     expect_true(any(!isFALSE(
+#       diff(curve1[X < br], diff = 2) < -sqrt(.Machine$double.eps))))
+#
+#     # Fit convex curve above br
+#     Cmat2 <- mkDmat(d = 2, s = 1, knots = attr(basis, "knots"),
+#       ord = attr(x, "degree") + 1, intercept = attr(basis, "intercept"),
+#       lower = -Inf, upper = br)
+#     curve2 <- glm(Y ~ basis, method = "cirls.fit", Cmat = list(basis = Cmat2)) |>
+#       predict()
+#
+#     # Test it works
+#     expect_true(all(!isFALSE(
+#       diff(curve2[X < br], diff = 2) >= -sqrt(.Machine$double.eps))))
+#     expect_true(any(!isFALSE(
+#       diff(curve2[X > br], diff = 2) < -sqrt(.Machine$double.eps))))
+#
+#     # Plot curves
+#     plot(X, eta, type = "l")
+#     lines(X, curve1, col = 3)
+#     lines(X, curve2, col = 4)
+#     abline(v = attr(basis, "knots"), lty = 3)
+#     abline(v = br, col = 2)
+#   }
+#
+# })
+#

@@ -53,7 +53,7 @@ simulCoef <- function(object, nsim = 1, seed = NULL, complete = TRUE,
   ufit <- uncons(object)
   ubeta <- stats::coef(ufit, complete = FALSE)
   aliased <- stats::summary.glm(ufit)$aliased
-  uvcov <- stats::.vcov.aliased(aliased, stats::summary.glm(object)$cov.scaled,
+  uvcov <- stats::.vcov.aliased(aliased, stats::summary.glm(ufit)$cov.scaled,
     complete = FALSE)
 
   # Check uvcov exists

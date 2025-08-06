@@ -36,7 +36,7 @@
 #' @example man/examples/edf_ex.R
 #'
 #' @export
-edf <- function(object, nsim = 1000, seed = NULL){
+edf <- function(object, nsim = 10000, seed = NULL){
 
   # Check object
   if (!inherits(object, "lm")) stop("'object' should inherit from 'lm'")

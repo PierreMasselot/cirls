@@ -4,6 +4,8 @@
 #
 ################################################################################
 
+#### Perhaps keep a help page here for technical details. Attach the usage to a clearer help page
+
 #' Build a constraint matrix
 #'
 #' @description

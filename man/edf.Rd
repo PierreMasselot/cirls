@@ -4,7 +4,7 @@
 \alias{edf}
 \title{Expected degrees of freedom}
 \usage{
-edf(object, nsim = 1000, seed = NULL)
+edf(object, nsim = 10000, seed = NULL)
 }
 \arguments{
 \item{object}{A \code{cirls} object or any object inheriting from \code{lm}, see details.}
