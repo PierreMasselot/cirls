@@ -24,7 +24,7 @@
 - Fixed error from `solve.QP` when there are large values in the response.
 - Now `checkCmat` also checks if there are "zero" constraints.
 - Fixed a bug in `simulCoef`. Now includes a switch to simulate under the constrained or unconstrained model.
-- `simulCoef` returns a NA matrix with a warning in the case of a staurated model.
+- `simulCoef` returns a NA matrix with a warning in the case of a saturated model.
 
 # 0.3.0
 

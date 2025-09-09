@@ -24,9 +24,9 @@
 #'
 #' ## Specifying constraints
 #'
-#' The package includes several mechanisms to specify constraints. The most straightforward is to pass a matrix to `Cmat` with associated bound vectors in `lb` and `ub`. In this case, the number of columns in `Cmat` must match the number of coefficients estimated by [glm][stats::glm()]. This includes all variables that are not involved in any constraint potential expansion such as factors or splines for instance, as well as the intercept. By default `lb` and `ub` are set to `0` and `Inf`, respectively, meaning that the linear combinations defined by `Cmat` should be positive, but any bounds are possible. When some elements of `lb` and `ub` are identical, they define equality constraints. Setting `lb = -Inf` and `ub = Inf` disable the constraints.
+#' The package includes several mechanisms to specify constraints. The most straightforward is to pass a full matrix to `Cmat` with associated bound vectors in `lb` and `ub`. In this case, the number of columns in `Cmat` must match the number of coefficients estimated by [glm][stats::glm()]. This includes all variables that are not involved in any constraint, potential expansion such as factors or splines for instance, as well as the intercept. By default `lb` and `ub` are set to `0` and `Inf`, respectively, but any bounds are possible. When some elements of `lb` and `ub` are identical, they define equality constraints. Setting `lb = -Inf` and `ub = Inf` disable the constraints.
 #'
-#' In many cases, it is however more convenient to use the argument `constr` which allow specifying constraints through a formula. Additionally, `Cmat` (as well as `lb` and `ub`) can be passed as lists of matrices for specific terms. See [buildCmat][buildCmat()] for full details on how to specify constraints.
+#' To avoid pre-constructing potentially large and complex `Cmat` objects, the arguments `Cmat` and `constr` can be combined to conveniently specify constraints for the coefficients. More specifically, `Cmat` can alternatively take a named list of matrices to constrain only specific terms in the model. The argument `constr` provides a formula interface to specify built-in common constraints. The documentation of [buildCmat][buildCmat()] provides full details on how to specify constraints along with examples.
 #'
 #' ## Quadratic programming solvers
 #'
@@ -37,7 +37,7 @@
 #'
 #' Each solver has specific parameters that can be controlled through the argument `qp_pars`. Sensible defaults are set within [cirls.control][cirls.control()] and the user typically doesn't need to provide custom parameters. `"quadprog"` is set as the default being generally more reliable than the other solvers. `"osqp"` is faster but can be less accurate, in which case it is recommended to increase convergence tolerance at the cost of speed.
 #'
-#' @return A `cirls` object inheriting from the class `glm`. At the moment, two non-standard methods specific to `cirls` objects are available: [vcov.cirls][vcov.cirls()] to obtain the coefficients variance-covariance matrix and [confint.cirls][confint.cirls()] to obtain confidence intervals. These custom methods account for the reduced degrees of freedom resulting from the constraints, see [vcov.cirls][vcov.cirls()] and [confint.cirls][confint.cirls()]. Any method for `glm` objects can be used, including the generic [coef][stats::coef()] or [summary][base::summary()] for instance.
+#' @return A `cirls` object inheriting from the class `glm`. At the moment, two non-standard methods specific to `cirls` objects are available: [vcov.cirls][vcov.cirls()] to obtain the coefficients variance-covariance matrix and [confint.cirls][confint.cirls()] to obtain confidence intervals. These custom methods account for the reduced degrees of freedom resulting from the constraints, see [vcov.cirls][vcov.cirls()] and [confint.cirls][confint.cirls()].
 #'
 #' An object of class `cirls` includes all components from [glm][stats::glm()] objects, with the addition of:
 #' \item{Cmat, lb, ub}{the constraint matrix, and lower and upper bound vectors. If provided as lists, the full expanded matrix and vectors are returned.}
@@ -46,7 +46,9 @@
 #' \item{etastart}{the initialisation of the linear predictor `eta`. The same as `etastart` when provided.}
 #' \item{singular.ok}{the value of the `singular.ok` argument.}
 #'
-#' @seealso [vcov.cirls][vcov.cirls()], [confint.cirls][confint.cirls()] for methods specific to `cirls` objects. [cirls.control][cirls.control()] for fitting parameters specific to [cirls.fit][cirls.fit()]. [glm][stats::glm()] for details on `glm` objects.
+#' Any method for `glm` objects can be used on `cirls` objects. Several methods specific to `cirls` are available: [vcov.cirls][vcov.cirls()] to obtain the coefficients variance-covariance matrix, [confint.cirls][confint.cirls()] to obtain confidence intervals, and [logLik.cirls][logLik.cirls()] to extract the log-likelihood with appropriate degrees of freedom.
+#'
+#' @seealso [vcov.cirls][vcov.cirls()], [confint.cirls][confint.cirls()], [logLik.cirls][logLik.cirls()] and [edf][edf()] for methods specific to `cirls` objects. [cirls.control][cirls.control()] for fitting parameters specific to [cirls.fit][cirls.fit()]. [glm][stats::glm()] for details on `glm` objects.
 #'
 #' @references
 #' Goldfarb, D., Idnani, A., 1983. A numerically stable dual method for solving strictly convex quadratic programs. *Mathematical Programming* **27**, 1–33. \doi{10.1007/BF02591962}
@@ -431,7 +433,7 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   # If the function was called from within glm, modify the control object of the
   # parent environment
   callenv <- sys.call(sys.parent())
-  if (!is.null(callenv) && as.character(as.list(callenv)[[1]]) == "glm"){
+  if (!is.null(callenv) && identical(eval(as.list(callenv)[[1]]), stats::glm)){
     glmenv <- parent.frame()
     glmenv[["control"]] <- control
   }

@@ -13,7 +13,7 @@ uncons(object)
 A \code{cirls} object.
 }
 \description{
-Takes a fitted \code{cirls} object and returns the corresponding unconstrained model. Works similarly to the \link[stats:update]{update} method by removing all argument specific to \link[=cirls.fit]{cirls.fit} from the call and evaluate it.
+Takes a fitted \code{cirls} object and returns the corresponding unconstrained model.
 }
 \details{
 \subsection{Note on starting values}{

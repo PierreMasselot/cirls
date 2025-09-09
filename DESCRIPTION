@@ -1,6 +1,6 @@
 Package: cirls
 Title: Constrained Iteratively Reweighted Least Squares
-Version: 0.3.1.9007
+Version: 0.3.1.9008
 Authors@R: c( 
     person(given = "Pierre",
            family = "Masselot",
@@ -13,7 +13,7 @@ Authors@R: c(
            email = "antonio.gasparrini@lshtm.ac.uk",
            comment = c(ORCID = "0000-0002-2271-3568"))
 	)
-Description: Routines to fit generalized linear models with constrained coefficients, along with inference on the coefficients. Designed to be used in conjunction with the base glm() function.
+Description: Fitting and inference functions for generalized linear models with constrained coefficients.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
@@ -26,6 +26,7 @@ Imports:
     TruncatedNormal,
     stats,
     limSolve
+Depends: R (>= 4.1.0)
 Suggests: 
     dlnm,
     splines,

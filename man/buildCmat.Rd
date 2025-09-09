@@ -22,13 +22,17 @@ A list with containing elements \code{Cmat}, \code{lb} and \code{ub} containing 
 Function building a full constraint matrix from a list of constraint matrices and/or a formula providing specific constraints. Mainly used internally by \link[=cirls.fit]{cirls.fit}.
 }
 \details{
-This function is called internatlly by \code{cirls.fit} whenever \code{Cmat} is not a matrix, and provides a way to specify constraints without having to build a full constraint matrix beforehand. It uses the model frame in \code{mf} to match specific constraints to the right columns in the design matrix. If \code{mf} is provided as a simple list or data.frame instead of a model frame, it will be assumed that it represents the model \code{~ x1 + x2 + ...} where the \code{xi} are the names of \code{mf}.
+This function is called internally by \code{cirls.fit} whenever \code{Cmat} is not a matrix, and provides a way to specify constraints without having to build a full constraint matrix beforehand. It uses the model frame in \code{mf} to match specific constraints to the right columns in the design matrix.
 
-The argument \code{constr} provides a simple way to specify potentially complex constraints. It is a formula of the form \verb{~ ***(x, ...)} where \verb{***} specifies the constraint and \code{x} the term in \code{mf} to which it applies. Internally, the formula will look for a function named \verb{***Constr} to be called on variable \code{x} (which allows for several columns). The \code{...} represent potential additional arguments for the \verb{***Constr} function. For the list of available constraints and how to create new ones, see ????.
+The argument \code{constr} provides a simple way to specify potentially complex constraints. It is a formula of the form \code{~ shape(x, ...)} where \code{shape} specifies the constraint and \code{x} the term in \code{mf} to which it applies. Internally, the formula will look for a function named \code{shapeConstr} to be called on variable \code{x} (which allows for several columns). The \code{...} represent potential additional arguments for the \code{shapeConstr} function. For the list of available constraints and how to create new ones, see \strong{upcoming}.
 
 The argument \code{Cmat} is used to provide a named list of constraint matrices, where names should correspond to terms in \code{mf}. This allows providing custom constraint matrices to specific terms that wouldn't be available through \code{constr}. Names in \code{Cmat} can include several terms, which should be separated by a \verb{;}, for instance \verb{x1;x2}. Although not mandatory, elements in \code{Cmat} can have attributes \code{lb}, \code{ub} and \code{vars} to provide lower and upper bounds, and term names, respectively.
 
-\code{lb} and \code{ub} are meant to be used in conjunction with \code{Cmat}. If a simple value or vector, they will be used as default values for elements in \code{Cmat} for which no bounds is specified in its attributes. If lists, they provide bounds for constraint matrices in \code{Cmat}. In this case, all the names in \code{Cmat} should be found in \code{lb}/\code{ub}.
+\code{lb} and \code{ub} are meant to be used in conjunction with \code{Cmat}. If a simple value or vector, they will be used as default values for elements in \code{Cmat} for which no bounds is specified in its attributes. If lists, they provide bounds for constraint matrices in \code{Cmat}. In this case, all the names in \code{Cmat} should be found in \code{lb} and \code{ub}.
 
 Note that both \code{constr} and \code{Cmat} can be used at the same time, and neither is mandatory. If both are \code{NULL}, an empty constraint matrix will be returned.
+}
+\examples{
+####### Upcoming
+
 }

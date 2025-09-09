@@ -70,12 +70,16 @@ simulCoef <- function(object, nsim = 1, seed = NULL, complete = TRUE,
     on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
   }
 
+  # Extract contraints
+  Cmat <- object$Cmat
+  lb <- object$lb
+  ub <- object$ub
+
+  # If Cmat is empty, switch of the constrained simulation
+  if (NROW(Cmat) == 0) constrained <- FALSE
+
   #----- Extract constraints and transform to "square" domain then simulate
   if (constrained){
-    # Extract contraints
-    Cmat <- object$Cmat
-    lb <- object$lb
-    ub <- object$ub
 
     # Remove constraints affected by aliased coefficients
     Cmat <- Cmat[,!aliased, drop = F]

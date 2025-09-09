@@ -20,6 +20,7 @@ p <- length(betas)
 #----- Generate data
 
 # Uniform values between 0 and 1
+set.seed(1234)
 x <- matrix(rnorm(n * p), n, p)
 
 # Linear predictor

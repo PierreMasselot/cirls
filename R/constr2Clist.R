@@ -6,7 +6,7 @@
 
 constr2Clist <- function(constr, mf = NULL){
 
-  #----- Check terms and data
+  #----- Extract data and terms
 
   # Coerce constr
   constr <- stats::as.formula(constr)
@@ -24,29 +24,39 @@ constr2Clist <- function(constr, mf = NULL){
   # Extract terms for the constr formula
   ct <- attr(stats::terms(constr), "variables")
 
-  # Transform functions if necessary and check if exists
-  dropfuns <- rep(FALSE, length(ct))
+  #----- Check data and functions can be matched to existing objects
+
+  # Initialise a vector to drop terms that cannot be interpreted
+  # And another one to get the variables involved in each term
+  dropterms <- rep(FALSE, length(ct))
+  cvars <- rep("", length(ct) - 1)
+
+  # Loop across the terms
   for (i in seq(2, length(ct))) {
+
+    # Check if the constraint function exists
     ctcstr <- paste0(ct[[i]][[1]], "Constr")
     if (exists(ctcstr)) {
       ct[[i]][[1]] <- str2lang(ctcstr)
     } else {
-      dropfuns[i] <- !exists(ct[[i]][[1]])
+      dropterms[i] <- !exists(ct[[i]][[1]])
     }
+
+    # Check if variables can be found in the model frame
+    cvars <- all.vars(ct[[i]])
+    # NB: logicals 'T' and 'F' are treated as variables in R
+    if (!all(cvars %in% c(term_labs, "T", "F"))) dropterms[i] <- TRUE
   }
 
-  # Check variables
-  cvars <- lapply(ct[-1], all.vars)
-  dropvars <- c(FALSE, sapply(cvars, function(v) any(!v %in% term_labs)))
-
-  # Drop terms
-  dropterms <- dropvars | dropfuns
+  # Drop terms that have been flagged with a warning
   if (any(dropterms)){
-    warning(sprintf("unknown terms in constr have been dropped: %s",
-      paste(attr(stats::terms(constr), "variables")[dropterms], collapse = ", ")))
+    warning(paste0("unknown terms in 'constr' have been dropped: ",
+      paste(attr(stats::terms(constr), "variables")[dropterms],
+        collapse = ", "),
+      "\nIt is recommended to check the resulting 'Cmat'."))
     ct <- ct[!dropterms]
   }
-  if (length(ct) == 0) warning("Empty constr list")
+  if (length(ct) == 0) warning("Empty 'constr' list")
 
   #----- Extract constraint matrices
 
@@ -54,7 +64,7 @@ constr2Clist <- function(constr, mf = NULL){
   Clist <- eval(ct, mf)
 
   # Add names of the terms
-  for (i in seq_along(Clist)) attr(Clist[[i]], "vars") <- cvars[[i]]
+  for (i in seq_along(Clist)) attr(Clist[[i]], "vars") <- all.vars(ct[[i + 1]])
   names(Clist) <- attr(stats::terms(constr), "term.labels")[!dropterms[-1]]
 
   # Return the list

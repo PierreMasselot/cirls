@@ -1,7 +1,7 @@
 #' Unconstrained model
 #'
 #' @description
-#' Takes a fitted `cirls` object and returns the corresponding unconstrained model. Works similarly to the [update][stats::update()] method by removing all argument specific to [cirls.fit][cirls.fit()] from the call and evaluate it.
+#' Takes a fitted `cirls` object and returns the corresponding unconstrained model.
 #'
 #' @param object Fitted 'cirls' object.
 #'

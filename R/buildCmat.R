@@ -17,17 +17,20 @@
 #' @param lb,ub Vector or list of vectors containing constraint bounds. If a vector, is used as default bounds for terms with no specified bounds. If a named list, is matched to `Cmat` to provide corresponding bounds.
 #'
 #' @details
-#' This function is called internatlly by `cirls.fit` whenever `Cmat` is not a matrix, and provides a way to specify constraints without having to build a full constraint matrix beforehand. It uses the model frame in `mf` to match specific constraints to the right columns in the design matrix. If `mf` is provided as a simple list or data.frame instead of a model frame, it will be assumed that it represents the model `~ x1 + x2 + ...` where the `xi` are the names of `mf`.
+#' This function is called internally by `cirls.fit` whenever `Cmat` is not a matrix, and provides a way to specify constraints without having to build a full constraint matrix beforehand. It uses the model frame in `mf` to match specific constraints to the right columns in the design matrix.
 #'
-#' The argument `constr` provides a simple way to specify potentially complex constraints. It is a formula of the form `~ ***(x, ...)` where `***` specifies the constraint and `x` the term in `mf` to which it applies. Internally, the formula will look for a function named `***Constr` to be called on variable `x` (which allows for several columns). The `...` represent potential additional arguments for the `***Constr` function. For the list of available constraints and how to create new ones, see ????.
+#' The argument `constr` provides a simple way to specify potentially complex constraints. It is a formula of the form `~ shape(x, ...)` where `shape` specifies the constraint and `x` the term in `mf` to which it applies. Internally, the formula will look for a function named `shapeConstr` to be called on variable `x` (which allows for several columns). The `...` represent potential additional arguments for the `shapeConstr` function. For the list of available constraints and how to create new ones, see **upcoming**.
 #'
 #' The argument `Cmat` is used to provide a named list of constraint matrices, where names should correspond to terms in `mf`. This allows providing custom constraint matrices to specific terms that wouldn't be available through `constr`. Names in `Cmat` can include several terms, which should be separated by a `;`, for instance `x1;x2`. Although not mandatory, elements in `Cmat` can have attributes `lb`, `ub` and `vars` to provide lower and upper bounds, and term names, respectively.
 #'
-#' `lb` and `ub` are meant to be used in conjunction with `Cmat`. If a simple value or vector, they will be used as default values for elements in `Cmat` for which no bounds is specified in its attributes. If lists, they provide bounds for constraint matrices in `Cmat`. In this case, all the names in `Cmat` should be found in `lb`/`ub`.
+#' `lb` and `ub` are meant to be used in conjunction with `Cmat`. If a simple value or vector, they will be used as default values for elements in `Cmat` for which no bounds is specified in its attributes. If lists, they provide bounds for constraint matrices in `Cmat`. In this case, all the names in `Cmat` should be found in `lb` and `ub`.
 #'
 #' Note that both `constr` and `Cmat` can be used at the same time, and neither is mandatory. If both are `NULL`, an empty constraint matrix will be returned.
 #'
 #' @returns A list with containing elements `Cmat`, `lb` and `ub` containing the full constraint matrix, lower and upper bounds for the model specified in argument `mf`. `Cmat` additionally include an attribute called `terms` which maps constraints represented in the matrix to individual terms in the model.
+#'
+#' @examples
+#' ####### Upcoming
 #'
 #' @export
 buildCmat <- function(mf, constr = NULL, Cmat = NULL, lb = 0, ub = Inf){
