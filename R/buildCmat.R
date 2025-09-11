@@ -133,16 +133,16 @@ buildCmat <- function(mf, constr = NULL, Cmat = NULL, lb = 0, ub = Inf){
   # Check Cmat is irreducible
   if (nrow(Cmat) > 1){
     chkc <- checkCmat(Cmat)
-    if (length(chkc$redundant) > 0){
-      Cmat <- Cmat[-chkc$redundant,,drop = F]
-      lb <- lb[-chkc$redundant]
-      ub <- ub[-chkc$redundant]
+    if (sum(chkc$redundant) > 0){
+      Cmat <- Cmat[!chkc$redundant,,drop = F]
+      lb <- lb[!chkc$redundant]
+      ub <- ub[!chkc$redundant]
       warning(paste0("Redundant constraints removed from Cmat: ",
-        paste(chkc$redundant, collapse = ", ")))
+        paste(which(chkc$redundant), collapse = ", ")))
     }
-    if (length(chkc$equality) > 0){
+    if (sum(chkc$equality) > 0){
       warning(paste0("Underlying equality constraints: ",
-        paste(chkc$equality, collapse = ", "), ". ",
+        paste(which(chkc$equality), collapse = ", "), ". ",
         "Consider using lb and ub to set equality constraints instead."))
     }
   }

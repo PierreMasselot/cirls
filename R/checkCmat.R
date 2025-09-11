@@ -31,9 +31,9 @@
 #'
 #' The function also checks whether there are "zero constraints" i.e. constraints with only zeros in `Cmat` in which case they will be labelled as redundant.
 #'
-#' @returns A list with two elements:
-#' \item{redundant}{Vector of indices of redundant constraints}
-#' \item{equality}{Indicates which constraints are part of an underlying equality constraint}
+#' @returns A list with three elements:
+#' \item{redundant}{Logical vector of indicating redundant constraints}
+#' \item{equality}{Logical vector indicating which constraints are part of an underlying equality constraint}
 #'
 #' @seealso [confint.cirls()]
 #'
@@ -43,23 +43,20 @@
 #'
 #' @export
 checkCmat <- function(Cmat){
-  # Check if there are "zero" constraints
+  # Check if there are "zero" constraints which are redundant
   # I use `all.equal` which takes a more sensible approach to equality to 0
-  zerocons <- apply(Cmat, 1,
+  redundant <- apply(Cmat, 1,
     function(x) isTRUE(all.equal(x, rep(0, ncol(Cmat)))))
   # Prepare Cmat
   tCmat <- t(Cmat)
-  ncons <- ncol(tCmat)
-  redundant <- equality <- rep(FALSE, ncons)
-  for (i in seq_len(ncons)){
-    y <- tCmat[, i]
-    x <- tCmat[, -c(i, which(redundant), which(zerocons)), drop = F]
+  equality <- rep(FALSE, ncol(tCmat))
+  for (i in which(!redundant)){
+    # Break the loop if there is only one useful constraint left
+    if (sum(!redundant) < 2) break
     # Check redundancy
+    y <- tCmat[, i]
+    x <- tCmat[, -c(i, which(redundant)), drop = F]
     # res <- coneproj::coneB(y, x)$yhat # Returns error for some problems
-    # fit <- quadprog::solve.QP(crossprod(x), crossprod(y, x), diag(ncol(x))) # Does not accept non strictly positive definite matrices
-    # fit <- osqp::solve_osqp(crossprod(x), -crossprod(y, x), diag(ncol(x)),
-    #   pars = list(eps_abs = 1e-6, eps_rel = 1e-6, verbose = F)) # Not very accurate unless we increase the eps
-    # res <- x %*% fit$x
     fit <- limSolve::nnls(x, y)
     res <- x %*% fit$X
     redundant[i] <- isTRUE(all.equal(y, drop(res)))
@@ -72,6 +69,6 @@ checkCmat <- function(Cmat){
     }
   }
   # Return indices
-  list(redundant = which(redundant), equality = which(equality))
+  list(redundant = redundant, equality = equality)
 }
 

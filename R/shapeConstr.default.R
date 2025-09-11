@@ -22,9 +22,8 @@ shapeConstr.default <- function(x, shape, intercept = FALSE, ...) {
   Cmat <- do.call(rbind, Cmat)
 
   # Put together and remove redundant constraints
-  if (!intercept) Cmat <- Cmat[, -1, drop = F]
-  chkc <- checkCmat(Cmat)
-  if (length(chkc$redundant) > 0) Cmat <- Cmat[-chkc$redundant, , drop = F]
+  if (!intercept) Cmat <- Cmat[, -1, drop = FALSE]
+  Cmat <- Cmat[!checkCmat(Cmat)$redundant,, drop = FALSE]
 
   # Add bound attributes
   attr(Cmat, "lb") <- rep(0, NROW(Cmat))

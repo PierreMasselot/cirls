@@ -221,6 +221,12 @@ int <- glm(Y ~ 0 + Xf, family = "quasipoisson", method = "cirls.fit",
 plot(X, eta, pch = 16, ylim = range(c(eta, predict(int))))
 points(X, predict(int), pch = 15, col = 3)
 
+# Automatic addition of intercept
+int2 <- glm(Y ~ 0 + Xf, family = "quasipoisson", method = "cirls.fit",
+ constr = ~ shape(Xf, "inc"))
+plot(X, eta, pch = 16, ylim = range(c(eta, predict(int2))))
+points(X, predict(int2), pch = 15, col = 3)
+
 # Helmert contrasts
 Xf2 <- Xf
 contrasts(Xf2) <- "contr.helmert"
@@ -238,6 +244,9 @@ test_that("Shape constraints on factors work", {
       -sqrt(.Machine$double.eps)))
   expect_true(all(
     diff(predict(int, newdata = data.frame(Xf = levels(Xf)))) >=
+      -sqrt(.Machine$double.eps)))
+  expect_true(all(
+    diff(predict(int2, newdata = data.frame(Xf = levels(Xf)))) >=
       -sqrt(.Machine$double.eps)))
   expect_true(all(
     diff(predict(helm, newdata = data.frame(Xf2 = levels(Xf2)))) >=

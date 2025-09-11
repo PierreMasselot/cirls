@@ -10,9 +10,9 @@ checkCmat(Cmat)
 \item{Cmat}{A constraint matrix as passed to \code{\link[=cirls.fit]{cirls.fit()}}}
 }
 \value{
-A list with two elements:
-\item{redundant}{Vector of indices of redundant constraints}
-\item{equality}{Indicates which constraints are part of an underlying equality constraint}
+A list with three elements:
+\item{redundant}{Logical vector of indicating redundant constraints}
+\item{equality}{Logical vector indicating which constraints are part of an underlying equality constraint}
 }
 \description{
 Checks a constraint matrix does not contains redundant rows

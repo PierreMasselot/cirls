@@ -17,8 +17,8 @@ check2 <- checkCmat(cmat2)
 
 # Check it is detected
 test_that("checkCmat detects equality constraints", {
-  expect_equal(check1$equality, c(1, 2))
-  expect_equal(check2$equality, 1:3)
+  expect_equal(which(check1$equality), c(1, 2))
+  expect_equal(which(check2$equality), 1:3)
 })
 
 #----- Reducible constraints
@@ -41,6 +41,6 @@ check4 <- checkCmat(cmat4)
 
 # Test
 test_that("checkCmat takes good decisions on irreducibility", {
-  expect_gt(length(check3$redundant), 0)
-  expect_length(check4$redundant, 0)
+  expect_gt(sum(check3$redundant), 0)
+  expect_equal(sum(check4$redundant), 0)
 })

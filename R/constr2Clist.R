@@ -18,11 +18,19 @@ constr2Clist <- function(constr, mf = NULL){
   term_labs <- names(mf)
 
   # Add intercept to capture a potential constraint
-  term_labs <- c("(Intercept)", term_labs)
-  mf[["(Intercept)"]] <- rep(1, NROW(mf))
+  intercept <- attr(attr(mf, "terms"), "intercept") %||% FALSE
+  if (intercept){
+    term_labs <- c("(Intercept)", term_labs)
+    mf[["(Intercept)"]] <- rep(1, NROW(mf))
+  }
 
   # Extract terms for the constr formula
   ct <- attr(stats::terms(constr), "variables")
+
+  # Check if there are factors
+  isF <- sapply(mf,
+    function(x) is.factor(x) || is.logical(x) || is.character(x))
+  firstF <- term_labs[which(isF)[1]]
 
   #----- Check data and functions can be matched to existing objects
 
@@ -45,7 +53,16 @@ constr2Clist <- function(constr, mf = NULL){
     # Check if variables can be found in the model frame
     cvars <- all.vars(ct[[i]])
     # NB: logicals 'T' and 'F' are treated as variables in R
-    if (!all(cvars %in% c(term_labs, "T", "F"))) dropterms[i] <- TRUE
+    if (!all(cvars %in% c(term_labs, "T", "F"))){
+      dropterms[i] <- TRUE
+    } else {
+      # If the terms include the first factor, add 'intercept' argument
+      # Because factor will be coded as dummy regardless of contrasts
+      # If such an argument doesn't exist, it will be ignored
+      if (any(cvars %in% firstF) && !intercept){
+        ct[[i]]$intercept <- TRUE
+      }
+    }
   }
 
   # Drop terms that have been flagged with a warning

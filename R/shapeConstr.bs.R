@@ -23,8 +23,7 @@ shapeConstr.bs <- function(x, shape, ...){
 
   # Remove redundant constraints
   if (!intercept) Cmat <- Cmat[,-1]
-  chkc <- checkCmat(Cmat)
-  if (length(chkc$redundant) > 0) Cmat <- Cmat[-chkc$redundant, , drop = F]
+  Cmat <- Cmat[!checkCmat(Cmat)$redundant,, drop = FALSE]
 
   # Add bound attributes
   attr(Cmat, "lb") <- rep(0, NROW(Cmat))
