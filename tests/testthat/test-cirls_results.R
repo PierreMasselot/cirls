@@ -27,6 +27,7 @@ x <- matrix(rnorm(n * p), n, p)
 eta <- 1 + x %*% betas
 
 # Simulate responses
+set.seed(5678)
 ynorm <- eta + rnorm(n, 0, .2)
 ypois <- rpois(n, exp(eta))
 
