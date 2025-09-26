@@ -31,16 +31,14 @@ cirls.fit(x, y, weights = rep.int(1, nobs), start = NULL,
 \item{singular.ok}{Logical. If \code{FALSE}, the function returns an error for singular fits.}
 }
 \value{
-A \code{cirls} object inheriting from the class \code{glm}. At the moment, two non-standard methods specific to \code{cirls} objects are available: \link[=vcov.cirls]{vcov.cirls} to obtain the coefficients variance-covariance matrix and \link[=confint.cirls]{confint.cirls} to obtain confidence intervals. These custom methods account for the reduced degrees of freedom resulting from the constraints, see \link[=vcov.cirls]{vcov.cirls} and \link[=confint.cirls]{confint.cirls}.
-
-An object of class \code{cirls} includes all components from \link[stats:glm]{glm} objects, with the addition of:
+A object of class \code{cirls} inheriting from \code{glm}. The object of class \code{cirls} includes all components from \link[stats:glm]{glm} objects, with the addition of:
 \item{Cmat, lb, ub}{the constraint matrix, and lower and upper bound vectors. If provided as lists, the full expanded matrix and vectors are returned.}
 \item{active.cons}{vector of indices of the active constraints in the fitted model.}
 \item{inner.iter}{number of iterations performed by the last call to the QP solver.}
 \item{etastart}{the initialisation of the linear predictor \code{eta}. The same as \code{etastart} when provided.}
 \item{singular.ok}{the value of the \code{singular.ok} argument.}
 
-Any method for \code{glm} objects can be used on \code{cirls} objects. Several methods specific to \code{cirls} are available: \link[=vcov.cirls]{vcov.cirls} to obtain the coefficients variance-covariance matrix, \link[=confint.cirls]{confint.cirls} to obtain confidence intervals, and \link[=logLik.cirls]{logLik.cirls} to extract the log-likelihood with appropriate degrees of freedom.
+Any method for \code{glm} objects can be used on \code{cirls} objects. In addition, methods specific to the \code{cirls} class are available, such as: \link[=vcov.cirls]{vcov.cirls} to obtain the coefficients variance-covariance matrix, \link[=confint.cirls]{confint.cirls} to obtain confidence intervals, and \link[=logLik.cirls]{logLik.cirls} to extract the log-likelihood with appropriate degrees of freedom. These custom methods account for the reduced degrees of freedom resulting from the constraints (see the related help pages for details).
 }
 \description{
 Fits a generalized linear model with linear constraints on the coefficients through a Constrained Iteratively Reweighted Least-Squares (CIRLS) algorithm.
@@ -56,7 +54,7 @@ The CIRLS algorithm is a modification of the classical IRLS algorithm in which e
 where \code{coefficients} is the coefficient vector returned by the model. This specification allows for any linear constraint, including equality ones.
 \subsection{Specifying constraints}{
 
-The package includes several mechanisms to specify constraints. The most straightforward is to pass a full matrix to \code{Cmat} with associated bound vectors in \code{lb} and \code{ub}. In this case, the number of columns in \code{Cmat} must match the number of coefficients estimated by \link[stats:glm]{glm}. This includes all variables that are not involved in any constraint, potential expansion such as factors or splines for instance, as well as the intercept. By default \code{lb} and \code{ub} are set to \code{0} and \code{Inf}, respectively, but any bounds are possible. When some elements of \code{lb} and \code{ub} are identical, they define equality constraints. Setting \code{lb = -Inf} and \code{ub = Inf} disable the constraints.
+The package includes several mechanisms to specify constraints. The most straightforward is to pass a full matrix to \code{Cmat} with associated bound vectors in \code{lb} and \code{ub}. In this case, the number of columns in \code{Cmat} must match the number of coefficients estimated by \link[stats:glm]{glm}. This includes all variables that are not involved in any constraint, potential expansion such as factors or splines for instance, as well as the intercept. By default \code{lb} and \code{ub} are set to \code{0} and \code{Inf}, respectively, but any bounds are possible. When some elements of \code{lb} and \code{ub} are identical, they define equality constraints. Setting \code{lb = -Inf} and \code{ub = Inf} effectively disables the constraints.
 
 To avoid pre-constructing potentially large and complex \code{Cmat} objects, the arguments \code{Cmat} and \code{constr} can be combined to conveniently specify constraints for the coefficients. More specifically, \code{Cmat} can alternatively take a named list of matrices to constrain only specific terms in the model. The argument \code{constr} provides a formula interface to specify built-in common constraints. The documentation of \link[=buildCmat]{buildCmat} provides full details on how to specify constraints along with examples.
 }
@@ -160,5 +158,5 @@ Meyer, M.C., 2013. A Simple New Algorithm for Quadratic Programming with Applica
 Stellato, B., Banjac, G., Goulart, P., Bemporad, A., Boyd, S., 2020. OSQP: an operator splitting solver for quadratic programs. \emph{Math. Prog. Comp.} \strong{12}, 637–672. \doi{10.1007/s12532-020-00179-2}
 }
 \seealso{
-\link[=vcov.cirls]{vcov.cirls}, \link[=confint.cirls]{confint.cirls}, \link[=logLik.cirls]{logLik.cirls} and \link[=edf]{edf} for methods specific to \code{cirls} objects. \link[=cirls.control]{cirls.control} for fitting parameters specific to \link[=cirls.fit]{cirls.fit}. \link[stats:glm]{glm} for details on \code{glm} objects.
+\link[=vcov.cirls]{vcov.cirls}, \link[=confint.cirls]{confint.cirls}, \link[=logLik.cirls]{logLik.cirls} and \link[=edf]{edf} for functions specific to \code{cirls} objects. \link[=cirls.control]{cirls.control} for fitting parameters specific to \link[=cirls.fit]{cirls.fit}. \link[stats:glm]{glm} for details on \code{glm} objects.
 }
