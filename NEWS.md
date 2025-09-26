@@ -1,5 +1,7 @@
 # Current development version
 
+# 0.4.0
+
 ## New features
 - New method `shapeConstr` to build constraint matrices for shape-constrained splines. Currently works with classes `ns`, `bs` (from package `splines`), `ps` and `onebasis` (from `dlnm`). Also includes a default method for more general bases.
 - New function `zerosumConstr` for constraint matrices for a zero sum such as used in compositional regression for instance.
