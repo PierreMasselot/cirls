@@ -21,10 +21,11 @@
 #' @example man/examples/cirls.control.R
 #'
 #' @export
-cirls.control <- function (constr = NULL, Cmat = NULL, lb = 0L, ub = Inf,
-  epsilon = 1e-08, maxit = 25, trace = FALSE,
-  qp_solver = "quadprog", qp_pars = list())
+cirls.control <- function (constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
+  epsilon = 1e-08, maxit = 25, trace = FALSE, qp_solver = "quadprog",
+  qp_pars = list())
 {
+
   # Check valid convergence parameters
   if (!is.numeric(epsilon) || epsilon <= 0)
     stop("value of 'epsilon' must be > 0")
@@ -33,24 +34,18 @@ cirls.control <- function (constr = NULL, Cmat = NULL, lb = 0L, ub = Inf,
 
   #----- Check constraints
 
-  # Check that bounds are well specified
-  if (any(lb > ub)){
-    warning("lb cannot greater than ub")
-    lb2 <- pmin(lb, ub)
-    ub2 <- pmax(lb, ub)
-    lb <- lb2
-    ub <- ub2
-  }
+  # Check that Cmat/lb/ub are consistent
+  cm <- list(Cmat, lb, ub)
+  if (any(sapply(cm, is.numeric)) && any(sapply(cm, is.list)))
+    stop("Cmal/lb/ub must be all either matrix/vector or named lists")
+
+  # Check that constr is not used when Cmat/lb/ub passed as full
+  if (any(sapply(cm, is.numeric)) && !is.null(constr))
+    stop("constr not used when Cmal/lb/ub are matrix/vector for full model")
 
   # Check `constr` is a formula or can be coerced as one
   if (!(inherits(constr, "formula") || is.null(constr))){
     stop("constr must be provided as a formula")
-  }
-
-  # Check Cmat is either a matrix or a list of numerical matrix/vectors
-  if (!(is.matrix(Cmat) || is.null(Cmat))){
-    if (!all(sapply(Cmat, is.numeric))) stop(
-      "Cmat must a numeric matrix or a list of numeric matrices")
   }
 
   #----- Other parameters
