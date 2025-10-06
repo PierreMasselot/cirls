@@ -33,102 +33,105 @@
 #' ####### Upcoming
 #'
 #' @export
-buildCmat <- function(mf, constr = NULL, Cmat = NULL, lb = 0, ub = Inf){
+buildCmat <- function(mf, assign = NULL, constr = NULL, Cmat = NULL, lb = NULL,
+  ub = NULL) {
 
-  # If not a model frame, try to coerce to one (assuming a simple model)
+  # check mf
   if (is.null(attr(mf, "terms"))){
     mf <- stats::model.frame(stats::reformulate(names(mf)), mf)
   }
 
-  # Extract terms in model
+  # Extract terms in model and check assign
   mt <- attr(mf, "terms")
-  term_labs <- attr(mt, "term.labels")
-  tcols <- stats::model.matrix(mt, mf) |> attr("assign")
+  termlab <- attr(mt, "term.labels")
+  assign <- assign %||% assign(stats::model.matrix(mt, mf))
 
-  # Add info about intercept
-  if (attr(mt, "intercept")){
-    term_labs <- c("(Intercept)", term_labs)
+  # define intercept and first factor (if any), used later
+  intercept <- attr(mt, "intercept")
+  firstF <- sapply(termlab, function(nm)
+    is.factor(mf[[nm]]) || is.logical(mf[[nm]]) || is.character(mf[[nm]]))
+  if(sum(firstF) > 1) firstF[which(firstF)[-1]] <- FALSE
+
+  #----- Return empty Cmat/lb/ub if no constraints provided
+
+  # Check if any constraints are passed
+  if (all(sapply(list(Cmat, lb, ub, constr), is.null))) {
+    Cmat <- matrix(nrow = 0, ncol = length(assign))
+    lb <- ub <- numeric(0)
+    cmempty <- list(Cmat = Cmat, lb = lb, ub = ub)
+    return(cmempty)
   }
 
-  #----- Prepare constraints
+  #----- Check and return Cmat/lb/ub if provided in full
 
-  # Go through Cmat to attributing them to terms
-  dropterms <- rep(FALSE, length(Cmat))
-  for (i in seq_along(Cmat)){
-    nm <- names(Cmat)[i]
-    attr(Cmat[[i]], "vars") <- unlist(strsplit(attr(Cmat[[i]], "vars") %||% nm,
-      ";"))
-    dropterms[i] <- any(!attr(Cmat[[i]], "vars") %in% term_labs)
+  # if Cmat/lb/ub are numeric, they represent the full constraints
+  if (any(sapply(list(Cmat, lb, ub), is.numeric))) {
+    cmfull <- Cmat2Clist(list(Cmat, lb, ub), label="Cmat", nc=length(assign))
+    return(cmfull)
   }
 
-  # Drop terms that weren't found (with warning)
-  if (any(dropterms)){
-    warning(sprintf("Unknown terms in Cmat have been dropped: %s",
-      paste(names(Cmat)[dropterms], collapse = ", ")))
-    Cmat <- Cmat[!dropterms]
+  #----- Prepare constraints related to Cmat/lb/ub
+
+  # Identify the terms and check if in model formula
+  cmterms <- unique(c(names(Cmat), names(lb), names(ub)))
+  if(any(ind <- !cmterms %in% termlab))
+    stop(sprintf("term(s) in Cmat/lb/ub not in model formula: %s",
+      paste(cmterms[ind], collapse = ", ")))
+
+  # create the Cmat/lb/ub list for each term
+  cmlist <- lapply(cmterms, function(nm)
+    list(Cmat=Cmat[[nm]], lb=lb[[nm]], ub=ub[[nm]]))
+  names(cmlist) <- cmterms
+
+  # extract ncols for terms
+  cmnc <- sapply(match(cmterms, termlab), function(x) sum(assign==x))
+
+  # Check and complete the list
+  cmlist <- mapply(Cmat2Clist, cm = cmlist, label = cmterms, nc = cmnc,
+    SIMPLIFY = FALSE)
+
+  #----- Prepare constraints related to constr
+
+  # Coerce constr, extract expressions
+  constr <- if(!is.null(constr)) stats::as.formula(constr)
+  csvars <- if(!is.null(constr))
+    attr(stats::terms(constr), "variables") else list()
+
+  # Identify the terms (optionally multiple) and check if in model formula
+  csterms <- all.vars(csvars, unique=FALSE)
+  if(any(ind <- !csterms %in% termlab))
+    stop(sprintf("term(s) in constr not in model formula: %s",
+      paste(csterms[ind], collapse = ", ")))
+
+  # Intercept indicator
+  intind <- if(!intercept && any(firstF)) csterms %in% termlab[firstF] else
+    rep_len(F, length(csterms))
+
+  # create the Cmat/lb/ub list for each term
+  cslist <- mapply(constr2Clist, var = csvars[-1], label = csterms,
+    int = intind, MoreArgs = list(mf = mf), SIMPLIFY = FALSE)
+  names(cslist) <- csterms
+
+  #----- Create the full Cmat/lb/ub
+
+  # Initialise objects
+  alllist <- c(cmlist, cslist)
+  allterms <- c(cmterms, csterms)
+  nr <- sapply(alllist, function(x) nrow(x$Cmat))
+  Cmat <- matrix(0, sum(nr), length(assign))
+  lb <- ub <- rep_len(0, sum(nr))
+
+  # Fill
+  cnr <- c(0, cumsum(nr))
+  for(i in seq(alllist)) {
+    indc <- assign == (which(termlab==allterms[i]))
+    indr <- seq(cnr[i]+1, cnr[i+1])
+    Cmat[indr, indc] <- alllist[[i]]$Cmat
+    lb[indr] <- alllist[[i]]$lb
+    ub[indr] <- alllist[[i]]$ub
   }
 
-  # Add constraints in constr formula
-  if (!is.null(constr)){
-    Cmat <- c(Cmat, constr2Clist(constr, mf))
-  }
-
-  # Check there are constraints left
-  if (length(Cmat) == 0) {
-    warning("No valid constraint found. Fitting unconstrained model")
-    return(list(Cmat = matrix(nrow = 0, ncol = length(tcols)),
-      lb = numeric(0), ub = numeric(0)))
-  }
-
-  #----- Build full constraint matrix
-
-  # Prepare lbs and ubs
-  if(!is.list(lb)){
-    lb <- rep(list(lb), length(Cmat))
-    names(lb) <- names(Cmat)
-  }
-  if(!is.list(ub)){
-    ub <- rep(list(ub), length(Cmat))
-    names(ub) <- names(Cmat)
-  }
-
-  # Go through each term in Clist to expand constraint matrices
-  cml <- lbl <- ubl <- vector("list", length(Cmat))
-  names(cml) <- names(lbl) <- names(ubl) <- names(Cmat)
-  for (i in seq_along(Cmat)) {
-
-    # Initialise a matrix with 0 values
-    nc <- NROW(Cmat[[i]])
-    cml[[i]] <- matrix(0, nc, length(tcols))
-
-    # Find the columns to replace
-    cmterms <- match(attr(Cmat[[i]], "vars"), term_labs)
-    cols <- tcols %in% (cmterms - attr(mt, "intercept"))
-
-    # Check if the dimensions match and replace
-    if (sum(cols) == NCOL(Cmat[[i]])) cml[[i]][, cols] <- Cmat[[i]] else stop(
-      sprintf("Constraint matrix for term `%s` inconsistent with model frame",
-        names(Cmat)[i]))
-
-    # Match bounds
-    lbl[[i]] <- attr(Cmat[[i]], "lb") %||% lb[[names(Cmat)[i]]] %||% {
-      warning(sprintf("No `lb` found for constraint %s. Setting it to -Inf",
-        names(Cmat)[i]))
-      -Inf
-    } |> rep_len(nc)
-    ubl[[i]] <- attr(Cmat[[i]], "ub") %||% ub[[names(Cmat)[i]]] %||% {
-      warning(sprintf("No `ub` found for constraint %s. Setting it to Inf",
-        names(Cmat)[i]))
-      Inf
-    } |> rep_len(nc)
-  }
-
-  # Append terms together
-  Cmat <- do.call("rbind", cml)
-  lb <- unlist(lbl)
-  ub <- unlist(ubl)
-
-  #----- Tidy and return
+  #----- Final checks and return
 
   # Check Cmat is irreducible
   if (nrow(Cmat) > 1){
@@ -146,17 +149,6 @@ buildCmat <- function(mf, constr = NULL, Cmat = NULL, lb = 0, ub = Inf){
         "Consider using lb and ub to set equality constraints instead."))
     }
   }
-
-  # Add colnames and add terms as attribute
-  colnames(Cmat) <- colnames(stats::model.matrix(mt, mf))
-  rownames(Cmat) <- names(lb)
-
-  # Attributes constraints to lines
-  nconsterm <- sapply(cml, NROW)
-  end <- cumsum(nconsterm)
-  start <- end - nconsterm + 1
-  conslist <- Map(seq, start, end)
-  attributes(Cmat)$terms <- conslist
 
   # Return
   list(Cmat = Cmat, lb = lb, ub = ub)

@@ -111,37 +111,13 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
 
   #----- Initialise constraints
 
-  # Create an empty matrix if no constraint provided
-  if (is.null(control$Cmat) & is.null(control$constr)){
-    control$Cmat <- matrix(nrow = 0, ncol = length(xnames))
-  }
+  # Get model.frame from parent environment
+  mf <- get("mf", envir = parent.frame())
 
-  # Check if Cmat is a matrix
-  if (is.numeric(control$Cmat)){
-
-    # Check it has the right dimension
-    control$Cmat <- as.matrix(control$Cmat)
-    if (length(xnames) != ncol(control$Cmat)) stop(
-      sprintf("Cmat has %i columns while the design matrix has %i",
-        ncol(control$Cmat), length(xnames)))
-
-    # Expand bounds if necessary
-    control$lb <- rep_len(control$lb, NROW(control$Cmat))
-    control$ub <- rep_len(control$ub, NROW(control$Cmat))
-
-  } else {
-
-    # Get model.frame from parent environment
-    mf <- get("mf", envir = parent.frame())
-
-    # If not Build full constraint matrix
-    control[c("Cmat", "lb", "ub")] <- buildCmat(mf, Cmat = control$Cmat,
-      constr = control$constr, lb = control$lb, ub = control$ub)
-
-  }
-
-  # Keep terms in Cmat
-  ct <- attr(control$Cmat, "terms")
+  # Build the Cmat, lb, and ub objects
+  control[c("Cmat", "lb", "ub", "constr")] <- buildCmat(mf,
+    assign = attr(x, "assign"), Cmat = control$Cmat, constr = control$constr,
+    lb = control$lb, ub = control$ub)
 
   # Extract solver
   solver_fun <- sprintf("%s.fit", control$qp_solver)
@@ -419,11 +395,8 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   resdf <- n.ok - rank + length(fit$iact)
   aic.model <- aic(y, nobs, mu, weights, dev) + 2 * (rank - length(fit$iact))
 
-  # Get final Cmat with names and terms
+  # Get final Cmat/lb/ub
   Cmat <- control$Cmat
-  attr(Cmat, "terms") <- ct
-
-  # Extract bounds and remove these fomr control list
   lb <- control$lb
   ub <- control$ub
   control[c("Cmat", "ub", "lb")] <- NULL
