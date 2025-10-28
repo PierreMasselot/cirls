@@ -27,15 +27,15 @@ zerosumConstr <- function(..., group = FALSE){
   # Create constraint matrix depending on groups
   if (isFALSE(group)){
     Cmat <- t(rep(1, nctot))
-    attr(Cmat, "lb") <- 0
-    attr(Cmat, "ub") <- 0
   } else {
     Cmat <- matrix(0, nv, nctot)
     Cmat[cbind(rep(seq_len(nv), ncs), seq_len(nctot))] <- 1
-    attr(Cmat, "lb") <- rep(0, nv)
-    attr(Cmat, "ub") <- rep(0, nv)
   }
 
+  # Bounds
+  lb <- rep(0, NROW(Cmat))
+  ub <- rep(Inf, NROW(Cmat))
+
   # Return
-  Cmat
+  list(Cmat = Cmat, lb = lb, ub = ub)
 }

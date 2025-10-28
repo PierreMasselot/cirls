@@ -24,10 +24,10 @@ shapeConstr.ns <- function(x, shape, ...){
   # Constraining of NS can create some redundant constraints
   Cmat <- Cmat[!checkCmat(Cmat)$redundant,, drop = FALSE]
 
-  # Add bound attributes
-  attr(Cmat, "lb") <- rep(0, NROW(Cmat))
-  attr(Cmat, "ub") <- rep(Inf, NROW(Cmat))
+  # Bounds
+  lb <- rep(0, NROW(Cmat))
+  ub <- rep(Inf, NROW(Cmat))
 
   # Return
-  Cmat
+  list(Cmat = Cmat, lb = lb, ub = ub)
 }
