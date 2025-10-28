@@ -53,7 +53,7 @@ uncons <- function(object){
       offset = object$offset, family = object$family, control = control,
       intercept = intercept, singular.ok = object$singular.ok),
     warning = function(w) {
-      if (startsWith(conditionMessage(w), "No valid constraint"))
+      if (startsWith(conditionMessage(w), "No constraint provided"))
         invokeRestart("muffleWarning")
     }
   )

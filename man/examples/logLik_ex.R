@@ -4,7 +4,7 @@ x <- rnorm(100)
 y <- x + rnorm(100)
 
 # Run the model
-mod <- glm(y ~ x, method = "cirls.fit", Cmat = list(x = 1), lb = 0)
+mod <- glm(y ~ x, method = "cirls.fit", Cmat = list(x = 1))
 
 # Loglikelihood and AIC
 logLik(mod)

@@ -4,7 +4,7 @@
 \alias{cirls.control}
 \title{Parameters controlling CIRLS fitting}
 \usage{
-cirls.control(constr = NULL, Cmat = NULL, lb = 0L, ub = Inf,
+cirls.control(constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
   epsilon = 1e-08, maxit = 25, trace = FALSE, qp_solver = "quadprog",
   qp_pars = list())
 }

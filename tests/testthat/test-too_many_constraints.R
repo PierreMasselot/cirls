@@ -34,7 +34,8 @@ Cmat <- rbind(
 )
 
 # Fit model (no intercept to make sure Cmat has more lines than columns)
-res <- glm(Y ~ 0 + X, method = "cirls.fit", Cmat = Cmat)
+res <- glm(Y ~ 0 + X, method = "cirls.fit", Cmat = Cmat,
+  lb = 0, ub = Inf)
 
 # Check that model fits and is feasible
 test_that("model fits well", {

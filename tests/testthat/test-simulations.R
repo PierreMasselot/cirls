@@ -36,10 +36,12 @@ res0 <- glm(y ~ x)
 cinc <- diff(diag(p))
 
 # Cmat as an argument
-res1 <- glm(y ~ x, method = cirls.fit, Cmat = list(x = cinc))
+res1 <- glm(y ~ x, method = cirls.fit, Cmat = list(x = cinc),
+  lb = list(x = 0), ub = list(x = Inf))
 
 # Cmat in control list
-res2 <- glm(y ~ x, method = cirls.fit, control = list(Cmat = list(x = cinc)))
+res2 <- glm(y ~ x, method = cirls.fit, control = list(Cmat = list(x = cinc),
+  lb = list(x = 0), ub = list(x = Inf)))
 
 #----- Basic use of uncons
 
@@ -63,10 +65,12 @@ form <- sprintf("Y ~ %s", paste("X.", 1:p, sep = "", collapse = " + "))
 udf <- glm(form, data = data)
 
 # Predictor literal in formula
-resdf <- glm(form, data = data, method = cirls.fit, Cmat = cbind(0, cinc))
+resdf <- glm(form, data = data, method = cirls.fit, Cmat = cbind(0, cinc),
+  lb = 0, ub = Inf)
 
 # Predictor implied
-resdot <- glm(Y ~ ., data = data, method = cirls.fit, Cmat = cbind(0, cinc))
+resdot <- glm(Y ~ ., data = data, method = cirls.fit, Cmat = cbind(0, cinc),
+  lb = 0, ub = Inf)
 
 test_that("`uncons` works with `data` argument", {
   expect_equal(udf[checkcomp], uncons(resdf)[checkcomp])

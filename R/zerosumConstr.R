@@ -34,7 +34,7 @@ zerosumConstr <- function(..., group = FALSE){
 
   # Bounds
   lb <- rep(0, NROW(Cmat))
-  ub <- rep(Inf, NROW(Cmat))
+  ub <- rep(0, NROW(Cmat))
 
   # Return
   list(Cmat = Cmat, lb = lb, ub = ub)

@@ -44,7 +44,8 @@ for (b in tested_bases){
 
   # Fit model
   res <- apply(Y, 2, function(y) glm(y ~ basis, family = "quasipoisson",
-    method = "cirls.fit", Cmat = list(basis = Cmat)) |>
+    method = "cirls.fit", Cmat = list(basis = Cmat$Cmat),
+    lb = list(basis = Cmat$lb), ub = list(basis = Cmat$ub)) |>
       predict())
 
   # Test results
@@ -67,7 +68,8 @@ for (b in tested_bases){
 
   # Fit model
   res <- apply(Y, 2, function(y) glm(y ~ basis, family = "quasipoisson",
-    method = "cirls.fit", Cmat = list(basis = Cmat)) |>
+    method = "cirls.fit", Cmat = list(basis = Cmat$Cmat),
+    lb = list(basis = Cmat$lb), ub = list(basis = Cmat$ub)) |>
       predict())
 
   # Test results
@@ -91,7 +93,8 @@ for (b in tested_bases){
 
   # Fit model
   res <- apply(Y, 2, function(y) glm(y ~ basis, family = "quasipoisson",
-    method = "cirls.fit", Cmat = list(basis = Cmat)) |>
+    method = "cirls.fit", Cmat = list(basis = Cmat$Cmat),
+    lb = list(basis = Cmat$lb), ub = list(basis = Cmat$ub)) |>
       predict())
 
   # Test results
@@ -115,7 +118,8 @@ for (b in tested_bases){
 
   # Fit model
   res <- apply(Y, 2, function(y) glm(y ~ basis, family = "quasipoisson",
-    method = "cirls.fit", Cmat = list(basis = Cmat)) |>
+    method = "cirls.fit", Cmat = list(basis = Cmat$Cmat),
+    lb = list(basis = Cmat$lb), ub = list(basis = Cmat$ub)) |>
       predict())
 
   # Test results
@@ -150,7 +154,7 @@ for (b in tested_bases){
 test_that("We get the default method for unknown `onebasis`", {
   strbasis <- onebasis(X, fun = "strata", df = p)
   expect_warning(Cmat <- shapeConstr(strbasis, shape = "pos"))
-  expect_identical(Cmat, diag(p), ignore_attr = TRUE)
+  expect_identical(Cmat$Cmat, diag(p), ignore_attr = TRUE)
 })
 
 
@@ -170,7 +174,8 @@ X <- ns(x1, knots = ks)
 
 # Fit
 Cmat <- shapeConstr(X, shape = c("dec", "ccv"))
-m <- glm(y ~ X, method = cirls.fit, Cmat = list(X=Cmat))
+m <- glm(y ~ X, method = cirls.fit, Cmat = list(X=Cmat$Cmat),
+  lb = list(X = Cmat$lb), ub = list(X = Cmat$ub))
 pred <- predict(m)
 
 # Formal test
@@ -210,14 +215,15 @@ Cmat <- shapeConstr(Xf, "inc")
 
 # Basic test
 treat <- glm(Y ~ Xf, family = "quasipoisson", method = "cirls.fit",
-  Cmat = list(Xf = Cmat))
+  Cmat = list(Xf = Cmat$Cmat), lb = list(Xf = Cmat$lb), ub = list(Xf = Cmat$ub))
 plot(X, eta, pch = 16, ylim = range(c(eta, predict(treat))))
 points(X, predict(treat), pch = 15, col = 3)
 
 # When intercept is "included" in the factor
 Cmat0 <- shapeConstr(Xf, "inc", intercept = TRUE)
 int <- glm(Y ~ 0 + Xf, family = "quasipoisson", method = "cirls.fit",
-  Cmat = list(Xf = Cmat0))
+  Cmat = list(Xf = Cmat0$Cmat), lb = list(Xf = Cmat0$lb),
+  ub = list(Xf = Cmat0$ub))
 plot(X, eta, pch = 16, ylim = range(c(eta, predict(int))))
 points(X, predict(int), pch = 15, col = 3)
 
@@ -232,7 +238,8 @@ Xf2 <- Xf
 contrasts(Xf2) <- "contr.helmert"
 Cmat2 <- shapeConstr(Xf2, "inc")
 helm <- glm(Y ~ Xf2, family = "quasipoisson", method = "cirls.fit",
-  Cmat = list(Xf2 = Cmat2))
+  Cmat = list(Xf2 = Cmat2$Cmat), lb = list(Xf2 = Cmat2$lb),
+  ub = list(Xf2 = Cmat2$ub))
 plot(X, eta, pch = 16, ylim = range(c(eta, predict(helm))))
 points(X, predict(helm), pch = 15, col = 3)
 # model.matrix(helm)

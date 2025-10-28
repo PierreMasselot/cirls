@@ -37,11 +37,11 @@ cirls.control <- function (constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
   # Check that Cmat/lb/ub are consistent
   cm <- list(Cmat, lb, ub)
   if (any(sapply(cm, is.numeric)) && any(sapply(cm, is.list)))
-    stop("Cmal/lb/ub must be all either matrix/vector or named lists")
+    stop("Cmat/lb/ub must be all either matrix/vector or named lists")
 
   # Check that constr is not used when Cmat/lb/ub passed as full
   if (any(sapply(cm, is.numeric)) && !is.null(constr))
-    stop("constr not used when Cmal/lb/ub are matrix/vector for full model")
+    warning("constr will be ignored when Cmat/lb/ub are matrix/vector for full model")
 
   # Check `constr` is a formula or can be coerced as one
   if (!(inherits(constr, "formula") || is.null(constr))){

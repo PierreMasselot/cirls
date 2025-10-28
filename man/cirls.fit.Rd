@@ -142,7 +142,7 @@ ub <- 1
 
 # Re-fit the model
 resiso3 <- glm(y ~ x1 + x2, method = cirls.fit, Cmat = list(x1 = Ciso),
-  lb = lb, ub = ub)
+  lb = list(x1 = lb), ub = list(x1 = ub))
 
 # Compare the fit
 plot(c(0, b1, b2), pch = 16)

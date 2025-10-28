@@ -115,7 +115,7 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   mf <- get("mf", envir = parent.frame())
 
   # Build the Cmat, lb, and ub objects
-  control[c("Cmat", "lb", "ub", "constr")] <- buildCmat(mf,
+  control[c("Cmat", "lb", "ub")] <- buildCmat(mf,
     assign = attr(x, "assign"), Cmat = control$Cmat, constr = control$constr,
     lb = control$lb, ub = control$ub)
 

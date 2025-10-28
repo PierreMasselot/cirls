@@ -40,12 +40,16 @@ cpos <- diag(p)
 cinc <- diff(diag(p))
 
 #----- Apply models
-normpos <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = cpos))
-norminc <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = cinc))
+normpos <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = cpos),
+  lb = list(x = 0), ub = list(x = Inf))
+norminc <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = cinc),
+  lb = list(x = 0), ub = list(x = Inf))
 poispos <- glm(ypois ~ x, family = "poisson",
-  method = cirls.fit, Cmat = list(x = cpos))
+  method = cirls.fit, Cmat = list(x = cpos),
+  lb = list(x = 0), ub = list(x = Inf))
 poisinc <- glm(ypois ~ x, family = "poisson",
-  method = cirls.fit, Cmat = list(x = cinc))
+  method = cirls.fit, Cmat = list(x = cinc),
+  lb = list(x = 0), ub = list(x = Inf))
 
 #----- Tests ------
 
@@ -98,11 +102,11 @@ test_that("results respect constraints", {
 
 # Revert constraints
 normpos_rev <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = -cpos),
-  lb = -Inf, ub = 0)
+  lb = list(x = -Inf), ub = list(x = 0))
 norminc_rev <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = -cinc),
-  lb = -Inf, ub = 0)
+  lb = list(x = -Inf), ub = list(x = 0))
 
-# Check this is equaivalent to previous constraint
+# Check this is equivalent to previous constraint
 test_that("reverting ub and lb is equal", {
   expect_mapequal(coef(normpos), coef(normpos_rev))
   expect_mapequal(coef(norminc), coef(norminc_rev))
@@ -111,7 +115,7 @@ test_that("reverting ub and lb is equal", {
 # Equality constraint
 betasum <- sum(betas)
 normeq <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = t(rep(1, p))),
-  lb = betasum, ub = betasum)
+  lb = list(x = betasum), ub = list(x = betasum))
 test_that("equality constraint can be passed", {
   expect_equal(sum(coef(normeq)[-1]), betasum)
 })
@@ -120,12 +124,12 @@ test_that("equality constraint can be passed", {
 
 # quadprog
 quadprog_pos <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = cpos),
-  qp_solver = "quadprog")
+  lb = list(x = 0), ub = list(x = Inf), qp_solver = "quadprog")
 quadprog_inc <- glm(ypois ~ x, method = cirls.fit, Cmat = list(x = cinc),
-  qp_solver = "quadprog")
+  lb = list(x = 0), ub = list(x = Inf), qp_solver = "quadprog")
 betasum <- sum(betas)
 quadprog_eq <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = t(rep(1, p))),
-  lb = betasum, ub = betasum, qp_solver = "quadprog")
+  lb = list(x = betasum), ub = list(x = betasum), qp_solver = "quadprog")
 
 test_that("quadprog solver is integrated", {
   expect_true(all(coef(quadprog_pos)[-1] >= (0 - 1e-6)))
@@ -135,12 +139,12 @@ test_that("quadprog solver is integrated", {
 
 # coneproj
 cone_pos <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = cpos),
-  qp_solver = "coneproj")
+  lb = list(x = 0), ub = list(x = Inf), qp_solver = "coneproj")
 cone_inc <- glm(ypois ~ x, method = cirls.fit, Cmat = list(x = cinc),
-  qp_solver = "coneproj")
+  lb = list(x = 0), ub = list(x = Inf), qp_solver = "coneproj")
 betasum <- sum(betas)
 cone_eq <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = t(rep(1, p))),
-  lb = betasum, ub = betasum, qp_solver = "coneproj")
+  lb = list(x = betasum), ub = list(x = betasum), qp_solver = "coneproj")
 
 test_that("coneproj solver is integrated", {
   expect_true(all(coef(cone_pos)[-1] >= (0 - 1e-6)))
@@ -158,10 +162,10 @@ poisglm <- glm(ypois ~ x, family = "poisson")
 
 # Apply CIRLS with no constraint (putting Inf)
 normuncons <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = cinc),
-  lb = -Inf, ub = Inf)
+  lb = list(x = -Inf), ub = list(x = Inf))
 poisuncons <- glm(ypois ~ x, family = "poisson",
   method = cirls.fit, Cmat = list(x = cpos),
-  lb = -Inf, ub = Inf)
+  lb = list(x = -Inf), ub = list(x = Inf))
 
 # Check they are identical
 checkcomp <- c("coefficients", "residuals", "fitted.values", "effects", "R",

@@ -1,5 +1,8 @@
 # Current development version
 
+## Changes
+- Some changes in internal functions streamlining the building of the constraint matrix and bounds. Should not impact the use apart from the odd error message.
+
 # 0.4.0
 
 ## New features

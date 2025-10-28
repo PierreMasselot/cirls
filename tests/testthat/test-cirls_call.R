@@ -23,10 +23,12 @@ ynorm <- eta + rnorm(n, 0, .2)
 
 # argument list
 cpos <- diag(p)
-arglist <- list(formula = ynorm ~ x, method = cirls.fit, Cmat = list(x = cpos))
+arglist <- list(formula = ynorm ~ x, method = cirls.fit, Cmat = list(x = cpos),
+  lb = list(x = 0), ub = list(x = Inf))
 
 # Call
-res <- glm(formula = ynorm ~ x, method = cirls.fit, Cmat = list(x = cpos))
+res <- glm(formula = ynorm ~ x, method = cirls.fit, Cmat = list(x = cpos),
+  lb = list(x = 0), ub = list(x = Inf))
 resdc <- do.call(glm, arglist)
 
 # Check they are identical (save from call)

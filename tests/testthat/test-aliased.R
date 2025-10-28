@@ -11,13 +11,11 @@ y <- rnorm( 100 )
 
 # Check that model fitting returns warning
 test_that("multicollinear model works", {
-  expect_warning(mod <<- glm(y ~ x1 + x2, method = cirls.fit,
-    Cmat = cbind(0, diag(2))))
+  expect_warning(
+    mod <- glm(y ~ x1 + x2, method = cirls.fit, Cmat = cbind(0, diag(2)),
+      lb = 0, ub = Inf),
+    "constraints removed")
   expect_lt(length(na.omit(coef(mod))), 3)
-})
-
-# Check that methods also work
-test_that("methods account for aliased coefficients", {
 
   # Vcov
   v <- vcov(mod)

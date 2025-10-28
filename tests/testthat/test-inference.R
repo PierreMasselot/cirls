@@ -34,7 +34,8 @@ y <- eta + rnorm(n, 0, .2)
 cinc <- diff(diag(p))
 
 # Fit model
-res <- glm(y ~ x, method = cirls.fit, Cmat = list(x = cinc))
+res <- glm(y ~ x, method = cirls.fit, Cmat = list(x = cinc),
+  lb = list(x = 0), ub = list(x = Inf))
 
 #------------------------------
 # Test methods
@@ -102,7 +103,7 @@ test_that("CI are nested", {
 # Fit model
 betasum <- sum(betas)
 reseq1 <- glm(y ~ x, method = cirls.fit, Cmat = list(x = t(rep(1, p))),
-  lb = betasum, ub = betasum)
+  lb = list(x = betasum), ub = list(x = betasum))
 
 # Compute vcov and ci
 v <- vcov(reseq1)
@@ -122,7 +123,7 @@ test_that("Inference with sum equality works", {
 
 # Fit model
 reseq2 <- glm(y ~ x, method = cirls.fit,
-  Cmat = list(x = t(c(1, rep(0, p - 1)))), ub = 0)
+  Cmat = list(x = t(c(1, rep(0, p - 1)))), lb = list(x = 0), ub = list(x = 0))
 
 # Compute vcov and ci
 v <- vcov(reseq2)

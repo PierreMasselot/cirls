@@ -4,10 +4,13 @@
 \alias{buildCmat}
 \title{Build a constraint matrix}
 \usage{
-buildCmat(mf, constr = NULL, Cmat = NULL, lb = 0, ub = Inf)
+buildCmat(mf, assign = NULL, constr = NULL, Cmat = NULL, lb = NULL,
+  ub = NULL)
 }
 \arguments{
 \item{mf}{A \link[stats:model.frame]{model.frame} or a list of variables.}
+
+\item{assign}{A vector of indices mapping columns of the design matrix to model terms.}
 
 \item{constr}{A formula specifying constraints.}
 
