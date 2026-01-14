@@ -8,34 +8,123 @@ buildCmat(mf, assign = NULL, constr = NULL, Cmat = NULL, lb = NULL,
   ub = NULL)
 }
 \arguments{
-\item{mf}{A \link[stats:model.frame]{model.frame} or a list of variables.}
+\item{mf}{A \link[stats:model.frame]{model.frame} or a list of variables. Defines the model for which the constraint matrix is built.}
 
 \item{assign}{A vector of indices mapping columns of the design matrix to model terms.}
 
 \item{constr}{A formula specifying constraints.}
 
-\item{Cmat}{A named list of constraint matrices where names should be found among the terms in \code{mf}.}
+\item{Cmat}{Either a matrix or a named list of constraint matrices. In the latter case, names should correspond to terms in \code{mf} (dee setails).}
 
-\item{lb, ub}{Vector or list of vectors containing constraint bounds. If a vector, is used as default bounds for terms with no specified bounds. If a named list, is matched to \code{Cmat} to provide corresponding bounds.}
+\item{lb, ub}{Vector or named list of vectors containing constraint bounds. In the latter case, names should correspond to terms in \code{mf} (dee setails).}
 }
 \value{
-A list with containing elements \code{Cmat}, \code{lb} and \code{ub} containing the full constraint matrix, lower and upper bounds for the model specified in argument \code{mf}. \code{Cmat} additionally include an attribute called \code{terms} which maps constraints represented in the matrix to individual terms in the model.
+A list with elements \code{Cmat}, \code{lb} and \code{ub} containing the fully specified constraint matrix, lower and upper bounds for the model specified in argument \code{mf}. \code{Cmat} additionally include an attribute called \code{terms} which maps constraints represented in the matrix to individual terms in the model.
 }
 \description{
-Function building a full constraint matrix from a list of constraint matrices and/or a formula providing specific constraints. Mainly used internally by \link[=cirls.fit]{cirls.fit}.
+Internal function building a full constraint matrix from a list of constraint matrices and/or a formula providing specific constraints. In-depth technical details are provided below.
 }
 \details{
-This function is called internally by \code{cirls.fit} whenever \code{Cmat} is not a matrix, and provides a way to specify constraints without having to build a full constraint matrix beforehand. It uses the model frame in \code{mf} to match specific constraints to the right columns in the design matrix.
+This function is called internally by \link[=cirls.fit]{cirls.fit} and is not meant to be used directly by the user. It prepares the full \code{Cmat}, \code{lb} and \code{ub} for the model, providing a way to specify constraints without having to build a full constraint matrix beforehand. It uses the model frame in \code{mf} to match specific constraints to the right columns in the design matrix.
 
-The argument \code{constr} provides a simple way to specify potentially complex constraints. It is a formula of the form \code{~ shape(x, ...)} where \code{shape} specifies the constraint and \code{x} the term in \code{mf} to which it applies. Internally, the formula will look for a function named \code{shapeConstr} to be called on variable \code{x} (which allows for several columns). The \code{...} represent potential additional arguments for the \code{shapeConstr} function. For the list of available constraints and how to create new ones, see \strong{upcoming}.
+This function also checks that any constraint matrix provided to \link[=cirls.fit]{cirls.fit} is irreducible. See \link[=checkCmat]{checkCmat} for details.
 
-The argument \code{Cmat} is used to provide a named list of constraint matrices, where names should correspond to terms in \code{mf}. This allows providing custom constraint matrices to specific terms that wouldn't be available through \code{constr}. Names in \code{Cmat} can include several terms, which should be separated by a \verb{;}, for instance \verb{x1;x2}. Although not mandatory, elements in \code{Cmat} can have attributes \code{lb}, \code{ub} and \code{vars} to provide lower and upper bounds, and term names, respectively.
+There are three ways to specify constraints in \code{cirls}. Each one is detailed in a subsetction below. Note that options 1 and 2 can be used simultaneously.
+\enumerate{
+\item The \code{constr} formula provides a simple interface for many commonly encountered constraints. This is the recommended way for new users.
+\item A named list of constraint matrices and bounds can be provided to \code{Cmat}/\code{lb}/\code{ub} arguments. This is useful for constraints that are not (yet) implemented for the \code{constr} formula.
+\item A fully specified \code{Cmat}/\code{lb}/\code{ub} can be provided directly.
+}
+\subsection{The \code{constr} formula}{
 
-\code{lb} and \code{ub} are meant to be used in conjunction with \code{Cmat}. If a simple value or vector, they will be used as default values for elements in \code{Cmat} for which no bounds is specified in its attributes. If lists, they provide bounds for constraint matrices in \code{Cmat}. In this case, all the names in \code{Cmat} should be found in \code{lb} and \code{ub}.
+The easiest way to specify constraints is as a formula of the form \code{constr = ~ cons(x, ...)} where \code{cons} represents a constraint to be applied to term \code{x} of the \code{cirls} model and \code{...} represents additional arguments that depend on the \code{cons} function. Several constraints can be applied to the same or to different terms, for example \code{constr = ~ cons1(x) + cons1(y) + cons2(x)}. All terms appearing in \code{constr} can either be vectors or matrices and should be found in the model.frame \code{mf}, otherwise the constraint is dropped with a warning.
 
-Note that both \code{constr} and \code{Cmat} can be used at the same time, and neither is mandatory. If both are \code{NULL}, an empty constraint matrix will be returned.
+Internally, \code{buildCmat} will look for a function called \code{consConstr} that returns a list of \code{Cmat}, \code{lb} and \code{ub} built specifically for the term provided to \code{cons()} in the formula. This provides a simple way to add new constraints to the interface, by creating a function with the \code{Constr} suffix, taking a term as an input and outputting a list with \code{Cmat}, \code{lb} and \code{ub}.
+
+The list of available \code{cons} functions can be found on the main help page of the \link[=cirls-package]{cirls} package. Each function has its own help page detailing the implemented constraint with available parameter.
+}
+
+\subsection{Term-specific \code{Cmat}/\code{lb}/\code{ub}}{
+
+Constraints for specific terms of the model can be provided as named lists to one or several of arguments \code{Cmat},\code{lb} and \code{ub} which represent the constraint matrix, lower bound and upper bound respectively. This will take the form \code{Cmat = list(x = cm1, y = cm2)} where \code{x} and \code{y} are terms in the model.frame \code{mf}, while \code{cm1} and \code{cm2} are constraint matrices (or bound vectors for \code{lb} and \code{ub}) \emph{that should be consistent with the dimensions of their respective terms}.
+
+When terms are found in \code{lb} and/or \code{ub}, but not in \code{Cmat}, it is assumed that \emph{simple bound constraints are to be applied to the terms}. In that case, \code{Cmat} will be internally created as a simple identity matrix matching the dimensions of the terms in question.
+
+Names in \code{Cmat}/\code{lb}/\code{ub} can include several terms, which should be separated by a semicolon \verb{;}, for instance \code{Cmat = list("x;y" = cm)}. This allows specifying constraints that span several terms in the model.
+}
+
+\subsection{Fully specified \code{Cmat}/\code{lb}/\code{ub}}{
+
+If one of \code{Cmat}/\code{lb}/\code{ub} is neither \code{NULL} nor a list, it is assumed it is provided fully specified, i.e. should be returned as is. In that case, \code{constr} and any list provided to other arguments are ignored. When not all of \code{Cmat}/\code{lb}/\code{ub} are fully specified, the other ones will be filled with default values that match the dimension of the model matrix, i.e. an identity matrix for \code{Cmat}, a vector of zeros for \code{lb} and a vector of \code{Inf} for \code{ub}.
+}
+
+\subsection{Unconstrained model}{
+
+When all of \code{constr}/\code{Cmat}/\code{lb}/\code{ub} are \code{NULL}, a list of empty \code{Cmat}/\code{lb}/\code{ub} is returned and an unconstrained model is fit.
+}
 }
 \examples{
-####### Upcoming
+###############################################################################
+# Examples of constraint specifications
 
+#----- constr interface
+
+# Fit an initial model and extract model.frame
+mf <- model.frame(glm(death ~ pm10 + o3 + co, data = london))
+
+# Simple non-negative constraint
+buildCmat(mf, constr = ~ shape(pm10, "pos"))
+
+# Several constraints
+buildCmat(mf, constr = ~ shape(pm10, "pos") + shape(o3, "pos"))
+
+# Different constraints
+buildCmat(mf, constr = ~ shape(pm10, "pos") + zerosum(o3, co))
+
+### In practice, this is done directly when calling glm
+model <- glm(death ~ pm10 + o3 + co, data = london, family = "quasipoisson",
+  method = "cirls.fit", constr = ~ shape(pm10, "pos"))
+model[c("Cmat", "lb", "ub")]
+buildCmat(mf, constr = ~ shape(pm10, "pos"))
+
+#----- Specific terms
+
+# Simple bound constraint
+buildCmat(mf, lb = list("pm10" = 0))
+
+# Equivalent of zerosum
+buildCmat(mf, Cmat = list("o3;co" = matrix(1, 1, 2)), ub = list("o3;co" = 0))
+
+### In practice, this is done directly when calling glm
+model <- glm(death ~ pm10 + o3 + co, data = london, family = "quasipoisson",
+  method = "cirls.fit", lb = list("pm10" = 0))
+model[c("Cmat", "lb", "ub")]
+buildCmat(mf, lb = list("pm10" = 0))
+
+#----- Both options simultaneously
+
+# Bound constraint and zerosum
+buildCmat(mf, lb = list("pm10" = 0), constr = ~  zerosum(o3, co))
+
+# Same as before, should be done in glm
+model <- glm(death ~ pm10 + o3 + co, data = london, family = "quasipoisson",
+  method = "cirls.fit",
+  lb = list("pm10" = 0), constr = ~  zerosum(o3, co))
+model[c("Cmat", "lb", "ub")]
+
+#----- Fully specified matrix
+
+# Simple bound constraints
+Cmat = cbind(0, diag(2), 0)
+buildCmat(mf, Cmat = Cmat)
+
+# Zerosum constraint
+Cmat <- t(c(0, rep(1, 3)))
+buildCmat(mf, Cmat = Cmat, lb = 0, ub = 0)
+
+#----- Unconstrained model
+buildCmat(mf)
+}
+\seealso{
+The main \link[=cirls-package]{help page} for the list of \code{cons} functions implemented and examples. \link[=checkCmat]{checkCmat} for details on irreducibility.
 }

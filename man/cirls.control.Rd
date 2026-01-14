@@ -9,11 +9,11 @@ cirls.control(constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
   qp_pars = list())
 }
 \arguments{
-\item{constr}{A formula specifying constraints to be applied to specific terms in the model.}
+\item{constr}{A formula specifying constraints to be applied to specific terms in the model. See details in \link[=buildCmat]{buildCmat} for constraint specification.}
 
-\item{Cmat}{Constraint matrix specifying the linear constraints applied to coefficients. Can also be provided as a list of matrices for specific terms.}
+\item{Cmat}{Constraint matrix specifying the linear constraints applied to coefficients. Can also be provided as a list of matrices for specific terms. See details in \link[=buildCmat]{buildCmat} for constraint specification.}
 
-\item{lb, ub}{Lower and upper bound vectors for the linear constraints. Identical values in \code{lb} and \code{ub} identify equality constraints. As for \code{Cmat} can be provided as a list of terms. If some terms are provided in \code{Cmat} but not in \code{lb} or \code{ub}, default values of 0 and Inf will be used, respectively.}
+\item{lb, ub}{Lower and upper bound vectors for the linear constraints. If not provided, defaults to 0 and Inf, respectively.}
 
 \item{epsilon}{Positive convergence tolerance. The algorithm converges when the relative change in deviance is smaller than \code{epsilon}.}
 
@@ -29,32 +29,45 @@ cirls.control(constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
 A named list containing arguments to be used in \link[=cirls.fit]{cirls.fit}.
 }
 \description{
-Internal function controlling the \link[stats:glm]{glm} fit with linear constraints. Typically only used internally by \link[=cirls.fit]{cirls.fit}, but may be used to construct a control argument.
+Function controlling the \link[=cirls.fit]{cirls.fit} algorithm. Typically only used internally with arguments passed to \code{...} in \link[=glm]{glm}, but may be used to construct a \code{control} argument to either function.
 }
 \details{
-The \code{control} argument of \link[stats:glm]{glm} is by default passed to the \code{control} argument of \link[=cirls.fit]{cirls.fit}, which uses its elements as arguments for \link[=cirls.control]{cirls.control}: the latter provides defaults and sanity checking. The control parameters can alternatively be passed through the \code{...} argument of \link[stats:glm]{glm}. See \link[stats:glm.control]{glm.control} for details on general GLM fitting control, and \link[=cirls.fit]{cirls.fit} for details on arguments specific to constrained GLMs.
+The \code{control} argument of \link[stats:glm]{glm} is by default passed to the \code{control} argument of \link[=cirls.fit]{cirls.fit}, which uses its elements as arguments for \link[=cirls.control]{cirls.control}: the latter provides defaults and sanity checking. The control parameters can alternatively be passed through the \code{...} argument of \link[stats:glm]{glm}.
+\subsection{Constraint specification}{
+
+Constraint specification through the \code{constr}, \code{Cmat}, \code{lb} and \code{ub} argument is fully detailed in the help of the \link[=buildCmat]{buildCmat} functions.
+}
+
+\subsection{Quadratic programming solvers}{
+
+The function \link[=cirls.fit]{cirls.fit} relies on a quadratic programming solver. Several solver are currently available.
+\itemize{
+\item \code{"quadprog"} (the default) performs a dual algorithm to solve the quadratic program. It relies on the function \link[quadprog:solve.QP]{solve.QP}.
+\item \code{"osqp"} solves the quadratic program via the Alternating Direction Method of Multipliers (ADMM). Internally calls the function \link[osqp:solve_osqp]{solve_osqp}.
+\item \code{"coneproj"} solves the quadratic program by a cone projection method. It relies on the function \link[coneproj:qprog]{qprog}.
+}
+
+Each solver has specific parameters that can be controlled through the argument \code{qp_pars}. Sensible defaults are set within \link[=cirls.control]{cirls.control} and the user typically doesn't need to provide custom parameters. \code{"quadprog"} is set as the default being generally more reliable than the other solvers. \code{"osqp"} is faster but can be less accurate, in which case it is recommended to increase convergence tolerance at the cost of speed.
+}
 }
 \examples{
-# Simulate predictors and response with some negative coefficients
-set.seed(111)
-n <- 100
-p <- 10
-betas <- rep_len(c(1, -1), p)
-x <- matrix(rnorm(n * p), nrow = n)
-y <- x \%*\% betas + rnorm(n)
+###############################################################################
+# Non-negative coefficient example with the london dataset
 
-# Define constraint matrix (includes intercept)
-# By default, bounds are 0 and +Inf
-Cmat <- cbind(0, diag(p))
+library(splines)
 
-# Fit GLM by CIRLS
-res1 <- glm(y ~ x, method = cirls.fit, Cmat = Cmat)
-coef(res1)
+### Association between CO and mortality
+# Model includes spline of date and day-of-year
+# Nonnegative constraint on CO
+model <- glm(death ~ co + weekdays(date) + ns(date, df = 7*8),
+  data = london, family = "quasipoisson",
+  method = "cirls.fit", cons = ~ shape(co, "pos"))
 
-# Same as passing Cmat through the control argument
-res2 <- glm(y ~ x, method = cirls.fit, control = list(Cmat = Cmat))
-identical(coef(res1), coef(res2))
+# Coefficient and confidence interval
+coef(model)[2]
+confint(model)[2,]
+
 }
 \seealso{
-the main function \link[=cirls.fit]{cirls.fit}, and \link[stats:glm.control]{glm.control}.
+Specification of a \link[=cirls-package]{cirls} model and constraint specification in \link[=buildCmat]{buildCmat}.
 }

@@ -7,36 +7,59 @@
 uncons(object)
 }
 \arguments{
-\item{object}{Fitted 'cirls' object.}
+\item{object}{A \code{cirls} object.}
 }
 \value{
 A \code{cirls} object.
 }
 \description{
-Takes a fitted \code{cirls} object and returns the corresponding unconstrained model.
+Takes a fitted \code{cirls} object and fits the corresponding unconstrained model.
 }
 \details{
-\subsection{Note on starting values}{
+This function refits a \code{cirls} object, removing all constraints. This is primarly used by \link[=simulCoef]{simulCoef} for inference, but it can also be used to easily compare a constrained and an unconstrained model.
 
+The function still fits the model through \link[=cirls.fit]{cirls.fit}, but using an empty constraint matrix. Therefore, it returns a \code{cirls} object that can use all the facilities provided by the \code{cirls} package. In this instance, the CIRLS algorithm reduces to a classical IRLS and the results are identical to a usual \link[=glm]{glm} fitted with \code{glm.fit}.
+}
+\note{
 If any starting values were provided to fit the \code{cirls} object, they are not transferred to the fitting of the unconstrained model.
 }
-}
 \examples{
-# Generate some data
-n <- 1000
-betas <- c(0, 1, 2, -1, 1)
-p <- length(betas)
-x <- matrix(rnorm(n * p), n, p)
-eta <- 5 + x \%*\% betas
-y <- eta + rnorm(n, 0, .2)
+###############################################################################
+# Monotone strata levels with the warming dataset
 
-# Fit two cirls models, passing Cmat through the two different pathways
-cinc <- diff(diag(p))
-res1 <- glm(y ~ x, method = cirls.fit, Cmat = list(x = cinc))
-res2 <- glm(y ~ x, method = cirls.fit, control = list(Cmat = list(x = cinc)))
+### Fit the model
 
-# 'Unconstrain' the models
-uc1 <- uncons(res1)
-uc2 <- uncons(res2)
+# Define decadal strata (as a factor)
+warming$decade <- factor(10 * floor(warming$year / 10))
 
+# Non-decreasing constraint on decadal strata
+model <- glm(anomaly ~ decade, data = warming, method = "cirls.fit",
+  cons = ~ shape(decade, "inc"))
+
+# Plot result
+plot(anomaly ~ year, data = warming, xlab = "", ylab = "Temperature anomaly")
+lines(warming$year, predict(model), col = 2, lwd = 2)
+
+### Extract results
+
+# Coefficients and confidence intervals
+betas <- coef(model)
+v <- vcov(model)
+cis <- confint(model)
+
+# Degrees of freedom: represent number of strata change
+# ?edf
+edf(model)
+
+### Compare with an unconstrained model
+
+# Refit the model
+umodel <- uncons(model)
+
+# Add result
+lines(warming$year, predict(umodel), col = 3, lwd = 2, lty = 2)
+
+}
+\seealso{
+\link[=simulCoef]{simulCoef} to perform inference.
 }

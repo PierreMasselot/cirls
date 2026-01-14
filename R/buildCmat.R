@@ -4,34 +4,56 @@
 #
 ################################################################################
 
-#### Perhaps keep a help page here for technical details. Attach the usage to a clearer help page
-
 #' Build a constraint matrix
 #'
 #' @description
-#' Function building a full constraint matrix from a list of constraint matrices and/or a formula providing specific constraints. Mainly used internally by [cirls.fit][cirls.fit()].
+#' Internal function building a full constraint matrix from a list of constraint matrices and/or a formula providing specific constraints. In-depth technical details are provided below.
 #'
-#' @param mf A [model.frame][stats::model.frame()] or a list of variables.
+#' @param mf A [model.frame][stats::model.frame()] or a list of variables. Defines the model for which the constraint matrix is built.
 #' @param assign A vector of indices mapping columns of the design matrix to model terms.
 #' @param constr A formula specifying constraints.
-#' @param Cmat A named list of constraint matrices where names should be found among the terms in `mf`.
-#' @param lb,ub Vector or list of vectors containing constraint bounds. If a vector, is used as default bounds for terms with no specified bounds. If a named list, is matched to `Cmat` to provide corresponding bounds.
+#' @param Cmat Either a matrix or a named list of constraint matrices. In the latter case, names should correspond to terms in `mf` (dee setails).
+#' @param lb,ub Vector or named list of vectors containing constraint bounds. In the latter case, names should correspond to terms in `mf` (dee setails).
 #'
 #' @details
-#' This function is called internally by `cirls.fit` whenever `Cmat` is not a matrix, and provides a way to specify constraints without having to build a full constraint matrix beforehand. It uses the model frame in `mf` to match specific constraints to the right columns in the design matrix.
+#' This function is called internally by [cirls.fit][cirls.fit()] and is not meant to be used directly by the user. It prepares the full `Cmat`, `lb` and `ub` for the model, providing a way to specify constraints without having to build a full constraint matrix beforehand. It uses the model frame in `mf` to match specific constraints to the right columns in the design matrix.
 #'
-#' The argument `constr` provides a simple way to specify potentially complex constraints. It is a formula of the form `~ shape(x, ...)` where `shape` specifies the constraint and `x` the term in `mf` to which it applies. Internally, the formula will look for a function named `shapeConstr` to be called on variable `x` (which allows for several columns). The `...` represent potential additional arguments for the `shapeConstr` function. For the list of available constraints and how to create new ones, see **upcoming**.
+#' This function also checks that any constraint matrix provided to [cirls.fit][cirls.fit()] is irreducible. See [checkCmat][checkCmat()] for details.
 #'
-#' The argument `Cmat` is used to provide a named list of constraint matrices, where names should correspond to terms in `mf`. This allows providing custom constraint matrices to specific terms that wouldn't be available through `constr`. Names in `Cmat` can include several terms, which should be separated by a `;`, for instance `x1;x2`. Although not mandatory, elements in `Cmat` can have attributes `lb`, `ub` and `vars` to provide lower and upper bounds, and term names, respectively.
+#' There are three ways to specify constraints in `cirls`. Each one is detailed in a subsetction below. Note that options 1 and 2 can be used simultaneously.
+#' 1. The `constr` formula provides a simple interface for many commonly encountered constraints. This is the recommended way for new users.
+#' 2. A named list of constraint matrices and bounds can be provided to `Cmat`/`lb`/`ub` arguments. This is useful for constraints that are not (yet) implemented for the `constr` formula.
+#' 3. A fully specified `Cmat`/`lb`/`ub` can be provided directly.
 #'
-#' `lb` and `ub` are meant to be used in conjunction with `Cmat`. If a simple value or vector, they will be used as default values for elements in `Cmat` for which no bounds is specified in its attributes. If lists, they provide bounds for constraint matrices in `Cmat`. In this case, all the names in `Cmat` should be found in `lb` and `ub`.
+#' ## The `constr` formula
 #'
-#' Note that both `constr` and `Cmat` can be used at the same time, and neither is mandatory. If both are `NULL`, an empty constraint matrix will be returned.
+#' The easiest way to specify constraints is as a formula of the form `constr = ~ cons(x, ...)` where `cons` represents a constraint to be applied to term `x` of the `cirls` model and `...` represents additional arguments that depend on the `cons` function. Several constraints can be applied to the same or to different terms, for example `constr = ~ cons1(x) + cons1(y) + cons2(x)`. All terms appearing in `constr` can either be vectors or matrices and should be found in the model.frame `mf`, otherwise the constraint is dropped with a warning.
 #'
-#' @returns A list with containing elements `Cmat`, `lb` and `ub` containing the full constraint matrix, lower and upper bounds for the model specified in argument `mf`. `Cmat` additionally include an attribute called `terms` which maps constraints represented in the matrix to individual terms in the model.
+#' Internally, `buildCmat` will look for a function called `consConstr` that returns a list of `Cmat`, `lb` and `ub` built specifically for the term provided to `cons()` in the formula. This provides a simple way to add new constraints to the interface, by creating a function with the `Constr` suffix, taking a term as an input and outputting a list with `Cmat`, `lb` and `ub`.
 #'
-#' @examples
-#' ####### Upcoming
+#' The list of available `cons` functions can be found on the main help page of the [cirls][cirls-package] package. Each function has its own help page detailing the implemented constraint with available parameter.
+#'
+#' ## Term-specific `Cmat`/`lb`/`ub`
+#'
+#' Constraints for specific terms of the model can be provided as named lists to one or several of arguments `Cmat`,`lb` and `ub` which represent the constraint matrix, lower bound and upper bound respectively. This will take the form `Cmat = list(x = cm1, y = cm2)` where `x` and `y` are terms in the model.frame `mf`, while `cm1` and `cm2` are constraint matrices (or bound vectors for `lb` and `ub`) *that should be consistent with the dimensions of their respective terms*.
+#'
+#' When terms are found in `lb` and/or `ub`, but not in `Cmat`, it is assumed that *simple bound constraints are to be applied to the terms*. In that case, `Cmat` will be internally created as a simple identity matrix matching the dimensions of the terms in question.
+#'
+#' Names in `Cmat`/`lb`/`ub` can include several terms, which should be separated by a semicolon `;`, for instance `Cmat = list("x;y" = cm)`. This allows specifying constraints that span several terms in the model.
+#'
+#' ## Fully specified `Cmat`/`lb`/`ub`
+#'
+#' If one of `Cmat`/`lb`/`ub` is neither `NULL` nor a list, it is assumed it is provided fully specified, i.e. should be returned as is. In that case, `constr` and any list provided to other arguments are ignored. When not all of `Cmat`/`lb`/`ub` are fully specified, the other ones will be filled with default values that match the dimension of the model matrix, i.e. an identity matrix for `Cmat`, a vector of zeros for `lb` and a vector of `Inf` for `ub`.
+#'
+#' ## Unconstrained model
+#'
+#' When all of `constr`/`Cmat`/`lb`/`ub` are `NULL`, a list of empty `Cmat`/`lb`/`ub` is returned and an unconstrained model is fit.
+#'
+#' @returns A list with elements `Cmat`, `lb` and `ub` containing the fully specified constraint matrix, lower and upper bounds for the model specified in argument `mf`. `Cmat` additionally include an attribute called `terms` which maps constraints represented in the matrix to individual terms in the model.
+#'
+#' @seealso The main [help page][cirls-package] for the list of `cons` functions implemented and examples. [checkCmat][checkCmat()] for details on irreducibility.
+#'
+#' @example inst/examples/ex_london_buildCmat.R
 #'
 #' @export
 buildCmat <- function(mf, assign = NULL, constr = NULL, Cmat = NULL, lb = NULL,
@@ -154,23 +176,9 @@ buildCmat <- function(mf, assign = NULL, constr = NULL, Cmat = NULL, lb = NULL,
 
   #----- Final checks and return
 
-  # Check Cmat is irreducible
-  if (nrow(Cmat) > 1){
-    chkc <- checkCmat(Cmat)
-    if (sum(chkc$redundant) > 0){
-      Cmat <- Cmat[!chkc$redundant,,drop = F]
-      lb <- lb[!chkc$redundant]
-      ub <- ub[!chkc$redundant]
-      warning(paste0("Redundant constraints removed from Cmat: ",
-        paste(which(chkc$redundant), collapse = ", ")))
-    }
-    if (sum(chkc$equality) > 0){
-      warning(paste0("Underlying equality constraints: ",
-        paste(which(chkc$equality), collapse = ", "), ". ",
-        "Consider using lb and ub to set equality constraints instead."))
-    }
-  }
+  # Reduce Cmat
+  redCm <- checkCmat(Cmat = Cmat, lb = lb, ub = ub, reduce = TRUE, warn = TRUE)
 
   # Return
-  list(Cmat = Cmat, lb = lb, ub = ub)
+  redCm[c("Cmat", "lb", "ub")]
 }

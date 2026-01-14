@@ -2,16 +2,20 @@
 # Example of reducible matrix
 
 # Constraints: successive coefficients should increase and be convex
-p <- 5
-cmatic <- rbind(diff(diag(p)), diff(diag(p), diff = 2))
-
-# Checking indicates that constraints 2 to 4 are redundant.
 # Intuitively, if the first two coefficients increase,
-# then convexity forces the rest to increase
+# then convexity forces the rest to increase which means there is redundancy
+p <- 5
+cmatic <- rbind(
+  shapeConstr(matrix(NA, 0, p), shape = "inc")$Cmat, # Increasing
+  shapeConstr(matrix(NA, 0, p), shape = "cvx")$Cmat # Convex
+)
+
+# Checking indicates that some constraints are redundant.
+# Returns reduced matrix and a warning
 checkCmat(cmatic)
 
-# Check without contraints
-checkCmat(cmatic[-(2:4),])
+# Note that this is silently done when both "inc" and "cvx" are provided
+shapeConstr(matrix(NA, 0, p), shape = c("inc", "cvx"))$Cmat
 
 ###################################################
 # Example of irreducible matrix
@@ -38,5 +42,5 @@ checkCmat(cmats)
 # Contraint: Parameters sum is >= 0 and sum is <= 0
 cmateq <- rbind(rep(1, 3), rep(-1, 3))
 
-# Checking indicates that both constraints imply equality constraint (sum == 0)
+# Checking indicates that both constraints imply equality constraint
 checkCmat(cmateq)

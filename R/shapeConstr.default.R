@@ -23,7 +23,7 @@ shapeConstr.default <- function(x, shape, intercept = FALSE, ...) {
 
   # Put together and remove redundant constraints
   if (!intercept) Cmat <- Cmat[, -1, drop = FALSE]
-  Cmat <- Cmat[!checkCmat(Cmat)$redundant,, drop = FALSE]
+  Cmat <- Cmat[!checkCmat(Cmat, warn = FALSE)$redundant,, drop = FALSE]
 
   # Bounds
   lb <- rep(0, NROW(Cmat))

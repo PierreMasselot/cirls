@@ -14,48 +14,72 @@ edf(object, nsim = 10000, seed = NULL)
 \item{seed}{An optional seed for the random number generator. See \link[=set.seed]{set.seed}.}
 }
 \value{
-A vector of length three with components:
+A vector of length three containing the three types of degrees of freedom:
 \item{udf}{The \emph{unconstrained} degrees of freedom, i.e. the rank plus any dispersion parameter for \code{glm} objects.}
 \item{odf}{The \emph{observed} degrees of freedom, that is \code{udf} minus the number of active constraints.}
-\item{edf}{The \emph{expected} degrees of freedom estimated by simulation as described in the details section. For any other object inheriting from \code{lm}, attempts to retrieve the \emph{effective} degrees of freedom.}
+\item{edf}{The \emph{expected} degrees of freedom estimated by simulation as described in the details section.}
 For \code{cirls} objects, the vector includes the simulated distribution of the number of active constraints as an \code{actfreq} attribute.
 }
 \description{
 Estimate expected degrees of freedom of a \link[=cirls.fit]{cirls} object through simulations.
 }
 \details{
-Simulates coefficient vectors from their unconstrained distribution, which is the non-truncated multivariate normal distribution. For each simulated vector, counts the number of violated constraints as the number of active constraints under the constrained distribution. The expected degrees of freedom is then the number of parameters minus the average number of active constraints.
+Computes \strong{unconstrained}, \strong{observed} and \strong{expected} degrees of freedom for \code{cirls} objects. The function also works for most objects inheriting from \code{lm} although in this case only the unconstrained (\code{udf}) makes sense.
+\subsection{Unconstrained df}{
 
-This procedure allows to account for the randomness of degrees of freedom for the constrained model. Indeed, the observed degrees of freedom is the number of parameters minus the number of active constraints. However, the number of active constraints is random as, some constraints can be active or not depending on the observed data. For instance, in a model for which the constraints are binding, the expected degrees of freedom will be close to the observed one, while in a model in which the constraints are irrelevant, the expected degrees of freedom will be closer to the unconstrained (usual) ones.
-}
-\section{Note}{
-This function is implemented mainly for \link[=cirls.fit]{cirls} objects and can return idiosyncratic results for other objects inheriting from \code{lm}. In this case, it will attempt to retrieve an 'edf' value, but simply return the rank of the model if this fails. For \code{glm} models for instance, it will return thrice the same value.
+\strong{Unconstrained} degrees of freedom (\code{udf}) refer to the usual degrees of freedom, i.e. the number of estimated parameters \eqn{p}. In GLMs, this corresponds to the number of coefficients, plus one degree of freedom for the dispersion parameter when relevant.
 }
 
+\subsection{Observed df}{
+
+\strong{Observed} degrees of freedom (\code{odf}) correspond to the constrained df of a fitted \code{cirls} model. This corresponds to \eqn{p-m_a}, where \eqn{m_a} is \emph{the number of active constraint} in the fitted \code{cirls} model. Intuitively, the more restricted the final fit, the more degrees of freedom are decreased.
+}
+
+\subsection{Expected df}{
+
+\strong{Expected} degrees of freedom (\code{edf}) account for the sampling variation in the number of active constraints. A different sample might result in a fit with another number of active constraints \eqn{m_a} which means \code{odf} represents an inaccurate estimation of the reduction in degrees of freedom induced by the constraints. \code{edf} is defined as \eqn{p - \bar{m_a}} where \eqn{\bar{m_a}} is the expected number of active constraints. Here, \eqn{\bar{m_a}} is estimated by sampling from the \link[=uncons]{unconstrained} distribution of coefficients (see \link[=simulCoef]{simulCoef}).
+}
+}
 \examples{
-# Simulate a simple dataset
-set.seed(5)
-x <- rnorm(100)
-y <- x + rnorm(100)
+###############################################################################
+# Monotone strata levels with the warming dataset
 
-#### Model with a sensible constraint
-# Reduces edf compared to udf as the constraint is sometimes active
-mod1 <- glm(y ~ x, method = "cirls.fit", Cmat = list(x = 1), lb = list(x = 1))
-edf(mod1)
+### Fit the model
 
-#### Model with an almost surely binding constraint
-# In this case edf is very close to odf as the constraint is often active
-mod2 <- glm(y ~ x, method = "cirls.fit", Cmat = list(x = 1), lb = list(x = 1.5))
-edf(mod2)
+# Define decadal strata (as a factor)
+warming$decade <- factor(10 * floor(warming$year / 10))
 
-#### Model with an irrelevant constraint
-# Here the constraint is useless and edf is equal to unconstrained df
-mod3 <- glm(y ~ x, method = "cirls.fit", Cmat = list(x = 1), lb = list(x = -5))
-edf(mod3)
+# Non-decreasing constraint on decadal strata
+model <- glm(anomaly ~ decade, data = warming, method = "cirls.fit",
+  cons = ~ shape(decade, "inc"))
+
+# Plot result
+plot(anomaly ~ year, data = warming, xlab = "", ylab = "Temperature anomaly")
+lines(warming$year, predict(model), col = 2, lwd = 2)
+
+### Extract results
+
+# Coefficients and confidence intervals
+betas <- coef(model)
+v <- vcov(model)
+cis <- confint(model)
+
+# Degrees of freedom: represent number of strata change
+# ?edf
+edf(model)
+
+### Compare with an unconstrained model
+
+# Refit the model
+umodel <- uncons(model)
+
+# Add result
+lines(warming$year, predict(umodel), col = 3, lwd = 2, lty = 2)
+
 }
 \references{
-Meyer, M.C., 2013. Semi-parametric additive constrained regression. \emph{Journal of Nonparametric Statistics} \strong{25}, \strong{715–730}. \doi{10.1080/10485252.2013.797577}
+Meyer, M.C., 2013. Semi-parametric additive constrained regression. \emph{Journal of Nonparametric Statistics} \strong{25}, \strong{715–730}. \href{https://doi.org/10.1080/10485252.2013.797577}{DOI:10.1080/10485252.2013.797577}
 }
 \seealso{
-\link[=logLik.cirls]{logLik.cirls} which internally calls \code{edf} to compute degrees of freedom.
+\link[=logLik.cirls]{logLik.cirls} which internally calls \code{edf} to compute degrees of freedom. \link[=simulCoef]{simulCoef} for coefficient simulation.
 }

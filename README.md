@@ -4,7 +4,7 @@
   [![](https://www.r-pkg.org/badges/version/cirls?color=green)](https://cran.r-project.org/package=cirls)
 <!-- badges: end -->
 
-> The package is currently under development. A working version is already available on CRAN but an up-to-date version is available here. The documentation is also not finished.
+> The package is currently under development. A working version is already available on CRAN but an up-to-date version is available here.
 
 The package `cirls` provides routines to fit Generalized Linear Models (GLM) with coefficients subject to linear constraints, through a constrained iteratively reweighted least-squares algorithm. 
 
@@ -24,7 +24,7 @@ The development version can be installed from GitHub using the `devtools` packag
 devtools::install_github("PierreMasselot/cirls")
 ```
 
-Please check the file NEWS.md for changes in the development version compared to the CRAN one.
+Please check the file [github-news.md](github-news.md) for changes in the development version compared to the CRAN one.
 
 ## Usage
 

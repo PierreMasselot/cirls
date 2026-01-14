@@ -1,7 +1,6 @@
-#' Constrained Iteratively Reweighted Least-Squares
+#' Constrained Iteratively Reweighted Least-Squares algorithm
 #'
-#' @description Fits a generalized linear model with linear constraints on the coefficients through a Constrained Iteratively Reweighted Least-Squares (CIRLS) algorithm.
-#' This function is the constrained counterpart to [glm.fit][stats::glm.fit()] and is meant to be called by [glm][stats::glm()] through its `method` argument. See details for the main differences.
+#' @description Routine implementing the constrained iteratively-reweighted least-squares (CIRLS) algorithm to fit generalised linear models (GLM) with linear constraints on the coefficients. This function is designed to replace the `glm.fit` function passed through the `method` argument of [glm][stats::glm()].
 #'
 #' @param x,y `x` is a design matrix and `y` is a vector of response observations. Usually internally computed by [glm][stats::glm()].
 #' @param weights An optional vector of observation weights.
@@ -14,28 +13,16 @@
 #' @param intercept Logical. Should an intercept be included in the null model?
 #' @param singular.ok Logical. If `FALSE`, the function returns an error for singular fits.
 #'
-#' @details This function is a plug-in for [glm][stats::glm()] and works similarly to [glm.fit][stats::glm.fit()]. In addition to the parameters already available in [glm.fit][stats::glm.fit()], `cirls.fit` allows the specification of a constraint matrix `Cmat` with bound vectors `lb` and `ub` on the regression coefficients. These additional parameters can be passed through the `control` list or through `...` in [glm][stats::glm()] *but not both*. If any parameter is passed through `control`, then `...` will be ignored.
+#' @details
+#' This function is a plug-in for [glm][stats::glm()] and works similarly to [glm.fit][stats::glm.fit()]. In addition to the parameters already available in [glm.fit][stats::glm.fit()], `cirls.fit` allows the specification of constraints through different arguments (see [buildCmat][buildCmat()]). These additional parameters can be passed through the `control` list or through `...` in [glm][stats::glm()] *but not both*. If any parameter is passed through `control`, then `...` will be ignored. See the full list of parameters in [cirls.control][cirls.control()].
+#'
+#' ## Algorithm
 #'
 #' The CIRLS algorithm is a modification of the classical IRLS algorithm in which each update of the regression coefficients is performed by a quadratic program (QP), ensuring the update stays within the feasible region defined by `Cmat`, `lb` and `ub`. More specifically, this feasible region is defined as
 #'
 #' `lb <= Cmat %*% coefficients <= ub`
 #'
 #' where `coefficients` is the coefficient vector returned by the model. This specification allows for any linear constraint, including equality ones.
-#'
-#' ## Specifying constraints
-#'
-#' The package includes several mechanisms to specify constraints. The most straightforward is to pass a full matrix to `Cmat` with associated bound vectors in `lb` and `ub`. In this case, the number of columns in `Cmat` must match the number of coefficients estimated by [glm][stats::glm()]. This includes all variables that are not involved in any constraint, potential expansion such as factors or splines for instance, as well as the intercept. By default `lb` and `ub` are set to `0` and `Inf`, respectively, but any bounds are possible. When some elements of `lb` and `ub` are identical, they define equality constraints. Setting `lb = -Inf` and `ub = Inf` effectively disables the constraints.
-#'
-#' To avoid pre-constructing potentially large and complex `Cmat` objects, the arguments `Cmat` and `constr` can be combined to conveniently specify constraints for the coefficients. More specifically, `Cmat` can alternatively take a named list of matrices to constrain only specific terms in the model. The argument `constr` provides a formula interface to specify built-in common constraints. The documentation of [buildCmat][buildCmat()] provides full details on how to specify constraints along with examples.
-#'
-#' ## Quadratic programming solvers
-#'
-#' The function [cirls.fit][cirls.fit()] relies on a quadratic programming solver. Several solver are currently available.
-#' - `"quadprog"` (the default) performs a dual algorithm to solve the quadratic program. It relies on the function [solve.QP][quadprog::solve.QP()].
-#' - `"osqp"` solves the quadratic program via the Alternating Direction Method of Multipliers (ADMM). Internally it calls the function [solve_osqp][osqp::solve_osqp()].
-#' - `"coneproj"` solves the quadratic program by a cone projection method. It relies on the function [qprog][coneproj::qprog()].
-#'
-#' Each solver has specific parameters that can be controlled through the argument `qp_pars`. Sensible defaults are set within [cirls.control][cirls.control()] and the user typically doesn't need to provide custom parameters. `"quadprog"` is set as the default being generally more reliable than the other solvers. `"osqp"` is faster but can be less accurate, in which case it is recommended to increase convergence tolerance at the cost of speed.
 #'
 #' @return A object of class `cirls` inheriting from `glm`. The object of class `cirls` includes all components from [glm][stats::glm()] objects, with the addition of:
 #' \item{Cmat, lb, ub}{the constraint matrix, and lower and upper bound vectors. If provided as lists, the full expanded matrix and vectors are returned.}
@@ -44,18 +31,21 @@
 #' \item{etastart}{the initialisation of the linear predictor `eta`. The same as `etastart` when provided.}
 #' \item{singular.ok}{the value of the `singular.ok` argument.}
 #'
-#' Any method for `glm` objects can be used on `cirls` objects. In addition, methods specific to the `cirls` class are available, such as: [vcov.cirls][vcov.cirls()] to obtain the coefficients variance-covariance matrix, [confint.cirls][confint.cirls()] to obtain confidence intervals, and [logLik.cirls][logLik.cirls()] to extract the log-likelihood with appropriate degrees of freedom. These custom methods account for the reduced degrees of freedom resulting from the constraints (see the related help pages for details).
+#' Any method for `glm` objects can be used on `cirls` objects.
 #'
-#' @seealso [vcov.cirls][vcov.cirls()], [confint.cirls][confint.cirls()], [logLik.cirls][logLik.cirls()] and [edf][edf()] for functions specific to `cirls` objects. [cirls.control][cirls.control()] for fitting parameters specific to [cirls.fit][cirls.fit()]. [glm][stats::glm()] for details on `glm` objects.
+#' @seealso [buildCmat][buildCmat()] for details on constraint specification and [cirls.control][cirls.control()] for parameters controlling the algorithm. [glm][stats::glm()] provides details on `glm` objects.
 #'
 #' @references
-#' Goldfarb, D., Idnani, A., 1983. A numerically stable dual method for solving strictly convex quadratic programs. *Mathematical Programming* **27**, 1–33. \doi{10.1007/BF02591962}
+#' Goldfarb, D., Idnani, A., 1983. A numerically stable dual method for solving strictly convex quadratic programs. *Mathematical Programming* **27**, 1–33. [DOI:10.1007/BF02591962](https://doi.org/10.1007/BF02591962)
 #'
-#' Meyer, M.C., 2013. A Simple New Algorithm for Quadratic Programming with Applications in Statistics. *Communications in Statistics - Simulation and Computation* **42**, 1126–1139. \doi{10.1080/03610918.2012.659820}
+#' Meyer, M.C., 2013. A Simple New Algorithm for Quadratic Programming with Applications in Statistics. *Communications in Statistics - Simulation and Computation* **42**, 1126–1139. [DOI:10.1080/03610918.2012.659820](https://doi.org/10.1080/03610918.2012.659820)
 #'
-#' Stellato, B., Banjac, G., Goulart, P., Bemporad, A., Boyd, S., 2020. OSQP: an operator splitting solver for quadratic programs. *Math. Prog. Comp.* **12**, 637–672. \doi{10.1007/s12532-020-00179-2}
+#' Stellato, B., Banjac, G., Goulart, P., Bemporad, A., Boyd, S., 2020. OSQP: an operator splitting solver for quadratic programs. *Math. Prog. Comp.* **12**, 637–672. [DOI:10.1007/s12532-020-00179-2](https://doi.org/10.1007/s12532-020-00179-2)
 #'
-#' @example man/examples/cirls.fit.R
+#' @example inst/examples/ex_london_nonneg.R
+#' @example inst/examples/ex_warming_factor.R
+#' @example inst/examples/ex_warming_splines.R
+#' @example inst/examples/ex_fgl_coda.R
 #'
 #' @export
 cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,

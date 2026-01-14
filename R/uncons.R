@@ -1,35 +1,23 @@
 #' Unconstrained model
 #'
 #' @description
-#' Takes a fitted `cirls` object and returns the corresponding unconstrained model.
+#' Takes a fitted `cirls` object and fits the corresponding unconstrained model.
 #'
-#' @param object Fitted 'cirls' object.
+#' @param object A `cirls` object.
 #'
 #' @details
+#' This function refits a `cirls` object, removing all constraints. This is primarly used by [simulCoef][simulCoef()] for inference, but it can also be used to easily compare a constrained and an unconstrained model.
 #'
-#' ## Note on starting values
+#' The function still fits the model through [cirls.fit][cirls.fit()], but using an empty constraint matrix. Therefore, it returns a `cirls` object that can use all the facilities provided by the `cirls` package. In this instance, the CIRLS algorithm reduces to a classical IRLS and the results are identical to a usual [glm][glm()] fitted with `glm.fit`.
 #'
+#' @note
 #' If any starting values were provided to fit the `cirls` object, they are not transferred to the fitting of the unconstrained model.
 #'
 #' @returns A `cirls` object.
 #'
-#' @examples
-#' # Generate some data
-#' n <- 1000
-#' betas <- c(0, 1, 2, -1, 1)
-#' p <- length(betas)
-#' x <- matrix(rnorm(n * p), n, p)
-#' eta <- 5 + x %*% betas
-#' y <- eta + rnorm(n, 0, .2)
+#' @seealso [simulCoef][simulCoef()] to perform inference.
 #'
-#' # Fit two cirls models, passing Cmat through the two different pathways
-#' cinc <- diff(diag(p))
-#' res1 <- glm(y ~ x, method = cirls.fit, Cmat = list(x = cinc))
-#' res2 <- glm(y ~ x, method = cirls.fit, control = list(Cmat = list(x = cinc)))
-#'
-#' # 'Unconstrain' the models
-#' uc1 <- uncons(res1)
-#' uc2 <- uncons(res2)
+#' @example inst/examples/ex_warming_factor.R
 #'
 #' @export
 uncons <- function(object){

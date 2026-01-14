@@ -2,15 +2,52 @@
 % Please edit documentation in R/zerosumConstr.R
 \name{zerosumConstr}
 \alias{zerosumConstr}
-\title{Zero-sum constraint matrix}
+\title{Specify Zero-sum constraints}
 \usage{
 zerosumConstr(..., group = FALSE)
 }
 \arguments{
-\item{...}{Variables to be included in the constraint.}
+\item{...}{Terms to be included in the constraint.}
 
 \item{group}{If set to TRUE, the constraint is build independently for each variable in \code{...}}
 }
+\value{
+A list containing the constraint matrix \code{Cmat}, and lower/upper bound vectors (\code{lb} and \code{ub} respectively).
+}
 \description{
-Build constraint matrix and bounds for coefficients summing to zero.
+Builds a constraint matrix and bound vectors for zero-sum constraints on a set of coefficients. This is a generic function designed to be used in the \link[=buildCmat]{constr} interface.
+}
+\details{
+This function is used to force one or several set(s) of coefficients to sum to zero. The main use is for when (log) compositions are used as predictors in the model, but it can also be used more generally for variables that are relative to a reference.
+\subsection{Usage}{
+
+The recommended usage is to use this function through a call to \code{zerosum} on a term in the \link[=buildCmat]{constr} interface. This method is then called internally to create the constraint matrix and bound vectors. However, \code{shapeConstr} can also be called directly on a matrix-like object to manually build or inspect the constraint matrix.
+}
+}
+\examples{
+###############################################################################
+# Compositional regression example with the fgl dataset
+
+# Add a small increment to zeros
+x <- as.matrix(fgl[,2:9])
+x[x == 0] <- min(x[x > 0]) / 2
+
+# Normalise to unit sum and take log
+z <- log(x / rowSums(x))
+
+# Fit model
+model <- glm(RI ~ z, data = fgl, method = "cirls.fit",
+  cons = ~ zerosum(z))
+
+# Coefficients and confidence intervals
+coef(model)
+confint(model)
+}
+\references{
+Altenbuchinger, M., Rehberg, T., Zacharias, H.U., Stämmler, F., Dettmer, K., Weber, D., Hiergeist, A., Gessner, A., Holler, E., Oefner, P.J., Spang, R., 2017. Reference point insensitive molecular data analysis. \emph{Bioinformatics} \strong{33}, \strong{219–226}. \href{https://doi.org/10.1093/bioinformatics/btw598}{DOI:10.1093/bioinformatics/btw598}
+
+Aitchison, J., Bacon-Shone, J., 1984. Log contrast models for experiments with mixtures. Biometrika 71, 323–330. \href{https://doi.org/10.1093/biomet/71.2.323}{DOI:10.1093/biomet/71.2.323}
+}
+\seealso{
+\link[=buildCmat]{buildCmat} detailing the \code{constr} interface.
 }

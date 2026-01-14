@@ -28,7 +28,7 @@ shapeConstr.factor <- function(x, shape, intercept = FALSE, ...) {
   }
 
   # Remove redundant constraints
-  Cmat <- Cmat[!checkCmat(Cmat)$redundant,, drop = FALSE]
+  Cmat <- Cmat[!checkCmat(Cmat, warn = FALSE)$redundant,, drop = FALSE]
 
   # Bounds
   lb <- rep(0, NROW(Cmat))

@@ -14,26 +14,32 @@
 #' @param seed An optional seed for the random number generator. See [set.seed][set.seed()].
 #'
 #' @details
-#' Simulates coefficient vectors from their unconstrained distribution, which is the non-truncated multivariate normal distribution. For each simulated vector, counts the number of violated constraints as the number of active constraints under the constrained distribution. The expected degrees of freedom is then the number of parameters minus the average number of active constraints.
+#' Computes **unconstrained**, **observed** and **expected** degrees of freedom for `cirls` objects. The function also works for most objects inheriting from `lm` although in this case only the unconstrained (`udf`) makes sense.
 #'
-#' This procedure allows to account for the randomness of degrees of freedom for the constrained model. Indeed, the observed degrees of freedom is the number of parameters minus the number of active constraints. However, the number of active constraints is random as, some constraints can be active or not depending on the observed data. For instance, in a model for which the constraints are binding, the expected degrees of freedom will be close to the observed one, while in a model in which the constraints are irrelevant, the expected degrees of freedom will be closer to the unconstrained (usual) ones.
+#' ## Unconstrained df
 #'
-#' # Note
+#' **Unconstrained** degrees of freedom (`udf`) refer to the usual degrees of freedom, i.e. the number of estimated parameters \eqn{p}. In GLMs, this corresponds to the number of coefficients, plus one degree of freedom for the dispersion parameter when relevant.
 #'
-#' This function is implemented mainly for [cirls][cirls.fit()] objects and can return idiosyncratic results for other objects inheriting from `lm`. In this case, it will attempt to retrieve an 'edf' value, but simply return the rank of the model if this fails. For `glm` models for instance, it will return thrice the same value.
+#' ## Observed df
 #'
-#' @returns A vector of length three with components:
+#' **Observed** degrees of freedom (`odf`) correspond to the constrained df of a fitted `cirls` model. This corresponds to \eqn{p-m_a}, where \eqn{m_a} is *the number of active constraint* in the fitted `cirls` model. Intuitively, the more restricted the final fit, the more degrees of freedom are decreased.
+#'
+#' ## Expected df
+#'
+#' **Expected** degrees of freedom (`edf`) account for the sampling variation in the number of active constraints. A different sample might result in a fit with another number of active constraints \eqn{m_a} which means `odf` represents an inaccurate estimation of the reduction in degrees of freedom induced by the constraints. `edf` is defined as \eqn{p - \bar{m_a}} where \eqn{\bar{m_a}} is the expected number of active constraints. Here, \eqn{\bar{m_a}} is estimated by sampling from the [unconstrained][uncons()] distribution of coefficients (see [simulCoef][simulCoef()]).
+#'
+#' @returns A vector of length three containing the three types of degrees of freedom:
 #' \item{udf}{The *unconstrained* degrees of freedom, i.e. the rank plus any dispersion parameter for `glm` objects.}
 #' \item{odf}{The *observed* degrees of freedom, that is `udf` minus the number of active constraints.}
-#' \item{edf}{The *expected* degrees of freedom estimated by simulation as described in the details section. For any other object inheriting from `lm`, attempts to retrieve the *effective* degrees of freedom.}
+#' \item{edf}{The *expected* degrees of freedom estimated by simulation as described in the details section.}
 #' For `cirls` objects, the vector includes the simulated distribution of the number of active constraints as an `actfreq` attribute.
 #'
-#' @seealso [logLik.cirls][logLik.cirls()] which internally calls `edf` to compute degrees of freedom.
+#' @seealso [logLik.cirls][logLik.cirls()] which internally calls `edf` to compute degrees of freedom. [simulCoef][simulCoef()] for coefficient simulation.
 #'
 #' @references
-#'  Meyer, M.C., 2013. Semi-parametric additive constrained regression. *Journal of Nonparametric Statistics* **25**, **715–730**. \doi{10.1080/10485252.2013.797577}
+#'  Meyer, M.C., 2013. Semi-parametric additive constrained regression. *Journal of Nonparametric Statistics* **25**, **715–730**. [DOI:10.1080/10485252.2013.797577](https://doi.org/10.1080/10485252.2013.797577)
 #'
-#' @example man/examples/edf_ex.R
+#' @example inst/examples/ex_warming_factor.R
 #'
 #' @export
 edf <- function(object, nsim = 10000, seed = NULL){
@@ -89,9 +95,6 @@ edf <- function(object, nsim = 10000, seed = NULL){
     # Compute average and store distribution
     dfvec["edf"] <- p - eact
     attr(dfvec, "actfreq") <- c(table(actdist)) / nsim
-  } else {
-    #----- If not constrained, try and extract a value
-    dfvec["edf"] <- object$edf %||% p
   }
 
   # Return

@@ -5,7 +5,7 @@
 \alias{shapeConstr}
 \alias{shapeConstr.default}
 \alias{shapeConstr.factor}
-\title{Create shape constraints}
+\title{Specify shape constraints}
 \usage{
 shapeConstr(x, shape, ...)
 
@@ -20,18 +20,23 @@ shapeConstr(x, shape, ...)
 
 \item{...}{Additional parameters passed to or from other methods.}
 
-\item{intercept}{For the default method, a logical value indicating if the design matrix includes an intercept. In most cases will be automatically extracted from \code{x}.}
+\item{intercept}{For the default method, a logical value indicating if the design matrix includes an intercept. In most cases, it will be automatically extracted from \code{x} but this can be used to override it.}
 }
 \value{
-A constraint matrix to be passed to \code{Cmat} in \link[=cirls.fit]{cirls.fit}.
+A list containing the constraint matrix \code{Cmat}, and lower/upper bound vectors (\code{lb} and \code{ub} respectively).
 }
 \description{
-Creates a constraint matrix to shape-constrain a set of coefficients. Mainly intended for splines but can constrain various bases or set of variables. Will typically be called from within \link[=cirls.fit]{cirls.fit} but can be used to generate constraint matrices.
+Builds a constraint matrix and bound coefficients for shape-constraints on a set of coefficients. This is a generic function designed to be used in the \link[=buildCmat]{constr} interface. It allows methods for a wide range of regression terms (see details).
 }
 \details{
-The recommended usage is to directly specify the shape constraint through the \code{shape} argument in the call to \link[stats:glm]{glm} with \link[=cirls.fit]{cirls.fit}. This method is then called internally to create the constraint matrix. However, \code{shapeConstr} can nonetheless be called directly to manually build or inspect the constraint matrix for a given shape and design matrix.
+This function is used to specify shape constraints on terms in a \code{cirls} model. Shapes can refer to the relation between the coefficients of several variables in a matrix (for instance dummy variables to impose shapes on the levels of a factor), or to the shape of a smooth term (such as splines). note that this function can also be used to easily specify non-negativity or non-positivity constraints. See below for the list of implemented shapes and the examples section for several use cases.
+\subsection{Usage}{
 
-The parameters necessary to build the constraint matrix (e.g. \code{knots} and \code{ord} for splines) are typically extracted from the \code{x} object. This is also true for the \code{intercept} for most of the object, except for the default method for which it can be useful to explicitly provide it. In a typical usage in which \code{shapeConstr} would only be called within \link[=cirls.fit]{cirls.fit}, \code{intercept} is automatically determined from the \link[stats:glm]{glm} formula.
+The recommended usage is to use this function through a call to \code{shape} on a term in the \link[=buildCmat]{constr} interface. This method is then called internally to create the constraint matrix and bound vectors. However, \code{shapeConstr} can also be called directly on a matrix-like object to manually build or inspect the constraint matrix.
+
+The parameters necessary to build the constraint matrix (e.g. \code{knots} and \code{ord} for splines) are typically extracted from the \code{x} object. This is also true for the \code{intercept} for most of the object, except for the default method for which it can be useful to explicitly provide it. In a typical usage in which \code{shapeConstr} is called from the \code{constr} argument, \code{intercept} is automatically determined from the \link[stats:glm]{glm} formula.
+}
+
 \subsection{Allowed shapes}{
 
 The \code{shape} argument allows to define a specific shape for the association between the expanded term in \code{x} and the response of the regression model. This shape can describe the relation between coefficients for the default method, or the shape of the smooth term for spline bases. At the moment, six different shapes are supported, with up to three allowed simultaneously (one from each category):
@@ -47,7 +52,7 @@ The \code{shape} argument allows to define a specific shape for the association 
 In addition to the default method, \code{shapeConstr} currently supports several objects, creating an appropriate shape-constraint matrix depending on the object. The full list can be obtained by \code{methods(shapeConstr)}.
 \subsection{General}{
 \itemize{
-\item \code{\link[=factor]{factor()}}: for categorical variables. Extract the \link[stats:contrasts]{contrasts} to define the constraint matrix. here the \code{intercept} argument has the same interpretation as in the default method, i.e. if set to \code{TRUE} it means the \code{glm} model doesn't include an intercept externally to the factor. Note that, in this case, a simple dummy coding is done in R.
+\item \code{\link[=factor]{factor()}}: for categorical variables. Extract the \link[stats:contrasts]{contrasts} to define the constraint matrix. Here the \code{intercept} argument has the same interpretation as in the default method, i.e. if set to \code{TRUE} it means the \code{glm} model doesn't include an intercept externally to the factor. Note that, in this case, a simple dummy coding is done in R.
 }
 }
 
@@ -68,13 +73,83 @@ In addition to the default method, \code{shapeConstr} currently supports several
 }
 }
 \examples{
-# example code
+###############################################################################
+# Non-negative coefficient example with the london dataset
 
+library(splines)
+
+### Association between CO and mortality
+# Model includes spline of date and day-of-year
+# Nonnegative constraint on CO
+model <- glm(death ~ co + weekdays(date) + ns(date, df = 7*8),
+  data = london, family = "quasipoisson",
+  method = "cirls.fit", cons = ~ shape(co, "pos"))
+
+# Coefficient and confidence interval
+coef(model)[2]
+confint(model)[2,]
+
+###############################################################################
+# Monotone strata levels with the warming dataset
+
+### Fit the model
+
+# Define decadal strata (as a factor)
+warming$decade <- factor(10 * floor(warming$year / 10))
+
+# Non-decreasing constraint on decadal strata
+model <- glm(anomaly ~ decade, data = warming, method = "cirls.fit",
+  cons = ~ shape(decade, "inc"))
+
+# Plot result
+plot(anomaly ~ year, data = warming, xlab = "", ylab = "Temperature anomaly")
+lines(warming$year, predict(model), col = 2, lwd = 2)
+
+### Extract results
+
+# Coefficients and confidence intervals
+betas <- coef(model)
+v <- vcov(model)
+cis <- confint(model)
+
+# Degrees of freedom: represent number of strata change
+# ?edf
+edf(model)
+
+### Compare with an unconstrained model
+
+# Refit the model
+umodel <- uncons(model)
+
+# Add result
+lines(warming$year, predict(umodel), col = 3, lwd = 2, lty = 2)
+
+##############################################################################
+# Monotone splines with the warming dataset
+
+library(splines)
+
+# Define a natural spline basis
+basis <- ns(warming$year, df = 10)
+
+### Constrained model
+
+# Non-decreasing splines
+model <- glm(anomaly ~ basis, data = warming, method = "cirls.fit",
+  cons = ~ shape(basis, "inc"))
+
+# Plot result
+plot(anomaly ~ year, data = warming, xlab = "", ylab = "Temperature anomaly")
+lines(warming$year, predict(model), col = 2, lwd = 2)
+
+### Unconstrained model
+umodel <- uncons(model)
+lines(warming$year, predict(umodel), col = 3, lwd = 2, lty = 2)
 
 }
 \references{
-Zhou, S. & Wolfe, D. A., 2000, On derivative estimation in spline regression. \emph{Statistica Sinica} \strong{10}, \strong{93–108}.
+Zhou, S. & Wolfe, D. A., 2000. On derivative estimation in spline regression. \emph{Statistica Sinica} \strong{10}, \strong{93–108}.
 }
 \seealso{
-\code{\link[=cirls.fit]{cirls.fit()}} which typically calls \code{shapeConstr} internally.
+\link[=buildCmat]{buildCmat} detailing the \code{constr} interface.
 }

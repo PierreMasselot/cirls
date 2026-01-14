@@ -2,45 +2,61 @@
 % Please edit documentation in R/checkCmat.R
 \name{checkCmat}
 \alias{checkCmat}
-\title{Check constraint matrix irreducibility}
+\title{Check and reduce constraint matrix}
 \usage{
-checkCmat(Cmat)
+checkCmat(Cmat, lb = NULL, ub = NULL, reduce = TRUE, warn = TRUE)
 }
 \arguments{
-\item{Cmat}{A constraint matrix as passed to \code{\link[=cirls.fit]{cirls.fit()}}}
+\item{Cmat}{A constraint matrix.}
+
+\item{lb, ub}{Bound vectors. If provided, should be consistent with \code{Cmat}.}
+
+\item{reduce}{If TRUE, returns reduced \code{Cmat}, \code{lb} and \code{ub} with redundant constraints removed. Otherwise, they are returned as provided.}
+
+\item{warn}{Whether to warn the user when redundant and equality constraints are found.}
 }
 \value{
-A list with three elements:
-\item{redundant}{Logical vector of indicating redundant constraints}
-\item{equality}{Logical vector indicating which constraints are part of an underlying equality constraint}
+A list with the following elements:
+\item{redundant}{Logical vector indicating redundant constraints in the provided \code{Cmat}.}
+\item{equality}{An integer vector indicating the groups of underlying equality constraints in the provided \code{Cmat}. Zero values indicate that the row is not part of any underlying equality constraint and higher values indicate which equality constraint it is part of.}
+\item{Cmat/lb/ub}{The reduced constraints when \code{reduce = TRUE} or the provided constraints otherwise.}
 }
 \description{
-Checks a constraint matrix does not contains redundant rows
+Checks whether some constraints are redundant and can be removed, and whether some constraints can be reduced into an equality constraint. If requested, redundant constraints are removed, but not equality ones.
 }
 \details{
-The user typically doesn't need to use \code{checkCmat} as it is internally called by \code{\link[=cirls.control]{cirls.control()}}. However, it might be useful to undertsand if \code{Cmat} can be reduced for inference purpose. See the note in \code{\link[=confint.cirls]{confint.cirls()}}.
+The user typically doesn't need to use \code{checkCmat} as it is internally called by \link[=buildCmat]{buildCmat} and in some Constr functions creating \code{Cmat}/\code{lb}/\code{ub} . However, it might be useful in the case of inconsistent constraints or underlying equality constraints.
+\subsection{Irreducibility}{
 
-A constraint matrix is irreducible if no row can be expressed as a \emph{positive} linear combination of the other rows. When it happens, it means the constraint is actually implicitly included in other constraints in the matrix and can be dropped. Note that this a less restrictive condition than the constraint matrix having full row rank (see some examples).
+\code{Cmat} is irreducible if there is no \emph{redundant} constraint, and no \emph{underlying equality} constraint.
 
-The function starts by checking if some constraints are redundant and, if so, checks if they underline equality constraints. In the latter case, the constraint matrix can be reduced by expressing these constraints as a single equality constraint with identical lower and upper bounds (see \code{\link[=cirls.fit]{cirls.fit()}}).
+A row in \code{Cmat} is \emph{redundant} if it can be expressed as a \emph{positive} linear combination of other rows. When it happens, it means the corresponding constraint is actually implicitly included in other constraints, and can be dropped without affecting the problem. Rows that only contain zeros are considered redundant.
 
-The function also checks whether there are "zero constraints" i.e. constraints with only zeros in \code{Cmat} in which case they will be labelled as redundant.
+When it exists a linear combination of rows in \code{Cmat} that result in the null vector, it means that there is an \emph{underlying equality} constraint. In that case, it means the corresponding rows can be reduced to a single equality constraint. Note that underlying constraints are left as is in the returned \code{Cmat} even when \code{reduce = TRUE}, and it is left to the user to figure out whether to reduce it.
+}
+}
+\note{
+\code{checkCmat} works when only \code{Cmat} is provided. \code{lb}/\code{ub} can be provided to conveniently be reduced in the case of redundant constraints, but they should be consistent with \code{Cmat}.
 }
 \examples{
 ###################################################
 # Example of reducible matrix
 
 # Constraints: successive coefficients should increase and be convex
-p <- 5
-cmatic <- rbind(diff(diag(p)), diff(diag(p), diff = 2))
-
-# Checking indicates that constraints 2 to 4 are redundant.
 # Intuitively, if the first two coefficients increase,
-# then convexity forces the rest to increase
+# then convexity forces the rest to increase which means there is redundancy
+p <- 5
+cmatic <- rbind(
+  shapeConstr(matrix(NA, 0, p), shape = "inc")$Cmat, # Increasing
+  shapeConstr(matrix(NA, 0, p), shape = "cvx")$Cmat # Convex
+)
+
+# Checking indicates that some constraints are redundant.
+# Returns reduced matrix and a warning
 checkCmat(cmatic)
 
-# Check without contraints
-checkCmat(cmatic[-(2:4),])
+# Note that this is silently done when both "inc" and "cvx" are provided
+shapeConstr(matrix(NA, 0, p), shape = c("inc", "cvx"))$Cmat
 
 ###################################################
 # Example of irreducible matrix
@@ -67,12 +83,12 @@ checkCmat(cmats)
 # Contraint: Parameters sum is >= 0 and sum is <= 0
 cmateq <- rbind(rep(1, 3), rep(-1, 3))
 
-# Checking indicates that both constraints imply equality constraint (sum == 0)
+# Checking indicates that both constraints imply equality constraint
 checkCmat(cmateq)
 }
 \references{
-Meyer, M.C., 1999. An extension of the mixed primal–dual bases algorithm to the case of more constraints than dimensions. \emph{Journal of Statistical Planning and Inference} \strong{81}, 13–31. \doi{10.1016/S0378-3758(99)00025-7}
+Meyer, M.C., 1999. An extension of the mixed primal–dual bases algorithm to the case of more constraints than dimensions. \emph{Journal of Statistical Planning and Inference} \strong{81}, 13–31. \href{https://doi.org/10.1016/S0378-3758(99)00025-7}{DOI:10.1016/S0378-3758(99)00025-7}
 }
 \seealso{
-\code{\link[=confint.cirls]{confint.cirls()}}
+\link[=buildCmat]{buildCmat}
 }

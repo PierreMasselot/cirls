@@ -2,25 +2,54 @@
 % Please edit documentation in R/logLik.cirls.R
 \name{logLik.cirls}
 \alias{logLik.cirls}
-\title{Log-Likelihood for a fitted \code{cirls} object}
+\title{Extract Log-Likelihood}
 \usage{
 \method{logLik}{cirls}(object, df = "edf", ...)
 }
 \arguments{
 \item{object}{A \code{cirls} object.}
 
-\item{df}{The type of degrees of freedom to assign to the log-Likelihood. Default to expected degrees of freedom. See \code{\link[=edf]{edf()}}.}
+\item{df}{Character. The type of degrees of freedom to assign to the log-Likelihood. Default to expected degrees of freedom \code{"edf"}. See \link[=edf]{edf} for a description of possible degrees of freedom.}
 
-\item{...}{Arguments to be passed to \link[=edf]{edf} to compute degrees of freedom.}
+\item{...}{Additional arguments to be passed to \link[=edf]{edf} to compute degrees of freedom.}
 }
 \value{
 A numeric value of class \code{logLik} with attributes \code{df} (degrees of freedom, see details) and \code{nobs} (number of observations used in the estimation).
 }
 \description{
-Extracts the log-likelihood for a fitted \code{cirls} object to be typically used by \link[stats:AIC]{AIC}.
+Extracts the log-likelihood of a fitted \code{cirls} object with associated degrees of freedom. Typically used with \link[stats:AIC]{AIC}.
 }
 \details{
 The argument \code{df} provide the type of degrees of freedom attributed to the returned log-likelihood value. This is typically used in the computation of \link[stats:AIC]{AIC} and \link[stats:AIC]{BIC} and changing the degrees of freedom can ultimately change the values of the information criteria. By default, the expected number of freedom given the constraints is used. See \link[=edf]{edf} for details on the computation and for the returned types of degrees of freedom.
+}
+\examples{
+###############################################################################
+# Example of AIC and logLik
+
+#----- Fit warming model
+
+# Define decadal strata (as a factor)
+warming$decade <- factor(10 * floor(warming$year / 10))
+
+# Non-decreasing constraint on decadal strata
+model <- glm(anomaly ~ decade, data = warming, method = "cirls.fit",
+  cons = ~ shape(decade, "inc"))
+
+#----- Log-Likelihood and information criteria
+
+# Extract log-likelihood with different degrees of freedom
+lle <- logLik(model)
+llo <- logLik(model, df = "o")
+llu <- logLik(model, df = "u")
+
+# The AIC function can be used directly on the model: uses default df
+# NB: the small differences come from the simulations for edf computation
+AIC(model)
+AIC(lle)
+
+# To compute AIC with different df, need to go through logLik
+AIC(llo)
+AIC(llu)
 }
 \seealso{
 \link[=edf]{edf} to compute expected degrees of freedom.

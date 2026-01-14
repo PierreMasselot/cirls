@@ -15,41 +15,51 @@
 #
 ################################################################################
 
-#' Check constraint matrix irreducibility
+#' Check and reduce constraint matrix
 #'
 #' @description
-#' Checks a constraint matrix does not contains redundant rows
+#' Checks whether some constraints are redundant and can be removed, and whether some constraints can be reduced into an equality constraint. If requested, redundant constraints are removed, but not equality ones.
 #'
-#' @param Cmat A constraint matrix as passed to [cirls.fit()]
+#' @param Cmat A constraint matrix.
+#' @param lb,ub Bound vectors. If provided, should be consistent with `Cmat`.
+#' @param reduce If TRUE, returns reduced `Cmat`, `lb` and `ub` with redundant constraints removed. Otherwise, they are returned as provided.
+#' @param warn Whether to warn the user when redundant and equality constraints are found.
 #'
 #' @details
-#' The user typically doesn't need to use `checkCmat` as it is internally called by [cirls.control()]. However, it might be useful to undertsand if `Cmat` can be reduced for inference purpose. See the note in [confint.cirls()].
+#' The user typically doesn't need to use `checkCmat` as it is internally called by [buildCmat][buildCmat()] and in some Constr functions creating `Cmat`/`lb`/`ub` . However, it might be useful in the case of inconsistent constraints or underlying equality constraints.
 #'
-#' A constraint matrix is irreducible if no row can be expressed as a *positive* linear combination of the other rows. When it happens, it means the constraint is actually implicitly included in other constraints in the matrix and can be dropped. Note that this a less restrictive condition than the constraint matrix having full row rank (see some examples).
+#' ## Irreducibility
 #'
-#' The function starts by checking if some constraints are redundant and, if so, checks if they underline equality constraints. In the latter case, the constraint matrix can be reduced by expressing these constraints as a single equality constraint with identical lower and upper bounds (see [cirls.fit()]).
+#' `Cmat` is irreducible if there is no *redundant* constraint, and no *underlying equality* constraint.
 #'
-#' The function also checks whether there are "zero constraints" i.e. constraints with only zeros in `Cmat` in which case they will be labelled as redundant.
+#' A row in `Cmat` is *redundant* if it can be expressed as a *positive* linear combination of other rows. When it happens, it means the corresponding constraint is actually implicitly included in other constraints, and can be dropped without affecting the problem. Rows that only contain zeros are considered redundant.
 #'
-#' @returns A list with three elements:
-#' \item{redundant}{Logical vector of indicating redundant constraints}
-#' \item{equality}{Logical vector indicating which constraints are part of an underlying equality constraint}
+#' When it exists a linear combination of rows in `Cmat` that result in the null vector, it means that there is an *underlying equality* constraint. In that case, it means the corresponding rows can be reduced to a single equality constraint. Note that underlying constraints are left as is in the returned `Cmat` even when `reduce = TRUE`, and it is left to the user to figure out whether to reduce it.
 #'
-#' @seealso [confint.cirls()]
+#' @note `checkCmat` works when only `Cmat` is provided. `lb`/`ub` can be provided to conveniently be reduced in the case of redundant constraints, but they should be consistent with `Cmat`.
+#'
+#' @returns A list with the following elements:
+#' \item{redundant}{Logical vector indicating redundant constraints in the provided `Cmat`.}
+#' \item{equality}{An integer vector indicating the groups of underlying equality constraints in the provided `Cmat`. Zero values indicate that the row is not part of any underlying equality constraint and higher values indicate which equality constraint it is part of.}
+#' \item{Cmat/lb/ub}{The reduced constraints when `reduce = TRUE` or the provided constraints otherwise.}
+#'
+#' @seealso [buildCmat][buildCmat()]
 #'
 #' @references
-#' Meyer, M.C., 1999. An extension of the mixed primal–dual bases algorithm to the case of more constraints than dimensions. *Journal of Statistical Planning and Inference* **81**, 13–31. \doi{10.1016/S0378-3758(99)00025-7}
-#' @example man/examples/checkCmat_ex.R
+#' Meyer, M.C., 1999. An extension of the mixed primal–dual bases algorithm to the case of more constraints than dimensions. *Journal of Statistical Planning and Inference* **81**, 13–31. [DOI:10.1016/S0378-3758(99)00025-7](https://doi.org/10.1016/S0378-3758(99)00025-7)
+#'
+#' @example inst/examples/ex_checkCmat.R
 #'
 #' @export
-checkCmat <- function(Cmat){
-  # Check if there are "zero" constraints which are redundant
+checkCmat <- function(Cmat, lb = NULL, ub = NULL, reduce = TRUE, warn = TRUE){
+  # Check if there are "zero" constraints which are useless
   # I use `all.equal` which takes a more sensible approach to equality to 0
   redundant <- apply(Cmat, 1,
     function(x) isTRUE(all.equal(x, rep(0, ncol(Cmat)))))
   # Prepare Cmat
   tCmat <- t(Cmat)
-  equality <- rep(FALSE, ncol(tCmat))
+  equality <- rep(0, ncol(tCmat))
+  eq_cnt <- 0
   for (i in which(!redundant)){
     # Break the loop if there is only one useful constraint left
     if (sum(!redundant) < 2) break
@@ -60,15 +70,42 @@ checkCmat <- function(Cmat){
     fit <- limSolve::nnls(x, y)
     res <- x %*% fit$X
     redundant[i] <- isTRUE(all.equal(y, drop(res)))
-    if (!redundant[i]){
-      # Check underlying equality constraint
+
+    # Check equality only if not redundant and not already detected
+    if (!redundant[i] & equality[i] == 0){
+      # Check underlying equality constraint: origin is a linear combination
       fiteq <- limSolve::nnls(x, -y)
       reseq <- x %*% fiteq$X
       # reseq <- coneproj::coneB(-y, x)$yhat # Returns error for some problems
-      equality[i] <- isTRUE(all.equal(-y, drop(reseq)))
+
+      # If there is an equality constraint, check which variables involved
+      if (isTRUE(all.equal(-y, drop(reseq)))){
+        eq_cnt <- eq_cnt + 1
+        eqi <- c(i,
+          setdiff(which(!redundant), i)[(fiteq$X - 0) >
+              sqrt(.Machine$double.eps)])
+        equality[eqi] <- eq_cnt
+      }
     }
   }
+
+  # Reduce constraints if requested
+  if (any(redundant) && reduce){
+    Cmat <- Cmat[!redundant,,drop = F]
+    lb <- lb[!redundant]
+    ub <- ub[!redundant]
+  }
+
+  # Warn user if requested
+  if (warn){
+    if (any(redundant)) warning(paste0("Redundant constraint found: ",
+        paste(which(redundant), collapse = ", ")))
+    if (eq_cnt > 0) warning(paste0(eq_cnt,
+      " underlying equality constraint found"))
+  }
+
   # Return indices
-  list(redundant = redundant, equality = equality)
+  list(redundant = redundant, equality = equality,
+    Cmat = Cmat, lb = lb, ub = ub)
 }
 
