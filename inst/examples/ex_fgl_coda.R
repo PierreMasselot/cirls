@@ -1,17 +1,18 @@
 ###############################################################################
 # Compositional regression example with the fgl dataset
 
-# Add a small increment to zeros
+# Select the composition and use log
 x <- as.matrix(fgl[,2:9])
-x[x == 0] <- min(x[x > 0]) / 2
-
-# Normalise to unit sum and take log
-z <- log(x / rowSums(x))
+z <- log(x)
 
 # Fit model
 model <- glm(RI ~ z, data = fgl, method = "cirls.fit",
   cons = ~ zerosum(z))
 
-# Coefficients and confidence intervals
+# Coefficients sum to 1
 coef(model)
+sum(coef(model)[-1])
+
+# Confidence intervals
 confint(model)
+

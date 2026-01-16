@@ -3,9 +3,6 @@
 
 #----- Fit warming model
 
-# Define decadal strata (as a factor)
-warming$decade <- factor(10 * floor(warming$year / 10))
-
 # Non-decreasing constraint on decadal strata
 model <- glm(anomaly ~ decade, data = warming, method = "cirls.fit",
   cons = ~ shape(decade, "inc"))

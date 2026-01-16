@@ -5,7 +5,7 @@
 \alias{fgl}
 \title{Measurement of forensic glass fragments}
 \format{
-A data frame of 214 observations and 10 variables. Apart from \code{RI} and \code{type} all other variables represent a percentage of the given chemical component.
+A data frame of 214 observations and 10 variables. Apart from \code{RI} and \code{type} all other variables represent a ratio of the given chemical component.
 \describe{
 \item{RI}{Refractive index; more precisely the refractive index is 1.518xxxx.}
 \item{Na}{Sodium}
@@ -20,33 +20,35 @@ A data frame of 214 observations and 10 variables. Apart from \code{RI} and \cod
 }
 }
 \source{
-Dataset exctracted from the \code{MASS} package.
-
 Venables, W. N. and Ripley, B. D. (2002) \emph{Modern Applied Statistics with S}. Fourth edition. Springer.
 }
 \usage{
 fgl
 }
 \description{
-Chemical composition of fragments of glass collected in forensic work.
+Dataset adapted from the \link[MASS:fgl]{fgl} dataset. Chemical composition of fragments of glass collected in forensic work.
+}
+\details{
+The source of this dataset is the MASS package. The dataset has been adapted for compositional data analysis by adding a small increment to null values and rescaling all chemical components to sum to unity.
 }
 \examples{
 ###############################################################################
 # Compositional regression example with the fgl dataset
 
-# Add a small increment to zeros
+# Select the composition and use log
 x <- as.matrix(fgl[,2:9])
-x[x == 0] <- min(x[x > 0]) / 2
-
-# Normalise to unit sum and take log
-z <- log(x / rowSums(x))
+z <- log(x)
 
 # Fit model
 model <- glm(RI ~ z, data = fgl, method = "cirls.fit",
   cons = ~ zerosum(z))
 
-# Coefficients and confidence intervals
+# Coefficients sum to 1
 coef(model)
+sum(coef(model)[-1])
+
+# Confidence intervals
 confint(model)
+
 }
 \keyword{datasets}

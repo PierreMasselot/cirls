@@ -61,7 +61,7 @@ where \code{coefficients} is the coefficient vector returned by the model. This 
 library(splines)
 
 ### Association between CO and mortality
-# Model includes spline of date and day-of-year
+# Model includes spline of date and day-of-week
 # Nonnegative constraint on CO
 model <- glm(death ~ co + weekdays(date) + ns(date, df = 7*8),
   data = london, family = "quasipoisson",
@@ -71,13 +71,14 @@ model <- glm(death ~ co + weekdays(date) + ns(date, df = 7*8),
 coef(model)[2]
 confint(model)[2,]
 
+# Comparing to an unconstrained model
+umodel <- uncons(model)
+coef(umodel)[2]
+confint(umodel)[2,]
 ###############################################################################
 # Monotone strata levels with the warming dataset
 
 ### Fit the model
-
-# Define decadal strata (as a factor)
-warming$decade <- factor(10 * floor(warming$year / 10))
 
 # Non-decreasing constraint on decadal strata
 model <- glm(anomaly ~ decade, data = warming, method = "cirls.fit",
@@ -131,20 +132,21 @@ lines(warming$year, predict(umodel), col = 3, lwd = 2, lty = 2)
 ###############################################################################
 # Compositional regression example with the fgl dataset
 
-# Add a small increment to zeros
+# Select the composition and use log
 x <- as.matrix(fgl[,2:9])
-x[x == 0] <- min(x[x > 0]) / 2
-
-# Normalise to unit sum and take log
-z <- log(x / rowSums(x))
+z <- log(x)
 
 # Fit model
 model <- glm(RI ~ z, data = fgl, method = "cirls.fit",
   cons = ~ zerosum(z))
 
-# Coefficients and confidence intervals
+# Coefficients sum to 1
 coef(model)
+sum(coef(model)[-1])
+
+# Confidence intervals
 confint(model)
+
 }
 \references{
 Goldfarb, D., Idnani, A., 1983. A numerically stable dual method for solving strictly convex quadratic programs. \emph{Mathematical Programming} \strong{27}, 1–33. \href{https://doi.org/10.1007/BF02591962}{DOI:10.1007/BF02591962}

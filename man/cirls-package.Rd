@@ -6,38 +6,40 @@
 \alias{cirls-package}
 \title{cirls: Constrained Iteratively Reweighted Least Squares}
 \description{
-The package \code{cirls} provides routines to fit \strong{generalised linear models (GLM) with linear constraints on the coefficients}. The package's framework allows to easily perform a range of common applications such as shape-constrained regression or compositional regression, but also allows specifying \emph{any} custom linear constraint for more niche applications. The package provides dedicated methods to perform inference and model selection.
+The package \code{cirls} provides routines to fit \strong{generalised linear models (GLM) with linear constraints on the coefficients}. These routines implement a general framework to perform a range of constraint-based methods, including common applications such as shape-constrained regression or compositional regression. However, the package allows users to specify \emph{any} custom linear constraint for more niche applications. Functions in the \code{cirls} package include fitting procedures as well as dedicated methods to perform inference and model selection.
+
+The statistical framework is implemented by embedding constrained optimisation procedures in \link[stats:glm]{glm}, so that users can flexibly perform constraint-based analyses with simple calls to this standard R function. The user can use the standard \code{glm} ecosystem on constrained model, augmented with dedicated methods for \code{cirls} objects.
 }
 \section{Methodological framework}{
 
-Applying linear constraints to GLMs allow to restrict the fitted coefficients \eqn{\beta} to respect specific linear combinations. These constraints can represent assumptions on the coefficients or allow identifiability. More formally, the fitted GLM is subject to:
+Applying linear constraints to GLMs entails restricting the fitted coefficients \eqn{\beta} to respect specific linear combinations. These constraints can represent assumptions on the coefficients or enforce identifiability. More formally, the fitted GLM is subject to:
 \deqn{ \mathbf{l} \leq \mathbf{C\beta} \leq \mathbf{u} }
-where \eqn{\mathbf{C}} is a matrix encoding the constraints with each row representing a single constraint, and each column representing a variable in the model. \eqn{\mathbf{l}} and \eqn{\mathbf{u}} are lower and upper bounds for the constraints, respectively.
+where \eqn{\mathbf{C}} is a matrix encoding the constraints, with each row representing a single constraint and each column representing a regressor in the design matrix of the model. \eqn{\mathbf{l}} and \eqn{\mathbf{u}} are lower and upper bounds for the constraints, respectively.
 
-The model is fitted by \link[=cirls.fit]{constrained iteratively-reweighted least-squares} (CIRLS) which extends the classical IRLS algorithm to ensure the constraints specified by \eqn{\mathbf{C}}, \eqn{\mathbf{l}} and \eqn{\mathbf{u}} are respected.
+The model is fitted by \link[=cirls.fit]{constrained iteratively-reweighted least-squares} (CIRLS), which extends the classical IRLS algorithm to ensure the constraints specified by \eqn{\mathbf{C}}, \eqn{\mathbf{l}}, and \eqn{\mathbf{u}} are respected.
 
-Linearly constrained coefficients follow a \strong{truncated multivariate Normal} (TMVN) distribution, \emph{i.e.} a multivariate normal that respects the constraints specified by \eqn{\mathbf{C}}, \eqn{\mathbf{l}} and \eqn{\mathbf{u}}. Inference is conducted by \link[=simulCoef]{simulating} from the TMVN distribution of fitted coefficients, which can then be used to compute useful summaries like the \link[=vcov.cirls]{variance-covariance matrix} and \link[=confint.cirls]{confidence intervals}.
+Linearly constrained coefficients follow a \strong{truncated multivariate Normal} (TMVN) distribution, \emph{i.e.} a multivariate normal that respects the constraints specified by \eqn{\mathbf{C}}, \eqn{\mathbf{l}} and \eqn{\mathbf{u}}. Inference is conducted by \link[=simulCoef]{simulating} from the TMVN distribution of fitted coefficients, and the output can then be used to compute useful summaries like the \link[=vcov.cirls]{variance-covariance matrix} and \link[=confint.cirls]{confidence intervals}.
 }
 
 \section{Usage}{
 
 \subsection{Fitting the model}{
 
-The \code{cirls} package has been developed as a \strong{plug-in} to \link[stats:glm]{glm}. The main function is \link[=cirls.fit]{cirls.fit}, designed to be used within \link[stats:glm]{glm} through the argument \code{method = "cirls.fit"}. This will fit the GLM using the CIRLS algorithm instead of the default IRLS algorithm. All arguments of \link[stats:glm]{glm} such as \code{formula}, \code{data} and \code{family} retain the same usage. Additional arguments specific to \code{cirls} are passed through the ellipsis \code{...} or the \code{control} argument (\emph{but not both at the same time}). If any parameter is passed through \code{control}, then \code{...} will be ignored. See \link[=cirls.control]{cirls.control} for the full list of arguments and examples below for how to use the package.
+The \code{cirls} package has been developed as a \strong{plug-in} to \link[stats:glm]{glm}. The main function is \link[=cirls.fit]{cirls.fit}, designed to be used within \link[stats:glm]{glm} through the argument \code{method = "cirls.fit"}. This will fit the GLM using specific CIRLS algorithms instead of the default IRLS algorithm. All arguments of \link[stats:glm]{glm} such as \code{formula}, \code{data} and \code{family} retain the same usage. Additional arguments specific to \code{cirls} are passed through the ellipsis \code{...} or the \code{control} argument (\emph{but not both at the same time}). If any parameter is passed through \code{control}, then \code{...} will be ignored. See \link[=cirls.control]{cirls.control} for the full list of additional arguments and examples below for how to use additional functions in the package.
 }
 
 \subsection{Specifying constraints}{
 
-Constraints can be specified through arguments \code{constr} and/or \code{Cmat}/\code{lb}/\code{ub}. The \link[=buildCmat]{constr} argument provides a user-friendly way to pass common built-in constraints through a formula and is the recommended way for new users. See the list of available built-in constraints below. Alternatively, the arguments \link[=buildCmat]{Cmat/lb/ub} allow more flexibility in passing constraints. These arguments take either a full constraint matrix (\code{Cmat}) and bound vectors (\code{lb} and \code{ub}), or named lists to specify a constrained matrix and bound vectors for specific terms in the model. See the help for \link[=buildCmat]{buildCmat} for greater details.
+Constraints can be specified through arguments \code{constr} and/or \code{Cmat}/\code{lb}/\code{ub}. The \link[=buildCmat]{constr} argument provides a user-friendly way to pass common built-in constraints through a formula and is the recommended way for new users. See the list of available built-in constraints below. Alternatively, the arguments \link[=buildCmat]{Cmat/lb/ub} allow more flexibility in passing constraints. These arguments take either a full constraint matrix (\code{Cmat}) and bound vectors (\code{lb} and \code{ub}), or named lists to specify a constrained matrix and bound vectors for specific terms in the model. See the help for \link[=buildCmat]{buildCmat} for more specific details.
 }
 }
 
 \section{Functions included in the package}{
 
-\link[=cirls.fit]{cirls.fit} is the workhorse performing the fitting, and is controlled by \link[=cirls.control]{cirls.control}. The fit returns an object of class \code{cirls} which inherits from class \code{glm}. This means that all methods available for usual \code{glm} objects can also be used on a \code{cirls} object. This typically includes \link[stats:coef]{coef} and \link[stats:summary.glm]{summary} for instance. However, some methods are supplanted by new methods that are specific to \code{cirls} objects. See the index below for a comprehensive list of supplanted methods.
+\link[=cirls.fit]{cirls.fit} is the workhorse performing the fitting, and is controlled by \link[=cirls.control]{cirls.control}. The function returns an object of class \code{cirls} which inherits from class \code{glm}. This means that all methods available for usual \code{glm} objects can also be used on a \code{cirls} object. This typically includes \link[stats:coef]{coef} and \link[stats:summary.glm]{summary}, for instance. However, some methods are supplanted by new methods that are specific to \code{cirls} objects. The sections below provides a comprehensive illustration of such specific methods, including an index of the functions.
 \subsection{Inference}{
 
-Inference for \code{cirls} objects includes computing the \link[=vcov.cirls]{variance-covariance matrix} and \link[=confint.cirls]{confidence intervals} for constrained (and unconstrained) coefficients. These functions build on \link[=simulCoef]{simulCoef} which generates coefficient vectors based on the TMVN distribution of fitted coefficients, and can be used to compute other summaries.
+Inference for \code{cirls} objects includes computing the \link[=vcov.cirls]{variance-covariance matrix} and \link[=confint.cirls]{confidence intervals} for constrained (and unconstrained) coefficients. These functions build on \link[=simulCoef]{simulCoef}, which generates coefficient vectors based on the TMVN distribution of fitted coefficients, and can be used to compute other summaries.
 }
 
 \subsection{Model selection}{
@@ -47,9 +49,9 @@ Degrees of freedom of a fitted \code{cirls} object can be computed through the \
 
 \subsection{Other functions}{
 
-\link[=uncons]{uncons} refit the model removing some or all of the constraints, acting similarly to the \link[stats:update]{update} function but focusing on constraints.
+\link[=uncons]{uncons} refits the model removing some or all of the constraints, acting similarly to the \link[stats:update]{update} function although focusing on the constraints.
 
-\link[=buildCmat]{buildCmat} and \link[=checkCmat]{checkCmat} are convenience functions that are mainly used internally in \link[=cirls.fit]{cirls.fit}. They are not meant to be called directly by the user, but can be useful to check a manually provided full constraint matrix. Specifically, \link[=buildCmat]{buildCmat} builds a full constraint matrix from the \code{constr} and/or \code{Cmat}/\code{lb}/\code{ub} arguments and a model frame. \link[=checkCmat]{checkCmat} checks whether a constraint matrix can be reduced by detecting redundant and underlying equality constraints. The help of both functions also provide technical details on constraints and constraint matrices.
+\link[=buildCmat]{buildCmat} and \link[=checkCmat]{checkCmat} are convenience functions that are mainly used internally in \link[=cirls.fit]{cirls.fit}. They are not meant to be called directly, but can be useful to advanced users to build and/or check constraint matrices. Specifically, \link[=buildCmat]{buildCmat} builds a full constraint matrix from the \code{constr} and/or \code{Cmat}/\code{lb}/\code{ub} arguments and a model frame. \link[=checkCmat]{checkCmat} checks whether a constraint matrix can be reduced by detecting redundant and underlying equality constraints. The help pages of both functions also provide technical details on constraints and constraint matrices.
 }
 }
 
@@ -79,35 +81,16 @@ The following supplant \code{glm} methods:
 
 \itemize{
 \item \link[=fgl]{fgl}: Measurement of forensic glass fragments
-\item \link[=london]{london}: Daily mortality, temperature and pollution data in London
+\item \link[=london]{london}: Daily mortality, temperature, and pollution data in London
 \item \link[=warming]{warming}: Global temperature anomaly
 }
 }
 
 \examples{
 ###############################################################################
-# Non-negative coefficient example with the london dataset
-
-library(splines)
-
-### Association between CO and mortality
-# Model includes spline of date and day-of-year
-# Nonnegative constraint on CO
-model <- glm(death ~ co + weekdays(date) + ns(date, df = 7*8),
-  data = london, family = "quasipoisson",
-  method = "cirls.fit", cons = ~ shape(co, "pos"))
-
-# Coefficient and confidence interval
-coef(model)[2]
-confint(model)[2,]
-
-###############################################################################
 # Monotone strata levels with the warming dataset
 
 ### Fit the model
-
-# Define decadal strata (as a factor)
-warming$decade <- factor(10 * floor(warming$year / 10))
 
 # Non-decreasing constraint on decadal strata
 model <- glm(anomaly ~ decade, data = warming, method = "cirls.fit",
@@ -161,20 +144,41 @@ lines(warming$year, predict(umodel), col = 3, lwd = 2, lty = 2)
 ###############################################################################
 # Compositional regression example with the fgl dataset
 
-# Add a small increment to zeros
+# Select the composition and use log
 x <- as.matrix(fgl[,2:9])
-x[x == 0] <- min(x[x > 0]) / 2
-
-# Normalise to unit sum and take log
-z <- log(x / rowSums(x))
+z <- log(x)
 
 # Fit model
 model <- glm(RI ~ z, data = fgl, method = "cirls.fit",
   cons = ~ zerosum(z))
 
-# Coefficients and confidence intervals
+# Coefficients sum to 1
 coef(model)
+sum(coef(model)[-1])
+
+# Confidence intervals
 confint(model)
+
+###############################################################################
+# Non-negative coefficient example with the london dataset
+
+library(splines)
+
+### Association between CO and mortality
+# Model includes spline of date and day-of-week
+# Nonnegative constraint on CO
+model <- glm(death ~ co + weekdays(date) + ns(date, df = 7*8),
+  data = london, family = "quasipoisson",
+  method = "cirls.fit", cons = ~ shape(co, "pos"))
+
+# Coefficient and confidence interval
+coef(model)[2]
+confint(model)[2,]
+
+# Comparing to an unconstrained model
+umodel <- uncons(model)
+coef(umodel)[2]
+confint(umodel)[2,]
 }
 \references{
 Masselot, P., Nenon, D., Vanoli, J., Chalabi, Z., Gasparrini, A., 2025. Estimation and inference in generalised linear models with constrained iteratively-reweighted least squares. \emph{ArXiv preprint}. \href{https://doi.org/10.48550/arXiv.2509.18406}{DOI:10.48550/arXiv.2509.18406}
@@ -195,4 +199,3 @@ Authors:
 }
 
 }
-\keyword{internal}

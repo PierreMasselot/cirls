@@ -79,7 +79,7 @@ In addition to the default method, \code{shapeConstr} currently supports several
 library(splines)
 
 ### Association between CO and mortality
-# Model includes spline of date and day-of-year
+# Model includes spline of date and day-of-week
 # Nonnegative constraint on CO
 model <- glm(death ~ co + weekdays(date) + ns(date, df = 7*8),
   data = london, family = "quasipoisson",
@@ -89,13 +89,14 @@ model <- glm(death ~ co + weekdays(date) + ns(date, df = 7*8),
 coef(model)[2]
 confint(model)[2,]
 
+# Comparing to an unconstrained model
+umodel <- uncons(model)
+coef(umodel)[2]
+confint(umodel)[2,]
 ###############################################################################
 # Monotone strata levels with the warming dataset
 
 ### Fit the model
-
-# Define decadal strata (as a factor)
-warming$decade <- factor(10 * floor(warming$year / 10))
 
 # Non-decreasing constraint on decadal strata
 model <- glm(anomaly ~ decade, data = warming, method = "cirls.fit",

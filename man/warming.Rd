@@ -8,6 +8,7 @@
 A data frame of 166 observations (years) and two? variables:
 \describe{
 \item{year}{The year.}
+\item{decade}{The year rounded down to to the decade.}
 \item{anomaly}{The difference between the global annual temperature and the average over 1961-1990.}
 }
 }
@@ -25,9 +26,6 @@ Provides annual global temperature anomaly compared to the reference period 1961
 # Monotone strata levels with the warming dataset
 
 ### Fit the model
-
-# Define decadal strata (as a factor)
-warming$decade <- factor(10 * floor(warming$year / 10))
 
 # Non-decreasing constraint on decadal strata
 model <- glm(anomaly ~ decade, data = warming, method = "cirls.fit",
