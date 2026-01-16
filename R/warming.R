@@ -9,6 +9,7 @@
 #' A data frame of 166 observations (years) and two? variables:
 #' \describe{
 #'  \item{year}{The year.}
+#'  \item{decade}{The year rounded down to to the decade.}
 #'  \item{anomaly}{The difference between the global annual temperature and the average over 1961-1990.}
 #' }
 #'

@@ -1,5 +1,7 @@
 #' @description
-#' The package `cirls` provides routines to fit **generalised linear models (GLM) with linear constraints on the coefficients**. These routines implement a general framework to perform a range of constraint-based methods, including common applications such as shape-constrained regression or compositional regression. However, the package allows users to specify *any* custom linear constraint for more niche applications. Functions in the `cirls` package include fitting procedures as well as dedicated methods to perform inference and model selection. The statistical framework is implemented by embedding constrained optimisation procedures in [glm][stats::glm()], so that users can flexibly perform constraint-based analyses with simple calls to this standard R function.
+#' The package `cirls` provides routines to fit **generalised linear models (GLM) with linear constraints on the coefficients**. These routines implement a general framework to perform a range of constraint-based methods, including common applications such as shape-constrained regression or compositional regression. However, the package allows users to specify *any* custom linear constraint for more niche applications. Functions in the `cirls` package include fitting procedures as well as dedicated methods to perform inference and model selection.
+#'
+#' The statistical framework is implemented by embedding constrained optimisation procedures in [glm][stats::glm()], so that users can flexibly perform constraint-based analyses with simple calls to this standard R function. The user can use the standard `glm` ecosystem on constrained model, augmented with dedicated methods for `cirls` objects.
 #'
 #' @section Methodological framework:
 #' Applying linear constraints to GLMs entails restricting the fitted coefficients \eqn{\beta} to respect specific linear combinations. These constraints can represent assumptions on the coefficients or enforce identifiability. More formally, the fitted GLM is subject to:
@@ -55,10 +57,9 @@
 #' @references
 #' Masselot, P., Nenon, D., Vanoli, J., Chalabi, Z., Gasparrini, A., 2025. Estimation and inference in generalised linear models with constrained iteratively-reweighted least squares. *ArXiv preprint*. [DOI:10.48550/arXiv.2509.18406](https://doi.org/10.48550/arXiv.2509.18406)
 #'
-#' @example inst/examples/ex_london_nonneg.R
 #' @example inst/examples/ex_warming_factor.R
 #' @example inst/examples/ex_warming_splines.R
 #' @example inst/examples/ex_fgl_coda.R
+#' @example inst/examples/ex_london_nonneg.R
 #'
-#' @keywords internal
 "_PACKAGE"
