@@ -13,7 +13,7 @@ cirls.control(constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
 
 \item{Cmat}{Constraint matrix specifying the linear constraints applied to coefficients. Can also be provided as a list of matrices for specific terms. See details in \link[=buildCmat]{buildCmat} for constraint specification.}
 
-\item{lb, ub}{Lower and upper bound vectors for the linear constraints. If not provided, defaults to 0 and Inf, respectively.}
+\item{lb, ub}{Lower and upper bound vectors for the linear constraints. If not provided, defaults to 0 and \code{Inf}, respectively.}
 
 \item{epsilon}{Positive convergence tolerance. The algorithm converges when the relative change in deviance is smaller than \code{epsilon}.}
 
@@ -21,9 +21,9 @@ cirls.control(constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
 
 \item{trace}{Logical indicating if output should be produced for each iteration.}
 
-\item{qp_solver}{The quadratic programming solver. One of \code{"quadprog"} (the default), \code{"osqp"} or \code{"coneproj"}.}
+\item{qp_solver}{The quadratic programming solver. One of \code{"quadprog"} (the default), \code{"osqp"}, or \code{"coneproj"}.}
 
-\item{qp_pars}{List of parameters specific to the quadratic programming solver. See respective packages help.}
+\item{qp_pars}{List of parameters specific to the quadratic programming solver. See the help pages in the respective packages (links below).}
 }
 \value{
 A named list containing arguments to be used in \link[=cirls.fit]{cirls.fit}.
@@ -42,8 +42,8 @@ Constraint specification through the \code{constr}, \code{Cmat}, \code{lb} and \
 
 The function \link[=cirls.fit]{cirls.fit} relies on a quadratic programming solver. Several solver are currently available.
 \itemize{
-\item \code{"quadprog"} (the default) performs a dual algorithm to solve the quadratic program. It relies on the function \link[quadprog:solve.QP]{solve.QP}.
-\item \code{"osqp"} solves the quadratic program via the Alternating Direction Method of Multipliers (ADMM). Internally calls the function \link[osqp:solve_osqp]{solve_osqp}.
+\item \code{"quadprog"} (the default) solves the quadratic program via a dual algorithm. It relies on the function \link[quadprog:solve.QP]{solve.QP}.
+\item \code{"osqp"} solves the quadratic program via the Alternating Direction Method of Multipliers (ADMM). IIt relies on the function \link[osqp:solve_osqp]{solve_osqp}.
 \item \code{"coneproj"} solves the quadratic program by a cone projection method. It relies on the function \link[coneproj:qprog]{qprog}.
 }
 
