@@ -1,6 +1,7 @@
 # 0.4.0-4
 
 - New `shapeConstr` method for `strata` from `dlnm`
+- New example on isotonic regression
 - Some amendments to the help
 
 # 0.4.0-3

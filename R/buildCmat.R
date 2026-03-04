@@ -12,8 +12,8 @@
 #' @param mf A [model.frame][stats::model.frame()] or a list of variables. Defines the model for which the constraint matrix is built.
 #' @param assign A vector of indices mapping columns of the design matrix to model terms.
 #' @param constr A formula specifying constraints.
-#' @param Cmat Either a matrix or a named list of constraint matrices. In the latter case, names should correspond to terms in `mf` (dee setails).
-#' @param lb,ub Vector or named list of vectors containing constraint bounds. In the latter case, names should correspond to terms in `mf` (dee setails).
+#' @param Cmat Either a matrix or a named list of constraint matrices. In the latter case, names should correspond to terms in `mf` (See details).
+#' @param lb,ub Vector or named list of vectors containing constraint bounds. In the latter case, names should correspond to terms in `mf` (See details).
 #'
 #' @details
 #' This function is called internally by [cirls.fit][cirls.fit()] and is not meant to be used directly by the user. It prepares the full `Cmat`, `lb` and `ub` for the model, providing a way to specify constraints without having to build a full constraint matrix beforehand. It uses the model frame in `mf` to match specific constraints to the right columns in the design matrix.
