@@ -39,7 +39,7 @@ boundConstr(x, ...)
 
 \item{side}{Character indicating the side on which the constraint applies. One of \code{"right"} (the default), \code{"left"} or \code{"both"}.}
 
-\item{deg}{A positive integer indicating the degree of smoothness for the constraint. The default value is different according to the method. See details.}
+\item{deg}{A positive integer indicating the degree of smoothness for the constraint. The default value is different according to the method. See Details.}
 
 \item{intercept}{For the default and factor method, a logical value indicating if the design matrix includes an intercept. In most cases, it will be automatically extracted from \code{x}, but this argument can be used to override it.}
 }
