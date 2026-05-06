@@ -9,9 +9,9 @@ cirls.control(constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
   qp_pars = list())
 }
 \arguments{
-\item{constr}{A formula specifying constraints to be applied to specific terms in the model. See details in \link[=buildCmat]{buildCmat} for constraint specification.}
+\item{constr}{A formula specifying constraints to be applied to specific terms in the model. See details in \link{buildCmat} for constraint specification.}
 
-\item{Cmat}{Constraint matrix specifying the linear constraints applied to coefficients. Can also be provided as a list of matrices for specific terms. See details in \link[=buildCmat]{buildCmat} for constraint specification.}
+\item{Cmat}{Constraint matrix specifying the linear constraints applied to coefficients. Can also be provided as a list of matrices for specific terms. See details in \link{buildCmat} for constraint specification.}
 
 \item{lb, ub}{Lower and upper bound vectors for the linear constraints. If not provided, defaults to 0 and \code{Inf}, respectively.}
 
@@ -26,28 +26,28 @@ cirls.control(constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
 \item{qp_pars}{List of parameters specific to the quadratic programming solver. See the help pages in the respective packages (links below).}
 }
 \value{
-A named list containing arguments to be used in \link[=cirls.fit]{cirls.fit}.
+A named list containing arguments to be used in \link{cirls.fit}.
 }
 \description{
-Function controlling the \link[=cirls.fit]{cirls.fit} algorithm. Typically only used internally with arguments passed to \code{...} in \link[=glm]{glm}, but may be used to construct a \code{control} argument to either function.
+Function controlling the \link{cirls.fit} algorithm. Typically only used internally with arguments passed to \code{...} in \link{glm}, but may be used to construct a \code{control} argument to either function.
 }
 \details{
-The \code{control} argument of \link[stats:glm]{glm} is by default passed to the \code{control} argument of \link[=cirls.fit]{cirls.fit}, which uses its elements as arguments for \link[=cirls.control]{cirls.control}: the latter provides defaults and sanity checking. The control parameters can alternatively be passed through the \code{...} argument of \link[stats:glm]{glm}.
+The \code{control} argument of \link[stats:glm]{glm} is by default passed to the \code{control} argument of \link{cirls.fit}, which uses its elements as arguments for \link{cirls.control}: the latter provides defaults and sanity checking. The control parameters can alternatively be passed through the \code{...} argument of \link[stats:glm]{glm}.
 \subsection{Constraint specification}{
 
-Constraint specification through the \code{constr}, \code{Cmat}, \code{lb} and \code{ub} argument is fully detailed in the help of the \link[=buildCmat]{buildCmat} functions.
+Constraint specification through the \code{constr}, \code{Cmat}, \code{lb} and \code{ub} argument is fully detailed in the help of the \link{buildCmat} functions.
 }
 
 \subsection{Quadratic programming solvers}{
 
-The function \link[=cirls.fit]{cirls.fit} relies on a quadratic programming solver. Several solver are currently available.
+The function \link{cirls.fit} relies on a quadratic programming solver. Several solver are currently available.
 \itemize{
 \item \code{"quadprog"} (the default) solves the quadratic program via a dual algorithm. It relies on the function \link[quadprog:solve.QP]{solve.QP}.
 \item \code{"osqp"} solves the quadratic program via the Alternating Direction Method of Multipliers (ADMM). It relies on the function \link[osqp:solve_osqp]{solve_osqp}.
 \item \code{"coneproj"} solves the quadratic program by a cone projection method. It relies on the function \link[coneproj:qprog]{qprog}.
 }
 
-Each solver has specific parameters that can be controlled through the argument \code{qp_pars}. Sensible defaults are set within \link[=cirls.control]{cirls.control} and the user typically doesn't need to provide custom parameters. \code{"quadprog"} is set as the default being generally more reliable than the other solvers. \code{"osqp"} is faster but can be less accurate, in which case it is recommended to increase convergence tolerance at the cost of speed.
+Each solver has specific parameters that can be controlled through the argument \code{qp_pars}. Sensible defaults are set within \link{cirls.control} and the user typically doesn't need to provide custom parameters. \code{"quadprog"} is set as the default being generally more reliable than the other solvers. \code{"osqp"} is faster but can be less accurate, in which case it is recommended to increase convergence tolerance at the cost of speed.
 }
 }
 \examples{
@@ -83,5 +83,5 @@ model2 <- glm(death ~ o3, data = london, family = "quasipoisson",
 model2$control$cons
 }
 \seealso{
-Specification of a \link[=cirls-package]{cirls} model and constraint specification in \link[=buildCmat]{buildCmat}.
+Specification of a \link[=cirls-package]{cirls} model and constraint specification in \link{buildCmat}.
 }

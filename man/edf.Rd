@@ -11,7 +11,7 @@ edf(object, nsim = 10000, seed = NULL)
 
 \item{nsim}{The number of simulations.}
 
-\item{seed}{An optional seed for the random number generator. See \link[=set.seed]{set.seed}.}
+\item{seed}{An optional seed for the random number generator. See \link{set.seed}.}
 }
 \value{
 A vector of length three containing the three types of degrees of freedom:
@@ -37,7 +37,7 @@ Computes \strong{unconstrained}, \strong{observed}, and \strong{expected} df for
 
 \subsection{Expected df}{
 
-\strong{Expected} degrees of freedom (\code{edf}) account for the sampling variation in the number of active constraints. A different sample might result in a fit with another number of active constraints \eqn{m_a} which means \code{odf} represents an inaccurate estimation of the reduction in degrees of freedom induced by the constraints. \code{edf} is defined as \eqn{p - \bar{m_a}} where \eqn{\bar{m_a}} is the expected number of active constraints. Here, \eqn{\bar{m_a}} is estimated by sampling from the \link[=uncons]{unconstrained} distribution of coefficients (see \link[=simulCoef]{simulCoef}).
+\strong{Expected} degrees of freedom (\code{edf}) account for the sampling variation in the number of active constraints. A different sample might result in a fit with another number of active constraints \eqn{m_a} which means \code{odf} represents an inaccurate estimation of the reduction in degrees of freedom induced by the constraints. \code{edf} is defined as \eqn{p - \bar{m_a}} where \eqn{\bar{m_a}} is the expected number of active constraints. Here, \eqn{\bar{m_a}} is estimated by sampling from the \link[=uncons]{unconstrained} distribution of coefficients (see \link{simulCoef}).
 }
 }
 \examples{
@@ -78,5 +78,5 @@ lines(warming$year, predict(umodel), col = 3, lwd = 2, lty = 2)
 Meyer, M.C., 2013. Semi-parametric additive constrained regression. \emph{Journal of Nonparametric Statistics} \strong{25}, \strong{715–730}. \href{https://doi.org/10.1080/10485252.2013.797577}{DOI:10.1080/10485252.2013.797577}
 }
 \seealso{
-\link[=logLik.cirls]{logLik.cirls} which internally calls \code{edf} to compute degrees of freedom. \link[=simulCoef]{simulCoef} for coefficient simulation.
+\link{logLik.cirls} which internally calls \code{edf} to compute degrees of freedom. \link{simulCoef} for coefficient simulation.
 }

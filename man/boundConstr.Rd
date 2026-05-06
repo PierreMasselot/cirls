@@ -39,7 +39,7 @@ boundConstr(x, ...)
 
 \item{side}{Character indicating the side on which the constraint applies. One of \code{"right"} (the default), \code{"left"} or \code{"both"}.}
 
-\item{deg}{A positive integer indicating the degree of smoothness for the constraint. The default value is different according to the method. See Details.}
+\item{deg}{A positive integer indicating the degree of smoothness for the constraint. The default value is different according to the method. See details.}
 
 \item{intercept}{For the default and factor method, a logical value indicating if the design matrix includes an intercept. In most cases, it will be automatically extracted from \code{x}, but this argument can be used to override it.}
 }
@@ -62,7 +62,7 @@ All methods internally rely on the default method for general matrices. Unless s
 
 The \code{deg} parameter indicates the number of coefficients on the left/right that are constrained to be equal to \code{value} and can be interpreted as a smoothness degree for the boundary constraint. The default is different for each method. It is set to 1 for the default method or the methods related to categorical variables (e.g. \code{factor} and \code{strata}).
 
-For B-spline bases methods (such as \code{bs}, \code{ps} and \code{ns}), the default is to be equal to the degree of the spline. This corresponds to the number of bases that are non-null at the boundary, are therefore that contribute to the value of the smooth at the boundary. Since, by construction, B-spline basis functions sum to one at any point, constraining all coefficients to \code{value} will result in the smooth being equal to \code{value} at the boundary. Note that \code{deg} can be reduced for \code{bs} and \code{ps} (but not \code{ps}),  resulting in a less smooth convergence towards \code{value}.
+For B-spline bases methods (such as \code{bs}, \code{ps} and \code{ns}), the default is to be equal to the degree of the spline. This corresponds to the number of bases that are non-null at the boundary, are therefore that contribute to the value of the smooth at the boundary. Since, by construction, B-spline basis functions sum to one at any point, constraining all coefficients to \code{value} will result in the smooth being equal to \code{value} at the boundary. Note that \code{deg} can be reduced for \code{bs} and \code{ps} (but not \code{ns}),  resulting in a less smooth convergence towards \code{value}.
 }
 
 \subsection{Available methods}{
@@ -70,16 +70,16 @@ For B-spline bases methods (such as \code{bs}, \code{ps} and \code{ns}), the def
 In addition to the default method, \code{boundConstr} currently supports methods for several classes. The full list can also be consulted through \code{methods(shapeConstr)}.
 \subsection{Categorical variables}{
 \itemize{
-\item \link[=factor]{factor}: for \code{factor} objects. Extract the \link[stats:contrasts]{contrasts} to define the constraint matrix. Here the \code{intercept} argument has the same interpretation as in the default method, i.e. if set to \code{TRUE} it means the \code{glm} model does not include an intercept externally to the factor. Note that, in this case, a simple dummy coding is done in R.
-\item \link[dlnm:strata]{strata}: Indicator variables defining strata from the \link[dlnm:dlnm-package]{dlnm} package. Here the shape is applied to the coefficient of strata, considering strata like a categorical variable.
+\item \link{factor}: for \code{factor} objects. Extract the \link[stats:contrasts]{contrasts} to define the constraint matrix. Here the \code{intercept} argument has the same interpretation as in the default method, i.e. if set to \code{TRUE} it means the \code{glm} model does not include an intercept externally to the factor. Note that, in this case, a simple dummy coding is done in R.
+\item \link[dlnm:strata]{strata}: Indicator variables defining strata from the \link[dlnm:dlnm]{dlnm} package. Here the shape is applied to the coefficient of strata, considering strata like a categorical variable.
 }
 }
 
 \subsection{B-spline bases}{
 \itemize{
-\item \link[splines:bs]{bs}: B-splines bases from the \link[=splines]{splines} package. Here \code{deg} is set by default to the \code{degree} of the basis, but can be reduced for a less smooth constraint.
-\item \link[splines:ns]{ns}: B-spline bases for natural cubic splines from the \link[=splines]{splines} package. Builds constraints for \code{bs} that are then adjusted for \code{ns} specifically.
-\item \link[dlnm:ps]{ps}: P-spline bases from the \link[dlnm:dlnm-package]{dlnm} package. For \code{ps}, \code{deg} should not be reduced to a lower value than its degree.
+\item \link[splines:bs]{bs}: B-splines bases from the \link{splines} package. Here \code{deg} is set by default to the \code{degree} of the basis, but can be reduced for a less smooth constraint.
+\item \link[splines:ns]{ns}: B-spline bases for natural cubic splines from the \link{splines} package. Builds constraints for \code{bs} that are then adjusted for \code{ns} specifically.
+\item \link[dlnm:ps]{ps}: P-spline bases from the \link[dlnm:dlnm]{dlnm} package. For \code{ps}, \code{deg} should not be reduced to a lower value than its degree.
 }
 }
 
@@ -124,5 +124,5 @@ lines(seas2, col = 2)
 Sylvestre, M.-P., Abrahamowicz, M., 2009. Flexible modeling of the cumulative effects of time-dependent exposures on the hazard. \emph{Statistics in Medicine} \strong{28}, \strong{3437–3453}. \href{https://doi.org/10.1002/sim.3701}{DOI:10.1002/sim.3701}
 }
 \seealso{
-\link[=buildCmat]{buildCmat} detailing the \code{constr} interface.
+\link{buildCmat} detailing the \code{constr} interface.
 }

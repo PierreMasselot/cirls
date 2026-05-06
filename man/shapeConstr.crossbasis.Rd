@@ -4,50 +4,51 @@
 \name{boundConstr.crossbasis}
 \alias{boundConstr.crossbasis}
 \alias{shapeConstr.crossbasis}
-\title{Constraints for distributed lag linear and nonlinear models}
+\title{Constraints for distributed lag linear and non-linear models}
 \usage{
-\method{boundConstr}{crossbasis}(x, dim = NULL, slice = NULL,
-  overall = FALSE, ...)
+\method{boundConstr}{crossbasis}(x, dim = NULL, overall = FALSE,
+  slice = NULL, ...)
 
-\method{shapeConstr}{crossbasis}(x, dim = NULL, slice = NULL,
-  overall = FALSE, ...)
+\method{shapeConstr}{crossbasis}(x, dim = NULL, overall = FALSE,
+  slice = NULL, ...)
 }
 \arguments{
 \item{x}{A \code{crossbasis} object.}
 
-\item{dim}{One of \code{"var"} or \code{"lag"}, the dimension on which the constraint will be applied. If \code{NULL}, the default is to apply the constraint on the \code{"var"} dimension if it is \emph{nonlinear} (i.e. has more than one degree of freedom), or to apply it to the \code{"lag"} dimension otherwise (i.e. when a \emph{linear} distributed lag model is specified).}
+\item{dim}{Either \code{"var"} or \code{"lag"}. This is the dimension on which the constraint will be applied, constraining either the exposure-response or lag-response relationship, respectively. If \code{NULL}, the default is to apply the constraint on the \code{"var"} dimension if it is \emph{nonlinear} (i.e. has more than one degree of freedom), or to apply it to the \code{"lag"} dimension otherwise (i.e. when a \emph{linear} distributed lag model is specified).}
 
-\item{slice}{A numeric vector of length 2 restricting the constraint on a specific range of the \emph{other} dimension. By default no slicing is performed. See details.}
+\item{overall}{Only when \code{dim = "var"}, logical indicating whether the constraint should be applied only on the overall cumulative association or for each specific lag.}
 
-\item{overall}{Only when \code{dim = "var"}, logical indicating whether the constraint should be applied only on the overall cumulative association or across all lags. Note that \code{slice} can be used to define the constraint over a restricted cumulative lag range.}
+\item{slice}{A numeric vector of length 2 restricting the constraint on a specific range of the \emph{other} dimension, namely the lag (for \code{dim = "var"}) or exposure (\code{dim = "lag"}) space. By default, no slicing is performed. See Details.}
 
-\item{...}{Parameters specific to the type of constraint to be applied. Includes for instance \code{shape} for \link[=shapeConstr]{shapeConstr}, or \code{value} for \link[=boundConstr]{boundConstr}. See the main help page of the relevant generic.}
+\item{...}{Parameters specific to the type of constraint to be applied. Includes for instance \code{shape} for \link{shapeConstr}, or \code{value} for \link{boundConstr}. See the main help page of the relevant generic method.}
 }
 \value{
 A list containing the constraint matrix \code{Cmat}, and lower/upper bound vectors (\code{lb} and \code{ub}, respectively).
 }
 \description{
-Methods to generate constraint matrices associated with \link[dlnm:crossbasis]{crossbasis} objects, allowing the fitting of constrained distributed-lag nonlinear models (DLNM). Designed for use within the \link[=buildCmat]{constr} interface in \code{cirls}. \strong{At the moment, constraining can only be performed on a single dimension at a time.}
+Methods to generate constraint matrices associated with \link[dlnm:crossbasis]{crossbasis} objects, allowing the fitting of constrained distributed lag linear and non-linear models (DLMs and DLNMs). Designed for use within the \link[=buildCmat]{constr} interface in \code{cirls}.
 }
 \details{
-Constraint matrices for \code{crossbasis} objects are built by generating the marginal constraint matrix for the requested dimension (through the \code{dim} argument) and expanding it through a Kronecker product with a (potentially modified) identity matrix of the dimension of the opposite dimension. This identity matrix can be modified to account for specificities of the basis for the other dimension (e.g. necessary for \code{ns}).
+Constraints for DLMs and DLNMs apply to one of two dimensions of an exposure-lag-response association, specifically the exposure space (for \code{dim = "var"}) or the lag space (for \code{dim = "lag"}). Operationally, the functions generate a constraint matrix for the requested dimension of a \code{crossbasis} object, which is then expanded consistently in the other dimension. This allows the user to apply specific constraints to either the exposure-response association or the lag-response association, relying on the same \link[=shapeConstr]{shape} or \link[=boundConstr]{bound} methods used for other functions.
 \subsection{Overall vs full surface}{
 
-By default, the constraint is applied over the whole surface. This means that if, say, the \code{var} dimension is shape-constrained, then the shape will hold true for any lag. When \code{overall} is switched to \code{TRUE} (only when \code{dim = "var"}), the constrain will hold for the \emph{overall cumulative association} only (see \link[dlnm:crossreduce]{crossreduce}). This means the constraint could be violated at specific lags.
+By default, when \code{dim = "var"}, the constraint is applied across the whole lag space. This means that the exposure-response will be constrained at every lag. When \code{overall} is switched to \code{TRUE} (allowed only when \code{dim = "var"}), the constraint will only hold for the overall cumulative association (namely the net effect summed across lags), while it can be violated for exposure-responses defined at specific lags. See \link[dlnm:crossreduce]{crossreduce} for more information.
 }
 
 \subsection{Slicing}{
 
-The \code{slice} argument can be used to restrict the constraint on a specific range of the other dimension. For instance, when \code{dim = "var"}, setting \code{slice = c(0, 5)} (say) will enforce the constraint only over lags 0 to 5, meaning it could be violated at other lags (> 5 in this example). Note that the specific range for slicing depends on the specific basis for the opposite dimension. In the previous example, if the lag dimension is specified by splines, the constraint will be enforced between the closest knots that contain the range specified by \code{slice}. See the \code{range} argument in \link[=shapeConstr]{shapeConstr} for additional details.
-
-When \code{overall = TRUE}, slicing will only constraint the cumulative association \emph{over the range specific by \code{slice}}.
+The \code{slice} argument can be used to restrict the constraint on a specific range of the other dimension. For instance, when \code{dim = "var"}, setting \code{slice = c(0, 5)} (say) will enforce the constraint on the exposure-response relationship only over lags 0 to 5, meaning it could be violated at other lags (> 5 in this example). Note that the actual range for slicing depends on the specific basis functions used for the opposite dimension (see the \code{range} argument in \link{shapeConstr} for additional details). When \code{overall = TRUE}, slicing will only constraint the cumulative association over the range specific by \code{slice} (see above).
 }
 
 \subsection{Note}{
 
-These methods only allow to specify a single constraint on \strong{one dimension at a time}. Specifying several constraints can be done by adding terms in the \link[=buildCmat]{constr} formula.
+These methods for \link[dlnm:crossbasis]{crossbasis} objects only allow to specify a single constraint to one dimension of the exposure-lag-response association. However, the user can apply multiple constraints, possibly to both dimensions, by adding multiple terms for the same object in the \link[=buildCmat]{constr} formula (see Examples below).
+}
 
-At the moment, \strong{when the var dimension is nonlinear, it is not recommended to constrain the lag dimension}. This is because the centering performed by \code{crosspred} can impact the constraint definition.
+\subsection{Warnings}{
+
+In the current implementation, constraints applied to the lag dimension (when \code{dim = "lag"}) can be straightforwardly defined when the exposure-response function is linear, namely for simpler DLMs. For non-linear exposure-responses, the centering performed by \link[dlnm:crosspred]{crosspred} when predicting the exposure-lag-response relationship can break the constraint definition and return unpredictable results. Users are advised not to apply constraints in the lag dimension of complex DLNMs, or to do so with particular care.
 }
 }
 \examples{
@@ -212,10 +213,10 @@ dbcp <- crosspred(cb, dbm, cen = 0, at = 10)
 plot(dbcp, ptype = "slices", lwd = 2, var = 10)
 }
 \references{
-Gasparrini, A., Armstrong, B., 2013. Reducing and meta-analysing estimates from distributed lag non-linear models. \emph{BMC Medical Research Methodology} \strong{13}, \strong{1}. \href{https://doi.org/10.1186/1471-2288-13-1}{DOI:10.1186/1471-2288-13-1}
-
 Gasparrini, A., Armstrong, B., Kenward, M.G., 2010. Distributed lag non-linear models. \emph{Statistics in Medicine} \strong{29}, \strong{2224–2234}. \href{https://doi.org/10.1002/sim.3940}{DOI:10.1002/sim.3940}
+
+Gasparrini, A., Armstrong, B., 2013. Reducing and meta-analysing estimates from distributed lag non-linear models. \emph{BMC Medical Research Methodology} \strong{13}, \strong{1}. \href{https://doi.org/10.1186/1471-2288-13-1}{DOI:10.1186/1471-2288-13-1}
 }
 \seealso{
-\link[=shapeConstr]{shapeConstr}, \link[=boundConstr]{boundConstr} for the generic method. \link[=buildCmat]{buildCmat} for how to specify constraints.
+\link[dlnm:crossbasis]{crossbasis} for the definition of DLMs and DLNMs as well as their dimensions. \link{shapeConstr} and \link{boundConstr} for generic constraint methods. \link{buildCmat} for how to specify constraints.
 }

@@ -24,7 +24,7 @@ simulCoef(object, nsim = 1, seed = NULL, complete = TRUE,
 
 \item{complete}{If \code{FALSE}, it does not return inference for undetermined coefficients in case of an over-determined model.}
 
-\item{constrained}{A logical switch indicating whether to simulate from the constrained (the default) or unconstrained (see \link[=uncons]{uncons}) coefficients distribution. When set to \code{FALSE} in \code{vcov}, returns the untruncated covariance matrix as in an unconstrained GLM.}
+\item{constrained}{A logical switch indicating whether to simulate from the constrained (the default) or unconstrained (see \link{uncons}) coefficients distribution. When set to \code{FALSE} in \code{vcov}, returns the untruncated covariance matrix as in an unconstrained GLM.}
 
 \item{parm}{A specification of which parameters to compute the confidence intervals for. Either a vector of index numbers or a vector of names. If missing, all parameters are considered.}
 
@@ -96,5 +96,5 @@ Geweke, J.F., 1996. Bayesian Inference for Linear Models Subject to Linear Inequ
 Botev, Z.I., 2017, The normal law under linear restrictions: simulation and estimation via minimax tilting, \emph{Journal of the Royal Statistical Society, Series B}, \strong{79} (\strong{1}), pp. 1–24. \href{https://doi.org/10.1111/rssb.12162}{DOI:10.1111/rssb.12162}
 }
 \seealso{
-\link[TruncatedNormal:tmvnorm]{rtmvnorm} which is the routine used internally to simulate from a TMVN. \link[=checkCmat]{checkCmat} to check if the constraint matrix can be reduced.
+\link[TruncatedNormal:tmvnorm]{rtmvnorm} which is the routine used internally to simulate from a TMVN. \link{reduceCmat} to check if the constraint matrix can be reduced.
 }

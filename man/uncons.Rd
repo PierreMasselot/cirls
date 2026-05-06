@@ -16,9 +16,9 @@ A \code{cirls} object.
 Takes a fitted \code{cirls} object and fits the corresponding unconstrained model.
 }
 \details{
-This function refits the original model that produced a \code{cirls} object, but removing all constraints. This is primarly used by \link[=simulCoef]{simulCoef} for inference, but it can also be used to easily compare a constrained and an unconstrained models.
+This function refits the original model that produced a \code{cirls} object, but removing all constraints. This is primarly used by \link{simulCoef} for inference, but it can also be used to easily compare a constrained and an unconstrained models.
 
-The function still fits the model through \link[=cirls.fit]{cirls.fit}, but using an empty constraint matrix. Therefore, it returns a \code{cirls} object that can use all the facilities provided by the \code{cirls} package. In this instance, the CIRLS algorithm reduces to a classical IRLS and the results are identical to a usual \link[=glm]{glm} fitted with \code{glm.fit}.
+The function still fits the model through \link{cirls.fit}, but using an empty constraint matrix. Therefore, it returns a \code{cirls} object that can use all the facilities provided by the \code{cirls} package. In this instance, the CIRLS algorithm reduces to a classical IRLS and the results are identical to a usual \link{glm} fitted with \code{glm.fit}.
 }
 \note{
 If any starting values were provided to fit the \code{cirls} object, they are not transferred to the fitting of the unconstrained model.
@@ -58,5 +58,5 @@ lines(warming$year, predict(umodel), col = 3, lwd = 2, lty = 2)
 
 }
 \seealso{
-\link[=simulCoef]{simulCoef} to perform inference.
+\link{simulCoef} to perform inference.
 }

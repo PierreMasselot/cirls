@@ -82,22 +82,22 @@ In addition to the default method, \code{shapeConstr} currently supports methods
 \subsection{Categorical variables}{
 \itemize{
 \item \code{\link[=factor]{factor()}}: for \code{factor} objects. Extract the \link[stats:contrasts]{contrasts} to define the constraint matrix. Here the \code{intercept} argument has the same interpretation as in the default method, i.e. if set to \code{TRUE} it means the \code{glm} model does not include an intercept externally to the factor. Note that, in this case, a simple dummy coding is done in R. Here \code{range} specifies the levels of constraining, having values between \code{1} and \code{nlevel(x)}.
-\item \link[dlnm:strata]{strata}: Indicator variables defining strata from the \link[dlnm:dlnm-package]{dlnm} package. Here the shape is applied to the coefficients of the strata, treating it like a categorical variable. Here \code{range} is specified on the original scale of the variable, treating the strata similarly to spline bases.
+\item \link[dlnm:strata]{strata}: Indicator variables defining strata from the \link[dlnm:dlnm]{dlnm} package. Here the shape is applied to the coefficients of the strata, treating it like a categorical variable. Here \code{range} is specified on the original scale of the variable, treating the strata similarly to spline bases.
 }
 }
 
 \subsection{B-spline bases}{
 \itemize{
-\item \link[splines:bs]{bs}: B-splines bases from the \link[=splines]{splines} package.
-\item \link[splines:ns]{ns}: Natural splines bases from the \link[=splines]{splines} package.
-\item \link[dlnm:ps]{ps}: Penalised splines (P-Splines) from the \link[dlnm:dlnm-package]{dlnm} package.
+\item \link[splines:bs]{bs}: B-splines bases from the \link{splines} package.
+\item \link[splines:ns]{ns}: Natural splines bases from the \link{splines} package.
+\item \link[dlnm:ps]{ps}: Penalised splines (P-Splines) from the \link[dlnm:dlnm]{dlnm} package.
 }
 }
 
 \subsection{Distributed-lag linear and nonlinear models (DLNM)}{
 \itemize{
 \item \link[dlnm:onebasis]{onebasis}: General method for basis functions generated in the package.
-\item \link[dlnm:lin]{lin}: Mostly for compatibility with the \link[dlnm:dlnm-package]{dlnm} package. Here \code{"pos"} and \code{"inc"} (\code{"neg"} and \code{"dec"}) have the same interpretation, a non-negative (non-positive) coefficient associated to the linear term.
+\item \link[dlnm:lin]{lin}: Mostly for compatibility with the \link[dlnm:dlnm]{dlnm} package. Here \code{"pos"} and \code{"inc"} (\code{"neg"} and \code{"dec"}) have the same interpretation, a non-negative (non-positive) coefficient associated to the linear term.
 \item \link[=shapeConstr.crossbasis]{crossbasis}: Allows shape-constrained DLNM. See its dedicated \link[=shapeConstr.crossbasis]{help page}.
 }
 }
@@ -205,5 +205,5 @@ lines(warming$year, predict(umodel), col = 3, lwd = 2, lty = 2)
 Zhou, S. & Wolfe, D. A., 2000. On derivative estimation in spline regression. \emph{Statistica Sinica} \strong{10}, \strong{93–108}.
 }
 \seealso{
-\link[=buildCmat]{buildCmat} detailing the \code{constr} interface.
+\link{buildCmat} detailing the \code{constr} interface.
 }

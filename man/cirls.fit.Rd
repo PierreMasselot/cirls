@@ -20,11 +20,11 @@ cirls.fit(x, y, weights = rep.int(1, nobs), start = NULL,
 
 \item{mustart}{Starting values for the vector or means.}
 
-\item{offset}{An optional vector specifying a known component in the model. See \link[stats:model.extract]{model.offset}.}
+\item{offset}{An optional vector specifying a known component in the model. See \link[stats:model.offset]{model.offset}.}
 
 \item{family}{The result of a call to a family function, describing the error distribution and link function of the model. See \link[stats:family]{family} for details of available family functions.}
 
-\item{control}{A list of parameters controlling the fitting process. See details and \link[=cirls.control]{cirls.control}.}
+\item{control}{A list of parameters controlling the fitting process. See details and \link{cirls.control}.}
 
 \item{intercept}{Logical. Should an intercept be included in the null model?}
 
@@ -44,7 +44,7 @@ Any method for \code{glm} objects can be used on \code{cirls} objects.
 Routine implementing the constrained iteratively-reweighted least-squares (CIRLS) algorithm to fit generalised linear models (GLM) with linear constraints on the coefficients. This function is designed to replace the \code{glm.fit} function passed through the \code{method} argument of \link[stats:glm]{glm}.
 }
 \details{
-This function is a plug-in for \link[stats:glm]{glm} and works similarly to \link[stats:glm]{glm.fit}. In addition to the parameters already available in \link[stats:glm]{glm.fit}, \code{cirls.fit} allows the specification of constraints through different arguments (see \link[=buildCmat]{buildCmat}). These additional parameters can be passed through the \code{control} list or through \code{...} in \link[stats:glm]{glm} \emph{but not both}. If any parameter is passed through \code{control}, then \code{...} will be ignored. See the full list of parameters in \link[=cirls.control]{cirls.control}.
+This function is a plug-in for \link[stats:glm]{glm} and works similarly to \link[stats:glm.fit]{glm.fit}. In addition to the parameters already available in \link[stats:glm.fit]{glm.fit}, \code{cirls.fit} allows the specification of constraints through different arguments (see \link{buildCmat}). These additional parameters can be passed through the \code{control} list or through \code{...} in \link[stats:glm]{glm} \emph{but not both}. If any parameter is passed through \code{control}, then \code{...} will be ignored. See the full list of parameters in \link{cirls.control}.
 \subsection{Algorithm}{
 
 The CIRLS algorithm is a modification of the classical IRLS algorithm in which each update of the regression coefficients is performed by a quadratic program (QP), ensuring the update stays within the feasible region defined by \code{Cmat}, \code{lb} and \code{ub}. More specifically, this feasible region is defined as
@@ -156,5 +156,5 @@ Meyer, M.C., 2013. A Simple New Algorithm for Quadratic Programming with Applica
 Stellato, B., Banjac, G., Goulart, P., Bemporad, A., Boyd, S., 2020. OSQP: an operator splitting solver for quadratic programs. \emph{Math. Prog. Comp.} \strong{12}, 637–672. \href{https://doi.org/10.1007/s12532-020-00179-2}{DOI:10.1007/s12532-020-00179-2}
 }
 \seealso{
-\link[=buildCmat]{buildCmat} for details on constraint specification and \link[=cirls.control]{cirls.control} for parameters controlling the algorithm. \link[stats:glm]{glm} provides details on \code{glm} objects.
+\link{buildCmat} for details on constraint specification and \link{cirls.control} for parameters controlling the algorithm. \link[stats:glm]{glm} provides details on \code{glm} objects.
 }

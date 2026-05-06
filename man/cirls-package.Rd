@@ -25,33 +25,33 @@ Linearly constrained coefficients follow a \strong{truncated multivariate Normal
 
 \subsection{Fitting the model}{
 
-The \code{cirls} package has been developed as a \strong{plug-in} to \link[stats:glm]{glm}. The main function is \link[=cirls.fit]{cirls.fit}, designed to be used within \link[stats:glm]{glm} through the argument \code{method = "cirls.fit"}. This will fit the GLM using specific CIRLS algorithms instead of the default IRLS algorithm. All arguments of \link[stats:glm]{glm} such as \code{formula}, \code{data} and \code{family} retain the same usage. Additional arguments specific to \code{cirls} are passed through the ellipsis \code{...} or the \code{control} argument (\emph{but not both at the same time}). If any parameter is passed through \code{control}, then \code{...} will be ignored. See \link[=cirls.control]{cirls.control} for the full list of additional arguments and examples below for how to use additional functions in the package.
+The \code{cirls} package has been developed as a \strong{plug-in} to \link[stats:glm]{glm}. The main function is \link{cirls.fit}, designed to be used within \link[stats:glm]{glm} through the argument \code{method = "cirls.fit"}. This will fit the GLM using specific CIRLS algorithms instead of the default IRLS algorithm. All arguments of \link[stats:glm]{glm} such as \code{formula}, \code{data} and \code{family} retain the same usage. Additional arguments specific to \code{cirls} are passed through the ellipsis \code{...} or the \code{control} argument (\emph{but not both at the same time}). If any parameter is passed through \code{control}, then \code{...} will be ignored. See \link{cirls.control} for the full list of additional arguments and examples below for how to use additional functions in the package.
 }
 
 \subsection{Specifying constraints}{
 
-Constraints can be specified through arguments \code{constr} and/or \code{Cmat}/\code{lb}/\code{ub}. The \link[=buildCmat]{constr} argument provides a user-friendly way to pass common built-in constraints through a formula and is the recommended way for new users. See the list of available built-in constraints below. Alternatively, the arguments \link[=buildCmat]{Cmat/lb/ub} allow more flexibility in passing constraints. These arguments take either a full constraint matrix (\code{Cmat}) and bound vectors (\code{lb} and \code{ub}), or named lists to specify a constrained matrix and bound vectors for specific terms in the model. See the help for \link[=buildCmat]{buildCmat} for more specific details.
+Constraints can be specified through arguments \code{constr} and/or \code{Cmat}/\code{lb}/\code{ub}. The \link[=buildCmat]{constr} argument provides a user-friendly way to pass common built-in constraints through a formula and is the recommended way for new users. See the list of available built-in constraints below. Alternatively, the arguments \link[=buildCmat]{Cmat/lb/ub} allow more flexibility in passing constraints. These arguments take either a full constraint matrix (\code{Cmat}) and bound vectors (\code{lb} and \code{ub}), or named lists to specify a constrained matrix and bound vectors for specific terms in the model. See the help for \link{buildCmat} for more specific details.
 }
 }
 
 \section{Functions included in the package}{
 
-\link[=cirls.fit]{cirls.fit} is the workhorse performing the fitting, and is controlled by \link[=cirls.control]{cirls.control}. The function returns an object of class \code{cirls} which inherits from class \code{glm}. This means that all methods available for usual \code{glm} objects can also be used on a \code{cirls} object. This typically includes \link[stats:coef]{coef} and \link[stats:summary.glm]{summary}, for instance. However, some methods are supplanted by new methods that are specific to \code{cirls} objects. The sections below provides a comprehensive illustration of such specific methods, including an index of the functions.
+\link{cirls.fit} is the workhorse performing the fitting, and is controlled by \link{cirls.control}. The function returns an object of class \code{cirls} which inherits from class \code{glm}. This means that all methods available for usual \code{glm} objects can also be used on a \code{cirls} object. This typically includes \link[stats:coef]{coef} and \link[stats:summary.glm]{summary}, for instance. However, some methods are supplanted by new methods that are specific to \code{cirls} objects. The sections below provides a comprehensive illustration of such specific methods, including an index of the functions.
 \subsection{Inference}{
 
-Inference for \code{cirls} objects includes computing the \link[=vcov.cirls]{variance-covariance matrix} and \link[=confint.cirls]{confidence intervals} for constrained (and unconstrained) coefficients. These functions build on \link[=simulCoef]{simulCoef}, which generates coefficient vectors based on the TMVN distribution of fitted coefficients, and can be used to compute other summaries.
+Inference for \code{cirls} objects includes computing the \link[=vcov.cirls]{variance-covariance matrix} and \link[=confint.cirls]{confidence intervals} for constrained (and unconstrained) coefficients. These functions build on \link{simulCoef}, which generates coefficient vectors based on the TMVN distribution of fitted coefficients, and can be used to compute other summaries.
 }
 
 \subsection{Model selection}{
 
-Degrees of freedom of a fitted \code{cirls} object can be computed through the \link[=edf]{edf} function. A specific \link[=logLik.cirls]{logLik} method extracts the log-likelihood of the model with the right degrees of freedom in its \code{df} attribute. This can be used by \link[stats:AIC]{AIC} and \link[stats:AIC]{BIC} with appropriate degrees of freedom.
+Degrees of freedom of a fitted \code{cirls} object can be computed through the \link{edf} function. A specific \link[=logLik.cirls]{logLik} method extracts the log-likelihood of the model with the right degrees of freedom in its \code{df} attribute. This can be used by \link[stats:AIC]{AIC} and \link[stats:BIC]{BIC} with appropriate degrees of freedom.
 }
 
 \subsection{Other functions}{
 
-\link[=uncons]{uncons} refits the model removing some or all of the constraints, acting similarly to the \link[stats:update]{update} function although focusing on the constraints.
+\link{uncons} refits the model removing some or all of the constraints, acting similarly to the \link[stats:update]{update} function although focusing on the constraints.
 
-\link[=buildCmat]{buildCmat} and \link[=checkCmat]{checkCmat} are convenience functions that are mainly used internally in \link[=cirls.fit]{cirls.fit}. They are not meant to be called directly, but can be useful to advanced users to build and/or check constraint matrices. Specifically, \link[=buildCmat]{buildCmat} builds a full constraint matrix from the \code{constr} and/or \code{Cmat}/\code{lb}/\code{ub} arguments and a model frame. \link[=checkCmat]{checkCmat} checks whether a constraint matrix can be reduced by detecting redundant and underlying equality constraints. The help pages of both functions also provide technical details on constraints and constraint matrices.
+\link{buildCmat} and \link{reduceCmat} are convenience functions that are mainly used internally in \link{cirls.fit}. They are not meant to be called directly, but can be useful to advanced users to build and/or check constraint matrices. Specifically, \link{buildCmat} builds a full constraint matrix from the \code{constr} and/or \code{Cmat}/\code{lb}/\code{ub} arguments and a model frame. \link{reduceCmat} checks whether a constraint matrix can be reduced by detecting redundant and underlying equality constraints. The help pages of both functions also provide technical details on constraints and constraint matrices.
 }
 }
 
@@ -81,9 +81,9 @@ The following supplant \code{glm} methods:
 \section{Datasets}{
 
 \itemize{
-\item \link[=fgl]{fgl}: Measurement of forensic glass fragments
-\item \link[=london]{london}: Daily mortality, temperature, and pollution data in London
-\item \link[=warming]{warming}: Global temperature anomaly
+\item \link{fgl}: Measurement of forensic glass fragments
+\item \link{london}: Daily mortality, temperature, and pollution data in London
+\item \link{warming}: Global temperature anomaly
 }
 }
 
@@ -194,6 +194,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Pierre Masselot \email{pierre.masselot@lshtm.ac.uk} (\href{https://orcid.org/0000-0002-7326-1290}{ORCID}) [copyright holder]
   \item Antonio Gasparrini \email{antonio.gasparrini@lshtm.ac.uk} (\href{https://orcid.org/0000-0002-2271-3568}{ORCID})
 }
 

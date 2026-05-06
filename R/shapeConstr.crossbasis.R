@@ -33,7 +33,7 @@
 #'
 #' @returns A list containing the constraint matrix `Cmat`, and lower/upper bound vectors (`lb` and `ub`, respectively).
 #'
-#' @seealso [crossbasis][dlnm::crossbasis()] for the definition of DLMs and DLNMs as well as their dimensions. [shapeConstr][shapeConstr()] and [boundConstr][boundConstr()] for generic constrain methods. [buildCmat][buildCmat()] for how to specify constraints.
+#' @seealso [crossbasis][dlnm::crossbasis()] for the definition of DLMs and DLNMs as well as their dimensions. [shapeConstr][shapeConstr()] and [boundConstr][boundConstr()] for generic constraint methods. [buildCmat][buildCmat()] for how to specify constraints.
 #'
 #' @references
 #' Gasparrini, A., Armstrong, B., Kenward, M.G., 2010. Distributed lag non-linear models. *Statistics in Medicine* **29**, **2224–2234**. [DOI:10.1002/sim.3940](https://doi.org/10.1002/sim.3940)

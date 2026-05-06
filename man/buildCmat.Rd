@@ -25,9 +25,9 @@ A list with elements \code{Cmat}, \code{lb}, and \code{ub} containing the fully 
 Internal function building a full constraint matrix from a list of constraint matrices and/or a formula providing specific constraints. In-depth technical details are provided below.
 }
 \details{
-This function is called internally by \link[=cirls.fit]{cirls.fit} and is not meant to be used directly by the user. It prepares the full \code{Cmat}, \code{lb} and \code{ub} for the model, providing a way to specify constraints without having to build a full constraint matrix beforehand. It uses the model frame in \code{mf} to match specific constraints to the right columns in the design matrix.
+This function is called internally by \link{cirls.fit} and is not meant to be used directly by the user. It prepares the full \code{Cmat}, \code{lb} and \code{ub} for the model, providing a way to specify constraints without having to build a full constraint matrix beforehand. It uses the model frame in \code{mf} to match specific constraints to the right columns in the design matrix.
 
-This function also checks that any constraint matrix provided to \link[=cirls.fit]{cirls.fit} is irreducible. See \link[=checkCmat]{checkCmat} for details.
+This function also checks that any constraint matrix provided to \link{cirls.fit} is irreducible. See \link{reduceCmat} for details.
 
 There are three ways to specify constraints in \code{cirls}:
 \enumerate{
@@ -128,5 +128,5 @@ buildCmat(mf, Cmat = Cmat, lb = 0, ub = 0)
 buildCmat(mf)
 }
 \seealso{
-The main \link[=cirls-package]{help page} for the list of \code{cons} functions implemented and examples. \link[=checkCmat]{checkCmat} for details on irreducibility.
+The main \link[=cirls-package]{help page} for the list of \code{cons} functions implemented and examples. \link{reduceCmat} for details on irreducibility.
 }

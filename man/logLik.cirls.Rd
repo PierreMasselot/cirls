@@ -9,9 +9,9 @@
 \arguments{
 \item{object}{A \code{cirls} object.}
 
-\item{df}{Character. The type of degrees of freedom to assign to the log-Likelihood. Default to expected degrees of freedom \code{"edf"}. See \link[=edf]{edf} for a description of various types of degrees of freedom.}
+\item{df}{Character. The type of degrees of freedom to assign to the log-Likelihood. Default to expected degrees of freedom \code{"edf"}. See \link{edf} for a description of various types of degrees of freedom.}
 
-\item{...}{Additional arguments to be passed to \link[=edf]{edf} to compute the degrees of freedom.}
+\item{...}{Additional arguments to be passed to \link{edf} to compute the degrees of freedom.}
 }
 \value{
 A numeric value of class \code{logLik} with attributes \code{df} (degrees of freedom, see details) and \code{nobs} (number of observations used in the estimation).
@@ -20,7 +20,7 @@ A numeric value of class \code{logLik} with attributes \code{df} (degrees of fre
 Extracts the log-likelihood of a fitted \code{cirls} object with associated degrees of freedom. Typically used with \link[stats:AIC]{AIC}.
 }
 \details{
-The argument \code{df} provide the type of degrees of freedom attributed to the returned log-likelihood value. This is typically used in the computation of \link[stats:AIC]{AIC} and \link[stats:AIC]{BIC}, and changing the degrees of freedom can ultimately change the values of the information criteria. By default, the expected number of freedom given the constraints is used. See \link[=edf]{edf} for details on the computation and for the various types of degrees of freedom.
+The argument \code{df} provide the type of degrees of freedom attributed to the returned log-likelihood value. This is typically used in the computation of \link[stats:AIC]{AIC} and \link[stats:BIC]{BIC}, and changing the degrees of freedom can ultimately change the values of the information criteria. By default, the expected number of freedom given the constraints is used. See \link{edf} for details on the computation and for the various types of degrees of freedom.
 }
 \examples{
 ###############################################################################
@@ -49,5 +49,5 @@ AIC(llo)
 AIC(llu)
 }
 \seealso{
-\link[=edf]{edf} to compute expected degrees of freedom.
+\link{edf} to compute expected degrees of freedom.
 }
