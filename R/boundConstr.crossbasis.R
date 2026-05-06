@@ -7,7 +7,7 @@
 
 #' @rdname shapeConstr.crossbasis
 #' @export
-boundConstr.crossbasis <- function(x, dim = NULL, slice = NULL, overall = FALSE,
+boundConstr.crossbasis <- function(x, dim = NULL, overall = FALSE, slice = NULL,
   ...){
 
   # Call cbConstr
