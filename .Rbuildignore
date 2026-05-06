@@ -7,3 +7,5 @@
 ^github-news\.md$
 ^data-raw$
 ^temp$
+^\.positai$
+^\.claude$
