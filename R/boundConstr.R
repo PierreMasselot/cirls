@@ -30,7 +30,7 @@
 #'
 #' The `deg` parameter indicates the number of coefficients on the left/right that are constrained to be equal to `value` and can be interpreted as a smoothness degree for the boundary constraint. The default is different for each method. It is set to 1 for the default method or the methods related to categorical variables (e.g. `factor` and `strata`).
 #'
-#' For B-spline bases methods (such as `bs`, `ps` and `ns`), the default is to be equal to the degree of the spline. This corresponds to the number of bases that are non-null at the boundary, are therefore that contribute to the value of the smooth at the boundary. Since, by construction, B-spline basis functions sum to one at any point, constraining all coefficients to `value` will result in the smooth being equal to `value` at the boundary. Note that `deg` can be reduced for `bs` and `ps` (but not `ps`),  resulting in a less smooth convergence towards `value`.
+#' For B-spline bases methods (such as `bs`, `ps` and `ns`), the default is to be equal to the degree of the spline. This corresponds to the number of bases that are non-null at the boundary, are therefore that contribute to the value of the smooth at the boundary. Since, by construction, B-spline basis functions sum to one at any point, constraining all coefficients to `value` will result in the smooth being equal to `value` at the boundary. Note that `deg` can be reduced for `bs` and `ps` (but not `ns`),  resulting in a less smooth convergence towards `value`.
 #'
 #' ## Available methods
 #'
