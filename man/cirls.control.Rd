@@ -5,7 +5,8 @@
 \title{Parameters controlling CIRLS fitting}
 \usage{
 cirls.control(constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
-  epsilon = 1e-08, maxit = 25, trace = FALSE, qp_solver = "quadprog",
+  epsilon = 1e-08, maxit = 25, trace = FALSE, redundant = TRUE,
+  equality = TRUE, warn = FALSE, qp_solver = "quadprog",
   qp_pars = list())
 }
 \arguments{
@@ -20,6 +21,12 @@ cirls.control(constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
 \item{maxit}{Integer giving the maximal number of CIRLS iterations.}
 
 \item{trace}{Logical indicating if output should be produced for each iteration.}
+
+\item{redundant}{Logical indicating if potential redundant constraints found should be removed from the constraint matrix.}
+
+\item{equality}{Logical indicating if any underlying equality constraint found should be reduced in the constraint matrix.}
+
+\item{warn}{Logical indicating if warning related to constraints should be produced.}
 
 \item{qp_solver}{The quadratic programming solver. One of \code{"quadprog"} (the default), \code{"osqp"}, or \code{"coneproj"}.}
 
@@ -36,6 +43,11 @@ The \code{control} argument of \link[stats:glm]{glm} is by default passed to the
 \subsection{Constraint specification}{
 
 Constraint specification through the \code{constr}, \code{Cmat}, \code{lb} and \code{ub} argument is fully detailed in the help of the \link{buildCmat} functions.
+}
+
+\subsection{Reducing constraints}{
+
+The default behaviour is to silently reduce the constraint matrix and bound vectors when redundant or underlying equality constraint are found. This mean that the \code{Cmat}, \code{lb} and \code{ub} returned by \code{cirls} can be different than those provided. Switching the arguments \code{redundant} and \code{equality} to \code{FALSE} will avoid checking for redundant and underlying equality constraints respectively. \strong{Switching these arguments off can cause problems for inference}. See \link{reduceCons} for more details on reducing constraints.
 }
 
 \subsection{Quadratic programming solvers}{

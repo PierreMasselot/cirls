@@ -4,6 +4,7 @@
 %   R/boundConstr.ps.R, R/boundConstr.strata.R, R/boundConstr.onebasis.R
 \name{boundConstr}
 \alias{boundConstr}
+\alias{bound}
 \alias{boundConstr.default}
 \alias{boundConstr.factor}
 \alias{boundConstr.bs}
@@ -94,34 +95,24 @@ In addition to the default method, \code{boundConstr} currently supports methods
 }
 \examples{
 ###############################################################################
-# Bound constraints example: cyclic seasonality of mortality
+# Bound constraints example: warming dataset
 
 library(splines)
 
-# Spline basis for seasonality
-sbasis <- bs(london$doy, df = 7)
+# Force the fit to reach the last value
+# Remove the intercept, so that it is included in the constraint
+model <- glm(anomaly ~ 0 + decade, data = warming, method = "cirls.fit",
+  constr = ~ bound(decade, value = 0.75))
 
-# Estimation of trend and cyclic seasonality with boundaries constrained to 0
-model <- glm(death ~ date + sbasis, data = london, family = "quasipoisson",
-  method = "cirls.fit", cons = ~ bound(sbasis))
+# Same but with splines
+basis <- ns(warming$year, df = 10)
+splmodel <- glm(anomaly ~ 0 + basis, data = warming, method = "cirls.fit",
+  constr = ~ bound(basis, value = 0.75))
 
-# Reconstruct seasonality
-sb <- do.call(bs, c(list(x = 1:366),
-  attributes(sbasis)[c("degree", "knots", "Boundary.knots")]))
-seas <- sb \%*\% coef(model)[-(1:2)]
-
-# Plot
-plot(seas, type = "l", xlab = "Day of year", ylab = "Seasonnality",
-  ylim = c(-0.5, 0.1))
-
-# With `bs`, deg can be reduced to obtain a less smooth convergence
-model2 <- glm(death ~ date + sbasis, data = london, family = "quasipoisson",
-  method = "cirls.fit", cons = ~ bound(sbasis, deg = 1))
-seas2 <- sb \%*\% coef(model2)[-(1:2)]
-lines(seas2, col = 2)
-}
-\references{
-Sylvestre, M.-P., Abrahamowicz, M., 2009. Flexible modeling of the cumulative effects of time-dependent exposures on the hazard. \emph{Statistics in Medicine} \strong{28}, \strong{3437–3453}. \href{https://doi.org/10.1002/sim.3701}{DOI:10.1002/sim.3701}
+# Plot result
+plot(anomaly ~ year, data = warming, xlab = "", ylab = "Temperature anomaly")
+lines(warming$year, predict(model), col = 2, lwd = 2)
+lines(warming$year, predict(splmodel), col = 3, lwd = 2)
 }
 \seealso{
 \link{buildCmat} detailing the \code{constr} interface.

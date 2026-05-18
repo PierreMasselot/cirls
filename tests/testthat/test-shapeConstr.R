@@ -297,9 +297,9 @@ test_that("dlnm:::strata constraining works on simulated dataset", {
   n <- 1000
 
   # Generate a simple parabolic relationship
-  X <- 1:n
+  X <- (1:n)/n
   # eta <- log(10) + (x-.3)^2
-  eta <- - .5 * sin(X * 1.6 * pi / 10)
+  eta <- - .5 * sin(X * 1.6 * pi)
 
   # Generate several
   Y <- rpois(n, exp(eta))

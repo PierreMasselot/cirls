@@ -1,3 +1,15 @@
+# 0.4.0-6 - Reducing constraints
+
+## Changes
+- `checkCmat` has been replaced by `reduceCons` a more comprehensive function to reduce constraints, removing redundant and underlying equality constraints. See `?reduceCons`.
+- `reduceCons` can now be controlled from `cirls.control`.
+- Changed default of `dim` when constraining crossbases. Now defaults to `var` whatever the specification.
+- Some changes to examples for better clarity.
+
+## Bug fixed
+- `boundConstr.crossbasis` was sometimes removing constraints. 
+- Bounds for constraints on crossbasis, were sometimes forced to 0 even when the initial bounds were different.
+
 # 0.4.0-5 - DLNM
 
 ## New feature

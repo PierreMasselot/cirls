@@ -7,7 +7,7 @@
 
 #' @rdname shapeConstr.crossbasis
 #' @export
-boundConstr.crossbasis <- function(x, dim = NULL, overall = FALSE, slice = NULL,
+boundConstr.crossbasis <- function(x, dim = "var", overall = FALSE, slice = NULL,
   ...){
 
   # Call cbConstr
@@ -15,6 +15,6 @@ boundConstr.crossbasis <- function(x, dim = NULL, overall = FALSE, slice = NULL,
     dim = dim, slice = slice, overall = overall)
 
   # Change bound and return
-  cmlist$ub <- cmlist$lb
+  # cmlist$ub <- cmlist$lb
   cmlist
 }

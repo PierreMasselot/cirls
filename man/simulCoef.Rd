@@ -96,5 +96,5 @@ Geweke, J.F., 1996. Bayesian Inference for Linear Models Subject to Linear Inequ
 Botev, Z.I., 2017, The normal law under linear restrictions: simulation and estimation via minimax tilting, \emph{Journal of the Royal Statistical Society, Series B}, \strong{79} (\strong{1}), pp. 1–24. \href{https://doi.org/10.1111/rssb.12162}{DOI:10.1111/rssb.12162}
 }
 \seealso{
-\link[TruncatedNormal:tmvnorm]{rtmvnorm} which is the routine used internally to simulate from a TMVN. \link{reduceCmat} to check if the constraint matrix can be reduced.
+\link[TruncatedNormal:tmvnorm]{rtmvnorm} which is the routine used internally to simulate from a TMVN. \link{reduceCons} to reduce the set of constraints.
 }

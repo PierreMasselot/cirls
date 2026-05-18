@@ -10,12 +10,14 @@
 chkdim <- function(dim = NULL, dfs){
 
   # By default, if var is linear, then apply constraint on lag
-  if (is.null(dim)){
-    dim <- if(dfs[1] == 1) "lag" else "var"
-  } else {
-    # Otherwise check it is admissible
-    dim <- match.arg(dim, c("var", "lag"))
-  }
+  # Removed as can cause problems with nonlinear bases with 1df
+  # if (is.null(dim)){
+  #   dim <- if(dfs[1] == 1) "lag" else "var"
+  # }
+
+  # Check it is admissible
+  dim <- match.arg(dim, c("var", "lag"))
+
 
   # Warning message for lag constraint in DLNM
   if (dim == "lag" && dfs[1] > 1) warning(paste0("When var is nonlinear, ",

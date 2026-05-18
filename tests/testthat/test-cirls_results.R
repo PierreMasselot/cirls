@@ -155,12 +155,14 @@ test_that("coneproj solver is integrated", {
 
 
 #----- Test unconstrained model
+test_that("Unconstrained model return the same as base GLM", {
+
 
 # Apply base GLM
 normglm <- glm(ynorm ~ x)
 poisglm <- glm(ypois ~ x, family = "poisson")
 
-# Apply CIRLS with no constraint (putting Inf)
+# Same but just with stupid constraints: should return warnings
 normuncons <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = cinc),
   lb = list(x = -Inf), ub = list(x = Inf))
 poisuncons <- glm(ypois ~ x, family = "poisson",
@@ -171,7 +173,6 @@ poisuncons <- glm(ypois ~ x, family = "poisson",
 checkcomp <- c("coefficients", "residuals", "fitted.values", "effects", "R",
   "rank", "family", "linear.predictors", "deviance", "aic", "null.deviance",
   "weights", "df.residuals", "df.null")
-test_that("Unconstrained model return the same as base GLM", {
   expect_equal(normglm[checkcomp], normuncons[checkcomp])
   expect_equal(poisglm[checkcomp], poisuncons[checkcomp])
 })

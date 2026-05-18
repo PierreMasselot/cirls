@@ -50,19 +50,19 @@ test_that("shape-constrained DLM works", {
 
 # Positive
 posdlm <- glm(y ~ dlb, family = "quasipoisson", method = "cirls.fit",
-  constr = ~ shape(dlb, shape = "pos"))
+  constr = ~ shape(dlb, dim = "lag", shape = "pos"))
 cp <- crosspred(dlb, posdlm, at = 1)
 expect_true(all(cp$matfit > -sqrt(.Machine$double.eps)))
 
 # Decreasing
 decdlm <- glm(y ~ dlb, family = "quasipoisson", method = "cirls.fit",
-  constr = ~ shape(dlb, shape = "dec"))
+  constr = ~ shape(dlb, dim = "lag", shape = "dec"))
 cp <- crosspred(dlb, decdlm, at = 1)
 expect_true(all(diff(cp$matfit) > -sqrt(.Machine$double.eps)))
 
 # Positive decreasing
 pddlm <- glm(y ~ dlb, family = "quasipoisson", method = "cirls.fit",
-  constr = ~ shape(dlb, shape = c("pos", "dec")))
+  constr = ~ shape(dlb, dim = "lag", shape = c("pos", "dec")))
 cp <- crosspred(dlb, pddlm, at = 1)
 expect_true(all(cp$matfit > -sqrt(.Machine$double.eps)))
 expect_true(all(diff(cp$matfit) > -sqrt(.Machine$double.eps)))
@@ -76,7 +76,7 @@ test_that("Bound-constrained DLM works", {
 
   # Simple zero bound
   bndlm <- glm(y ~ dlb, family = "quasipoisson", method = "cirls.fit",
-    constr = ~ bound(dlb))
+    constr = ~ bound(dlb, dim = "lag"))
   cp <- crosspred(dlb, bndlm, at = 1)
   expect_equal(cp$matfit[length(cp$matfit)], 0, ignore_attr = TRUE,
     tolerance = 10e-8)
@@ -84,7 +84,7 @@ test_that("Bound-constrained DLM works", {
   # Bound and decreasing
   suppressWarnings({
   bndecdlm <- glm(y ~ dlb, family = "quasipoisson", method = "cirls.fit",
-    constr = ~ bound(dlb) + shape(dlb, shape = "dec"))
+    constr = ~ bound(dlb, dim = "lag") + shape(dlb, shape = "dec", dim = "lag"))
   })
   cp <- crosspred(dlb, bndecdlm, at = 1)
   expect_equal(cp$matfit[length(cp$matfit)], 0, ignore_attr = TRUE,
@@ -92,10 +92,9 @@ test_that("Bound-constrained DLM works", {
   expect_true(all(diff(cp$matfit) > -sqrt(.Machine$double.eps)))
 
   # Bound and positive
-  # Here issues with checkCmat to address
   suppressWarnings({
   bnposdlm <- glm(y ~ dlb, family = "quasipoisson", method = "cirls.fit",
-    constr = ~ shape(dlb, shape = "pos") + bound(dlb))
+    constr = ~ bound(dlb, dim = "lag") + shape(dlb, shape = "pos", dim = "lag"))
   })
   cp <- crosspred(dlb, bnposdlm, at = 1)
   expect_equal(cp$matfit[length(cp$matfit)], 0, ignore_attr = TRUE,

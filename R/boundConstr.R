@@ -54,12 +54,10 @@
 #'
 #' @returns A list containing the constraint matrix `Cmat`, and lower/upper bound vectors (`lb` and `ub`, respectively).
 #'
-#' @references
-#' Sylvestre, M.-P., Abrahamowicz, M., 2009. Flexible modeling of the cumulative effects of time-dependent exposures on the hazard. *Statistics in Medicine* **28**, **3437–3453**. [DOI:10.1002/sim.3701](https://doi.org/10.1002/sim.3701)
-#'
 #' @seealso [buildCmat][buildCmat()] detailing the `constr` interface.
+#' @aliases bound
 #'
-#' @example inst/examples/ex_london_bound.R
+#' @example inst/examples/ex_warming_bound.R
 #'
 #' @order 1
 #' @export

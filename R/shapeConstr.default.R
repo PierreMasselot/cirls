@@ -40,7 +40,7 @@ shapeConstr.default <- function(x, shape, range = NULL, intercept = FALSE, ...) 
   Cmat <- Cmat[keep,, drop = FALSE]
 
   # Reduce if necessary
-  Cmat <- checkCmat(Cmat, reduce = TRUE, warn = FALSE)$Cmat
+  Cmat <- reduceCons(Cmat, warn = FALSE)$Cmat
 
   # Add bounds attributes
   clist <- list(Cmat = Cmat, lb = rep(0, NROW(Cmat)), ub = rep(Inf, NROW(Cmat)))

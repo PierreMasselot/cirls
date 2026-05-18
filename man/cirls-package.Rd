@@ -51,7 +51,7 @@ Degrees of freedom of a fitted \code{cirls} object can be computed through the \
 
 \link{uncons} refits the model removing some or all of the constraints, acting similarly to the \link[stats:update]{update} function although focusing on the constraints.
 
-\link{buildCmat} and \link{reduceCmat} are convenience functions that are mainly used internally in \link{cirls.fit}. They are not meant to be called directly, but can be useful to advanced users to build and/or check constraint matrices. Specifically, \link{buildCmat} builds a full constraint matrix from the \code{constr} and/or \code{Cmat}/\code{lb}/\code{ub} arguments and a model frame. \link{reduceCmat} checks whether a constraint matrix can be reduced by detecting redundant and underlying equality constraints. The help pages of both functions also provide technical details on constraints and constraint matrices.
+\link{buildCmat} and \link{reduceCons} are convenience functions that are mainly used internally in \link{cirls.fit}. They are not meant to be called directly, but can be useful for advanced users to build and/or check constraint matrices. Specifically, \link{buildCmat} builds a full constraint matrix from the \code{constr} and/or \code{Cmat}/\code{lb}/\code{ub} arguments and a model frame. \link{reduceCons} checks whether a constraint matrix can be reduced by detecting redundant and underlying equality constraints. The help pages of both functions also provide technical details on constraints and constraint matrices.
 }
 }
 

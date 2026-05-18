@@ -109,7 +109,8 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
   # Build the Cmat, lb, and ub objects
   control[c("Cmat", "lb", "ub")] <- buildCmat(mf,
     assign = attr(x, "assign"), Cmat = control$Cmat, constr = control$constr,
-    lb = control$lb, ub = control$ub)
+    lb = control$lb, ub = control$ub, redundant = control$redundant,
+    equality = control$equality, warn = control$warn)
 
   # Extract solver
   solver_fun <- sprintf("%s.fit", control$qp_solver)
@@ -331,7 +332,7 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
     }
 
     # Add warning if QR pivoting affects constraints (at last iteration)
-    if (any(toremove & (is.finite(lb) | is.finite(ub)))){
+    if (NROW(Cmat) < NROW(control$Cmat)){
       warning("some constraints removed because of rank deficiency",
         call. = FALSE)
     }

@@ -14,11 +14,14 @@
 #' @param constr A formula specifying constraints.
 #' @param Cmat Either a matrix or a named list of constraint matrices. In the latter case, names should correspond to terms in `mf` (See details).
 #' @param lb,ub Vector or named list of vectors containing constraint bounds. In the latter case, names should correspond to terms in `mf` (See details).
+#' @param redundant Logical indicating if potential redundant constraints found should be removed from the constraint matrix.
+#' @param equality Logical indicating if any underlying equality constraint found should be reduced in the constraint matrix.
+#' @param warn Logical indicating if the user should be warned when constraint reduction happens.
 #'
 #' @details
 #' This function is called internally by [cirls.fit][cirls.fit()] and is not meant to be used directly by the user. It prepares the full `Cmat`, `lb` and `ub` for the model, providing a way to specify constraints without having to build a full constraint matrix beforehand. It uses the model frame in `mf` to match specific constraints to the right columns in the design matrix.
 #'
-#' This function also checks that any constraint matrix provided to [cirls.fit][cirls.fit()] is irreducible. See [checkCmat][checkCmat()] for details.
+#' This function also checks that any constraint matrix provided to [cirls.fit][cirls.fit()] is irreducible, which can be controlled by arguments `redundant`, `equality` and `warn`. See [reduceCons][reduceCons()] for details.
 #'
 #' There are three ways to specify constraints in `cirls`:
 #' 1. Through the `constr` formula. This provides a simple interface for many commonly encountered constraints and is the recommended way for new users.
@@ -53,13 +56,13 @@
 #'
 #' @returns A list with elements `Cmat`, `lb`, and `ub` containing the fully specified constraint matrix, lower and upper bounds for the model specified in argument `mf`. `Cmat` additionally includes an attribute called `terms` that maps constraints represented in the matrix to individual terms in the model.
 #'
-#' @seealso The main [help page][cirls-package] for the list of `cons` functions implemented and examples. [checkCmat][checkCmat()] for details on irreducibility.
+#' @seealso The main [help page][cirls-package] for the list of `cons` functions implemented and examples. [reduceCons][reduceCons()] for details on irreducibility.
 #'
 #' @example inst/examples/ex_london_buildCmat.R
 #'
 #' @export
 buildCmat <- function(mf, assign = NULL, constr = NULL, Cmat = NULL, lb = NULL,
-  ub = NULL) {
+  ub = NULL,  redundant = TRUE, equality = TRUE, warn = FALSE) {
 
   # check mf
   if (is.null(attr(mf, "terms"))){
@@ -179,8 +182,8 @@ buildCmat <- function(mf, assign = NULL, constr = NULL, Cmat = NULL, lb = NULL,
 
   #----- Final checks and return
 
-  # Reduce Cmat
-  redCm <- checkCmat(Cmat = Cmat, lb = lb, ub = ub, reduce = TRUE, warn = TRUE)
+  # Reduce constraints
+  redCm <- reduceCons(Cmat = Cmat, lb = lb, ub = ub, warn = warn)
 
   # Return
   redCm[c("Cmat", "lb", "ub")]

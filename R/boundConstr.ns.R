@@ -32,13 +32,8 @@ boundConstr.ns <- function(x, ...)
   Cmat <- as.matrix((t(qr.qty(qr.const, t(cm$Cmat))))[, -(1L:2L), drop = F])
 
   # Constraining of NS can create some redundant constraints
-  chk <- checkCmat(Cmat, reduce = TRUE, warn = FALSE)
-  Cmat <- chk$Cmat
-
-  # Bounds
-  lb <- cm$lb[!chk$redundant]
-  ub <- cm$ub[!chk$redundant]
+  chk <- reduceCons(Cmat = Cmat, lb = cm$lb, ub = cm$ub, warn = FALSE)
 
   # Return
-  list(Cmat = Cmat, lb = lb, ub = ub)
+  chk[c("Cmat", "lb", "ub")]
 }

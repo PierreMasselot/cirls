@@ -15,7 +15,7 @@
 # slice to provide a specific range (of the other dimension) on which to apply
 #     the constraint
 
-cbConstr <- function(x, constr, pars = list(), dim = NULL, overall = FALSE,
+cbConstr <- function(x, constr, pars = list(), dim = "var", overall = FALSE,
   slice = NULL)
 {
 
@@ -46,6 +46,7 @@ cbConstr <- function(x, constr, pars = list(), dim = NULL, overall = FALSE,
     lagseq <- seq(max(slice[1], lagrng[1]), min(slice[2], lagrng[2]), by = 1)
     lagbasis <- do.call(dlnm::onebasis, c(list(x = lagseq), cbattr$arglag))
     Clag <- shapeConstr(lagbasis, shape = "pos", range = slice)
+    Clag$lb <- Clag$ub <- rep(1, NROW(Clag$Cmat))
 
     # Possibility to compute overall when dim = "var"
     # If so, return directly the result here
@@ -66,6 +67,7 @@ cbConstr <- function(x, constr, pars = list(), dim = NULL, overall = FALSE,
     # Var part is adjuste by slice
     slice <- chkrng(slice, varrng, msg = FALSE)
     Cvar <- shapeConstr(varbasis, shape = "pos", range = slice)
+    Cvar$lb <- Cvar$ub <- rep(1, NROW(Cvar$Cmat))
   }
 
   # Put everything together and return

@@ -60,6 +60,7 @@
 #' @returns A list containing the constraint matrix `Cmat`, and lower/upper bound vectors (`lb` and `ub`, respectively).
 #'
 #' @seealso [buildCmat][buildCmat()] detailing the `constr` interface.
+#' @aliases shape
 #'
 #' @references
 #' Zhou, S. & Wolfe, D. A., 2000. On derivative estimation in spline regression. *Statistica Sinica* **10**, **93–108**.

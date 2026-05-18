@@ -5,6 +5,7 @@
 %   R/shapeConstr.lin.R
 \name{shapeConstr}
 \alias{shapeConstr}
+\alias{shape}
 \alias{shapeConstr.default}
 \alias{shapeConstr.factor}
 \alias{shapeConstr.bs}

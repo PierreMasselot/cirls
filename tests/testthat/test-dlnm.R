@@ -122,6 +122,15 @@ for (vf in funlist) for (lf in funlist){
   ccp <- crosspred(cb, cmodel, cen = 0)
   expect_true(all(tail(ccp$matfit, 1) - 0 < sqrt(.Machine$double.eps)))
 
+  #----- With another value
+  cmodel <- glm(y ~ cb, family = "quasipoisson",
+    method = "cirls.fit", constr = ~ bound(cb, value = 1))
+
+  # Prediction - each column (lag) should be non-decreasing
+  ccp <- crosspred(cb, cmodel, cen = 0)
+  expect_true(all(tail(ccp$matfit, 1) - 1 < sqrt(.Machine$double.eps)))
+
+
   #----- Only the overall
   cmodel <- glm(y ~ cb, family = "quasipoisson",
     method = "cirls.fit", constr = ~ bound(cb, overall = TRUE))

@@ -5,7 +5,7 @@
 \title{Build a constraint matrix}
 \usage{
 buildCmat(mf, assign = NULL, constr = NULL, Cmat = NULL, lb = NULL,
-  ub = NULL)
+  ub = NULL, redundant = TRUE, equality = TRUE, warn = FALSE)
 }
 \arguments{
 \item{mf}{A \link[stats:model.frame]{model.frame} or a list of variables. Defines the model for which the constraint matrix is built.}
@@ -17,6 +17,12 @@ buildCmat(mf, assign = NULL, constr = NULL, Cmat = NULL, lb = NULL,
 \item{Cmat}{Either a matrix or a named list of constraint matrices. In the latter case, names should correspond to terms in \code{mf} (See details).}
 
 \item{lb, ub}{Vector or named list of vectors containing constraint bounds. In the latter case, names should correspond to terms in \code{mf} (See details).}
+
+\item{redundant}{Logical indicating if potential redundant constraints found should be removed from the constraint matrix.}
+
+\item{equality}{Logical indicating if any underlying equality constraint found should be reduced in the constraint matrix.}
+
+\item{warn}{Logical indicating if the user should be warned when constraint reduction happens.}
 }
 \value{
 A list with elements \code{Cmat}, \code{lb}, and \code{ub} containing the fully specified constraint matrix, lower and upper bounds for the model specified in argument \code{mf}. \code{Cmat} additionally includes an attribute called \code{terms} that maps constraints represented in the matrix to individual terms in the model.
@@ -27,7 +33,7 @@ Internal function building a full constraint matrix from a list of constraint ma
 \details{
 This function is called internally by \link{cirls.fit} and is not meant to be used directly by the user. It prepares the full \code{Cmat}, \code{lb} and \code{ub} for the model, providing a way to specify constraints without having to build a full constraint matrix beforehand. It uses the model frame in \code{mf} to match specific constraints to the right columns in the design matrix.
 
-This function also checks that any constraint matrix provided to \link{cirls.fit} is irreducible. See \link{reduceCmat} for details.
+This function also checks that any constraint matrix provided to \link{cirls.fit} is irreducible, which can be controlled by arguments \code{redundant}, \code{equality} and \code{warn}. See \link{reduceCons} for details.
 
 There are three ways to specify constraints in \code{cirls}:
 \enumerate{
@@ -128,5 +134,5 @@ buildCmat(mf, Cmat = Cmat, lb = 0, ub = 0)
 buildCmat(mf)
 }
 \seealso{
-The main \link[=cirls-package]{help page} for the list of \code{cons} functions implemented and examples. \link{reduceCmat} for details on irreducibility.
+The main \link[=cirls-package]{help page} for the list of \code{cons} functions implemented and examples. \link{reduceCons} for details on irreducibility.
 }

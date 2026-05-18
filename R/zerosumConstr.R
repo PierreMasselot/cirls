@@ -28,6 +28,7 @@
 #' Aitchison, J., Bacon-Shone, J., 1984. Log contrast models for experiments with mixtures. Biometrika 71, 323–330. [DOI:10.1093/biomet/71.2.323](https://doi.org/10.1093/biomet/71.2.323)
 #'
 #' @seealso [buildCmat][buildCmat()] detailing the `constr` interface.
+#' @aliases zerosum
 #'
 #' @example inst/examples/ex_fgl_coda.R
 #'

@@ -41,7 +41,7 @@
 #'
 #' Botev, Z.I., 2017, The normal law under linear restrictions: simulation and estimation via minimax tilting, *Journal of the Royal Statistical Society, Series B*, **79** (**1**), pp. 1–24. [DOI:10.1111/rssb.12162](https://doi.org/10.1111/rssb.12162)
 #'
-#' @seealso [rtmvnorm][TruncatedNormal::tmvnorm()] which is the routine used internally to simulate from a TMVN. [checkCmat][checkCmat()] to check if the constraint matrix can be reduced.
+#' @seealso [rtmvnorm][TruncatedNormal::tmvnorm()] which is the routine used internally to simulate from a TMVN. [reduceCons][reduceCons()] to reduce the set of constraints.
 #'
 #' @example inst/examples/ex_warming_factor.R
 #'

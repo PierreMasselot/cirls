@@ -8,6 +8,9 @@
 #' @param epsilon Positive convergence tolerance. The algorithm converges when the relative change in deviance is smaller than `epsilon`.
 #' @param maxit Integer giving the maximal number of CIRLS iterations.
 #' @param trace Logical indicating if output should be produced for each iteration.
+#' @param redundant Logical indicating if potential redundant constraints found should be removed from the constraint matrix.
+#' @param equality Logical indicating if any underlying equality constraint found should be reduced in the constraint matrix.
+#' @param warn Logical indicating if warning related to constraints should be produced.
 #' @param qp_solver The quadratic programming solver. One of `"quadprog"` (the default), `"osqp"`, or `"coneproj"`.
 #' @param qp_pars List of parameters specific to the quadratic programming solver. See the help pages in the respective packages (links below).
 #'
@@ -17,6 +20,10 @@
 #' ## Constraint specification
 #'
 #' Constraint specification through the `constr`, `Cmat`, `lb` and `ub` argument is fully detailed in the help of the [buildCmat][buildCmat()] functions.
+#'
+#' ## Reducing constraints
+#'
+#' The default behaviour is to silently reduce the constraint matrix and bound vectors when redundant or underlying equality constraint are found. This mean that the `Cmat`, `lb` and `ub` returned by `cirls` can be different than those provided. Switching the arguments `redundant` and `equality` to `FALSE` will avoid checking for redundant and underlying equality constraints respectively. **Switching these arguments off can cause problems for inference**. See [reduceCons][reduceCons()] for more details on reducing constraints.
 #'
 #' ## Quadratic programming solvers
 #'
@@ -35,8 +42,9 @@
 #'
 #' @export
 cirls.control <- function (constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
-  epsilon = 1e-08, maxit = 25, trace = FALSE, qp_solver = "quadprog",
-  qp_pars = list())
+  epsilon = 1e-08, maxit = 25, trace = FALSE,
+  redundant = TRUE, equality = TRUE, warn = FALSE,
+  qp_solver = "quadprog", qp_pars = list())
 {
 
   # Check valid convergence parameters
@@ -70,5 +78,6 @@ cirls.control <- function (constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
   # Return
   list(constr = constr, Cmat = Cmat, lb = lb, ub = ub,
     epsilon = epsilon, maxit = maxit, trace = trace,
+    redundant = redundant, equality = equality, warn = warn,
     qp_solver = qp_solver, qp_pars = qp_pars)
 }

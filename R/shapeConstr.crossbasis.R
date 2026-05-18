@@ -7,7 +7,7 @@
 #' Methods to generate constraint matrices associated with [crossbasis][dlnm::crossbasis()] objects, allowing the fitting of constrained distributed lag linear and non-linear models (DLMs and DLNMs). Designed for use within the [constr][buildCmat()] interface in `cirls`.
 #'
 #' @param x A `crossbasis` object.
-#' @param dim Either `"var"` or `"lag"`. This is the dimension on which the constraint will be applied, constraining either the exposure-response or lag-response relationship, respectively. If `NULL`, the default is to apply the constraint on the `"var"` dimension if it is *nonlinear* (i.e. has more than one degree of freedom), or to apply it to the `"lag"` dimension otherwise (i.e. when a *linear* distributed lag model is specified).
+#' @param dim Either `"var"` (the default) or `"lag"`. This is the dimension on which the constraint will be applied, constraining either the exposure-response or lag-response relationship, respectively.
 #' @param overall Only when `dim = "var"`, logical indicating whether the constraint should be applied only on the overall cumulative association or for each specific lag.
 #' @param slice A numeric vector of length 2 restricting the constraint on a specific range of the *other* dimension, namely the lag (for `dim = "var"`) or exposure (`dim = "lag"`) space. By default, no slicing is performed. See Details.
 #' @param ... Parameters specific to the type of constraint to be applied. Includes for instance `shape` for [shapeConstr][shapeConstr()], or `value` for [boundConstr][boundConstr()]. See the main help page of the relevant generic method.
@@ -40,11 +40,11 @@
 #'
 #' Gasparrini, A., Armstrong, B., 2013. Reducing and meta-analysing estimates from distributed lag non-linear models. *BMC Medical Research Methodology* **13**, **1**. [DOI:10.1186/1471-2288-13-1](https://doi.org/10.1186/1471-2288-13-1)
 #'
-#' @example inst/examples/ex_london_dlnm.R
 #' @example inst/examples/ex_london_dlm.R
+#' @example inst/examples/ex_london_dlnm.R
 #'
 #' @export
-shapeConstr.crossbasis <- function(x, dim = NULL, overall = FALSE, slice = NULL,
+shapeConstr.crossbasis <- function(x, dim = "var", overall = FALSE, slice = NULL,
   ...)
 {
   # Call cbConstr

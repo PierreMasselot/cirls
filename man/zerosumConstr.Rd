@@ -2,6 +2,7 @@
 % Please edit documentation in R/zerosumConstr.R
 \name{zerosumConstr}
 \alias{zerosumConstr}
+\alias{zerosum}
 \title{Specify Zero-sum constraints}
 \usage{
 zerosumConstr(..., group = FALSE)

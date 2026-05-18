@@ -152,10 +152,9 @@ m <- glm(Y ~ basis, method = "cirls.fit",
 pred <- predict(m) - coef(m)[1]
 expect_equal(tail(pred, 1), 1, ignore_attr = TRUE, tolerance = 10e-8)
 
-# Now on the left: this doesn't work
+# Now on the left: this throws a warning and doesn't constrain
 expect_warning(m <- glm(Y ~ basis, method = "cirls.fit",
-    constr = ~ bound(basis, value = 1, side = "left"))) |>
-  expect_warning()
+    constr = ~ bound(basis, value = 1, side = "left")))
 
 # This works
 m <- glm(Y ~ basis - 1, method = "cirls.fit",
@@ -193,8 +192,7 @@ expect_equal(tail(pred, 1), 1, ignore_attr = TRUE, tolerance = 10e-8)
 
 # Now on the left: this doesn't work
 expect_warning(m <- glm(Y ~ basis, method = "cirls.fit",
-    constr = ~ bound(basis, value = 1, side = "left"))) |>
-  expect_warning()
+    constr = ~ bound(basis, value = 1, side = "left")))
 
 # This works
 basis <- dlnm:::strata(X, df = 10, intercept = T)

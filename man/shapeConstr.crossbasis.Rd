@@ -6,16 +6,16 @@
 \alias{shapeConstr.crossbasis}
 \title{Constraints for distributed lag linear and non-linear models}
 \usage{
-\method{boundConstr}{crossbasis}(x, dim = NULL, overall = FALSE,
+\method{boundConstr}{crossbasis}(x, dim = "var", overall = FALSE,
   slice = NULL, ...)
 
-\method{shapeConstr}{crossbasis}(x, dim = NULL, overall = FALSE,
+\method{shapeConstr}{crossbasis}(x, dim = "var", overall = FALSE,
   slice = NULL, ...)
 }
 \arguments{
 \item{x}{A \code{crossbasis} object.}
 
-\item{dim}{Either \code{"var"} or \code{"lag"}. This is the dimension on which the constraint will be applied, constraining either the exposure-response or lag-response relationship, respectively. If \code{NULL}, the default is to apply the constraint on the \code{"var"} dimension if it is \emph{nonlinear} (i.e. has more than one degree of freedom), or to apply it to the \code{"lag"} dimension otherwise (i.e. when a \emph{linear} distributed lag model is specified).}
+\item{dim}{Either \code{"var"} (the default) or \code{"lag"}. This is the dimension on which the constraint will be applied, constraining either the exposure-response or lag-response relationship, respectively.}
 
 \item{overall}{Only when \code{dim = "var"}, logical indicating whether the constraint should be applied only on the overall cumulative association or for each specific lag.}
 
@@ -53,7 +53,68 @@ In the current implementation, constraints applied to the lag dimension (when \c
 }
 \examples{
 ###############################################################################
+# Constrained distributed lag models (DLM)
+
+library(dlnm)
+library(splines)
+
+#----------------
+# Association between PM10 and mortality
+#----------------
+
+# Number of years and dow
+ny <- length(unique(format(london$date, "\%Y")))
+
+# Create a flexible crossbasis
+dlm <- crossbasis(london$pm10, lag = 15, argvar = list(fun = "lin"),
+  arglag = list(fun = "ns", knots = logknots(15, df = 4)))
+
+#----- Fit models
+
+# We always have to set `dim = "lag"` because it is set to "var" by default
+
+# Fit with bound constraint, value = 0 by default
+bm <- glm(age0_64 ~ dlm + ns(date, df = 7 * ny) + dow, data = london,
+  family = "quasipoisson", method = "cirls.fit",
+  constr = ~ bound(dlm, dim = "lag"))
+
+# Get a decaying lag-response function with a decreasing constraint
+dm <- glm(age0_64 ~ dlm + ns(date, df = 7 * ny) + dow, data = london,
+  family = "quasipoisson", method = "cirls.fit",
+  constr = ~ shape(dlm, dim = "lag", shape = "dec"))
+
+# Both can be used at the same time
+dbm <- glm(age0_64 ~ dlm + ns(date, df = 7 * ny) + dow, data = london,
+  family = "quasipoisson", method = "cirls.fit",
+  constr = ~ shape(dlm, dim = "lag", shape = "dec") + bound(dlm, dim = "lag"))
+
+#----- Plot to compare
+
+# Compare to unconstrained model
+um <- glm(age0_64 ~ dlm + ns(date, df = 7 * ny) + dow, data = london,
+  family = "quasipoisson")
+
+# Use crosspred to get the lag-response function
+ucp <- crosspred(dlm, um, cen = 0, at = 10)
+bcp <- crosspred(dlm, bm, cen = 0, at = 10)
+dcp <- crosspred(dlm, dm, cen = 0, at = 10)
+dbcp <- crosspred(dlm, dbm, cen = 0, at = 10)
+
+# Now plot
+par(mfrow = c(2,2))
+plot(ucp, ptype = "slices", lwd = 2, var = 10, main = "Unconstrained")
+plot(bcp, ptype = "slices", lwd = 2, var = 10, col = 2,
+  main = "Bound")
+plot(dcp, ptype = "slices", lwd = 2, var = 10, col = 3,
+  main = "Decreasing")
+plot(dbcp, ptype = "slices", lwd = 2, var = 10, col = 4,
+  main = "Bound & decreasing")
+
+
+###############################################################################
 # Constrained DLNM: var dimension
+
+\dontrun{
 
 library(dlnm)
 library(splines)
@@ -70,147 +131,57 @@ cb <- crossbasis(london$tmean, lag = 21,
   argvar = list(fun = "bs", degree = 2, df = 10),
   arglag = list(fun = "ns", knots = logknots(21, df = 5)))
 
-#----- Unconstrained model
+#----- Fit several models
 
-# Fit the model
-um <- glm(age0_64 ~ cb + ns(date, df = 7 * ny) + dow, data = london,
-  family = "quasipoisson")
-ucp <- crosspred(cb, um, cen = 20)
+# In the following, `dim` is not shown as it is set to "var" by default
 
-# Plot overall
-plot(ucp, ptype = "overall", lwd = 2)
+# A nondecreasing model
+icm <- glm(age0_64 ~ cb + ns(date, df = 7 * ny) + dow, data = london,
+  family = "quasipoisson", method = "cirls.fit",
+  constr = ~ shape(cb, shape = "inc"))
 
-# Plot slices
-plot(ucp, ptype = "slice", lag = 0, lwd = 2)
-lines(ucp, ptype = "slice", lag = 5, col = 2, lwd = 2)
-lines(ucp, ptype = "slice", lag = 15, col = 3, lwd = 2)
-legend("topleft", legend = sprintf("lag = \%i", c(0, 5, 15)), col = 1:3,
-  lty = 1)
-
-#----- Constrained DLNM
-
-# Fit the model with convexity constraint
-scm <- glm(age0_64 ~ cb + ns(date, df = 7 * ny) + dow, data = london,
+# A convex model
+ccm <- glm(age0_64 ~ cb + ns(date, df = 7 * ny) + dow, data = london,
   family = "quasipoisson", method = "cirls.fit",
   constr = ~ shape(cb, shape = "cvx"))
-scp <- crosspred(cb, scm, cen = 20)
 
-# Plot slices
-plot(scp, ptype = "slice", lag = 0, lwd = 2)
-lines(scp, ptype = "slice", lag = 5, col = 2, lwd = 2)
-lines(scp, ptype = "slice", lag = 15, col = 3, lwd = 2)
-legend("topleft", legend = sprintf("lag = \%i", c(0, 5, 15)), col = 1:3,
-  lty = 1)
-
-#----- Overall only
-
-# Fit the model with a constraint on overall only
+# A convex model with a constraint on overall only
 ocm <- glm(age0_64 ~ cb + ns(date, df = 7 * ny) + dow, data = london,
   family = "quasipoisson", method = "cirls.fit",
   constr = ~ shape(cb, shape = "cvx", overall = TRUE))
-ocp <- crosspred(cb, ocm, cen = 20)
 
-# Plot slices: they don't necessarily respect the constraints
-plot(ocp, ptype = "slice", lag = 0, lwd = 2)
-lines(ocp, ptype = "slice", lag = 5, col = 2, lwd = 2)
-lines(ocp, ptype = "slice", lag = 15, col = 3, lwd = 2)
-legend("topleft", legend = sprintf("lag = \%i", c(0, 5, 15)), col = 1:3,
-  lty = 1)
-
-# Plot overall: constrained
-plot(ocp, ptype = "overall", lwd = 2)
-lines(ucp, ptype = "overall", col = 2, lwd = 2, ci = "lines")
-legend("topleft", legend = c("Constrained", "Unconstrained"),
-  col = 1:2, lty = 1:2)
-
-#----- Slices
-
-# Fit model
+# A convex model effectively constraining only lags 0 and 1
 subcm <- glm(age0_64 ~ cb + ns(date, df = 7 * ny) + dow, data = london,
   family = "quasipoisson", method = "cirls.fit",
   constr = ~ shape(cb, shape = "cvx", slice = c(0, 1)))
+
+#----- Plot results
+
+# Plot non-decreasing
+icp <- crosspred(cb, icm, cen = 20)
+par(mfrow = c(1, 2))
+plot(icp, main = "Non-decreasing")
+plot(icp, ptype = "overall")
+
+# Plot convex
+ccp <- crosspred(cb, ccm, cen = 20)
+par(mfrow = c(1, 2))
+plot(ccp, main = "Convex")
+plot(ccp, ptype = "overall")
+
+# This one is restricted to overall but not for every single lag
+ocp <- crosspred(cb, ocm, cen = 20)
+par(mfrow = c(1, 2))
+plot(ocp, main = "Overall convex")
+plot(ocp, ptype = "overall")
+
+# Restricted to lags 0 and 1 only
 subcp <- crosspred(cb, subcm, cen = 20)
+par(mfrow = c(1, 2))
+plot(subcp, main = "Convex")
+plot(subcp, ptype = "overall")
 
-# Plot slices: lags 0 and 5 are constrained but not lag 15
-plot(subcp, ptype = "slice", lag = 0, lwd = 2)
-lines(subcp, ptype = "slice", lag = 5, col = 2, lwd = 2)
-lines(subcp, ptype = "slice", lag = 15, col = 3, lwd = 2)
-legend("topleft", legend = sprintf("lag = \%i", c(0, 5, 15)), col = 1:3, lty = 1)
-
-
-###############################################################################
-# Constrained distributed lag models (DLM)
-
-library(dlnm)
-library(splines)
-
-#----------------
-# Association between PM2.5 and mortality
-#----------------
-
-# Number of years and dow
-ny <- length(unique(format(london$date, "\%Y")))
-
-# Create a flexible crossbasis
-cb <- crossbasis(london$pm10, lag = 15, argvar = list(fun = "lin"),
-  arglag = list(fun = "ns", knots = logknots(15, df = 4)))
-
-#----- Unconstrained model
-
-# Fit the model
-um <- glm(age0_64 ~ cb + ns(date, df = 7 * ny) + dow, data = london,
-  family = "quasipoisson")
-
-# Plot lag-response function
-ucp <- crosspred(cb, um, cen = 0, at = 10)
-plot(ucp, ptype = "slices", lwd = 2, var = 10)
-
-#----- Constrained to converge to zero
-
-# Fit with bound constraint
-# By default dim = "lag" (because var is linear) and value = 0
-bm <- glm(age0_64 ~ cb + ns(date, df = 7 * ny) + dow, data = london,
-  family = "quasipoisson", method = "cirls.fit", constr = ~ bound(cb))
-
-# Plot
-bcp <- crosspred(cb, bm, cen = 0, at = 10)
-plot(bcp, ptype = "slices", lwd = 2, var = 10)
-
-#----- Constrained to always be non-negative
-
-# Fit with bound constraint
-# By default dim = "lag" (because var is linear)
-nnm <- glm(age0_64 ~ cb + ns(date, df = 7 * ny) + dow, data = london,
-  family = "quasipoisson", method = "cirls.fit",
-  constr = ~ shape(cb, shape = "pos"))
-
-# Plot
-nncp <- crosspred(cb, nnm, cen = 0, at = 10)
-plot(nncp, ptype = "slices", lwd = 2, var = 10)
-
-#----- Constrained to always decrease
-
-# Fit with bound constraint
-# By default dim = "lag" (because var is linear)
-dm <- glm(age0_64 ~ cb + ns(date, df = 7 * ny) + dow, data = london,
-  family = "quasipoisson", method = "cirls.fit",
-  constr = ~ shape(cb, shape = "dec"))
-
-# Plot
-dcp <- crosspred(cb, dm, cen = 0, at = 10)
-plot(dcp, ptype = "slices", lwd = 2, var = 10)
-
-#----- Both decrease and towards zero
-
-# Fit with bound constraint
-# By default dim = "lag" (because var is linear)
-dbm <- glm(age0_64 ~ cb + ns(date, df = 7 * ny) + dow, data = london,
-  family = "quasipoisson", method = "cirls.fit",
-  constr = ~ shape(cb, shape = "dec") + bound(cb))
-
-# Plot
-dbcp <- crosspred(cb, dbm, cen = 0, at = 10)
-plot(dbcp, ptype = "slices", lwd = 2, var = 10)
+}
 }
 \references{
 Gasparrini, A., Armstrong, B., Kenward, M.G., 2010. Distributed lag non-linear models. \emph{Statistics in Medicine} \strong{29}, \strong{2224–2234}. \href{https://doi.org/10.1002/sim.3940}{DOI:10.1002/sim.3940}

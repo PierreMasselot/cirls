@@ -24,7 +24,7 @@ shapeConstr.ns <- function(x, shape, ...){
   Cmat <- as.matrix((t(qr.qty(qr.const, t(cm$Cmat))))[, -(1L:2L), drop = F])
 
   # Constraining of NS can create some redundant constraints
-  Cmat <- checkCmat(Cmat, reduce = TRUE, warn = FALSE)$Cmat
+  Cmat <- reduceCons(Cmat, warn = FALSE)$Cmat
 
   # Bounds
   lb <- rep(0, NROW(Cmat))
