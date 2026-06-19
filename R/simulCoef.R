@@ -107,18 +107,40 @@ simulCoef <- function(object, nsim = 1, seed = NULL, complete = TRUE,
     simvcov <- Bmat %*% uvcov %*% t(Bmat)
     simbeta <- drop(Bmat %*% ubeta)
 
+    # Sometimes, simvcov is not symmetric due to small numerical differences
+    if(!isSymmetric(simvcov)) simvcov <- (simvcov + t(simvcov)) / 2
+
     # Expand bounds for simulation
     lowervec <- c(lb, rep(-Inf, ncol(Hmat)))
     uppervec <- c(ub, rep(Inf, ncol(Hmat)))
 
-    # Initiate matrix with zeros for equality constraints
-    truncres <- matrix(0, nrow = nsim, ncol = nrow(Bmat))
-    eqind <- lowervec == uppervec
+    # Initiate matrix that contains results
+    truncres <- matrix(NA, nrow = nsim, ncol = nrow(Bmat))
 
-    # Simulate from truncated MVN
-    truncres[,!eqind] <- suppressWarnings(TruncatedNormal::rtmvnorm(n = nsim,
-      mu = simbeta, sigma = simvcov, lb = lowervec, ub = uppervec,
-      check = FALSE))
+    # Fill up the equality constrained variables
+    eqind <- (uppervec - lowervec) < sqrt(.Machine$double.eps)
+    truncres[,eqind] <- rep(lowervec[eqind], each = nsim)
+
+    # If there are equality constraints, use Schur complement
+    if (any(eqind)){
+      simbeta <- c(simbeta[!eqind] + simvcov[!eqind, eqind, drop = FALSE] %*%
+        solve(simvcov[eqind, eqind, drop = FALSE]) %*%
+        (lb[eqind] - simbeta[eqind]))
+      simvcov <- simvcov[!eqind, !eqind, drop = FALSE] -
+        simvcov[!eqind, eqind, drop = FALSE] %*%
+        solve(simvcov[eqind, eqind, drop = FALSE]) %*%
+        simvcov[eqind, !eqind, drop = FALSE]
+    }
+
+    # Simulate from truncated MVN, use the internal function directly
+    truncres[, !eqind] <- t(TruncatedNormal::mvrandn(n = nsim,
+      l = lowervec[!eqind], u = uppervec[!eqind],
+      Sig = simvcov, mu = simbeta))
+
+    # truncres[,!eqind, drop = FALSE] <- suppressWarnings(
+    #   TruncatedNormal::rtmvnorm(n = nsim, mu = simbeta, sigma = simvcov,
+    #     lb = lowervec, ub = uppervec, check = FALSE)
+    # )
 
     # Backtransform simulations
     simu <- t(solve(Bmat) %*% t(truncres))

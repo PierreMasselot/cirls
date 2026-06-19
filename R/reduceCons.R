@@ -90,9 +90,6 @@ reduceCons <- function(Cmat, lb = NULL, ub = NULL,
   # Only perform the following if either redundant or equality is on
   if (redundant | equality){
 
-    # Avoid printing unwanted messages from linp
-    sink(nullfile())
-
     # Go through all remaining constraints to perform "controlling" Lp
     for (k in inds){
 
@@ -107,38 +104,47 @@ reduceCons <- function(Cmat, lb = NULL, ub = NULL,
 
       #----- Check redundancy and implied equality
 
-      # Min possible value of the cons
-      lres <- limSolve::linp(Cost = Cmat[k,],
-        G = Cr[keep,, drop = F], H = lr[keep], ispos = FALSE)
+      # Augment constraints to free variables
+      obj <- c(Cmat[k,], -Cmat[k,])
+      con <- cbind(Cr[keep,, drop = F], -Cr[keep,, drop = F])
+
+      # Min possible value for the constraint
+      lres <- lpSolve::lp("min", objective.in = obj, const.mat = con,
+        const.dir = rep(">=", ), const.rhs = lr[keep])
 
       # Max possible value
-      ures <- limSolve::linp(Cost = -Cmat[k,],
-        G = Cr[keep,, drop = F], H = lr[keep], ispos = FALSE)
+      ures <- lpSolve::lp("max", objective.in = obj, const.mat = con,
+        const.dir = rep(">=", ), const.rhs = lr[keep])
+
+      # # Min possible value of the cons
+      # lres2 <- limSolve::linp(Cost = Cmat[k,],
+      #   G = Cr[keep,, drop = F], H = lr[keep], ispos = FALSE)
+      #
+      # # Max possible value
+      # ures2 <- limSolve::linp(Cost = -Cmat[k,],
+      #   G = Cr[keep,, drop = F], H = lr[keep], ispos = FALSE)
 
       # Check redundancy
       # As for zeros above, consider a tolerance for small numerical errors
-      if (!lres$IsError & redundant &
-          lres$solutionNorm >= (lb[k] - sqrt(.Machine$double.eps))) lb[k] <- -Inf
-      if (!ures$IsError & redundant &
-          -ures$solutionNorm <= (ub[k] + sqrt(.Machine$double.eps))) ub[k] <- Inf
+      if (lres$status %in% c(0,1) & redundant &
+          lres$objval >= (lb[k] - sqrt(.Machine$double.eps))) lb[k] <- -Inf
+      if (ures$status %in% c(0,1) & redundant &
+          ures$objval <= (ub[k] + sqrt(.Machine$double.eps))) ub[k] <- Inf
 
       # If both are redundant go to next constraint
       if (lb[k] == -Inf & ub[k] == Inf) next
 
       # Otherwise check for implied equality
-      if (!lres$IsError & lres$solutionNorm == ub[k] & equality){
+      if (lres$status %in% c(0,1) & lres$objval == ub[k] & equality){
         iseq[k] <- TRUE
         lb[k] <- ub[k]
         next
       }
-      if (!ures$IsError & -ures$solutionNorm == lb[k] & equality){
+      if (ures$status %in% c(0,1) & ures$objval == lb[k] & equality){
         iseq[k] <- TRUE
         ub[k] <- lb[k]
       }
     }
-
-    # Remove the sink
-    sink()
   }
 
   #----- Clean constraints

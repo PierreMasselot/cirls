@@ -7,10 +7,10 @@
 \title{Constraints for distributed lag linear and non-linear models}
 \usage{
 \method{boundConstr}{crossbasis}(x, dim = "var", overall = FALSE,
-  slice = NULL, ...)
+  odrng = NULL, ...)
 
 \method{shapeConstr}{crossbasis}(x, dim = "var", overall = FALSE,
-  slice = NULL, ...)
+  odrng = NULL, ...)
 }
 \arguments{
 \item{x}{A \code{crossbasis} object.}
@@ -19,7 +19,7 @@
 
 \item{overall}{Only when \code{dim = "var"}, logical indicating whether the constraint should be applied only on the overall cumulative association or for each specific lag.}
 
-\item{slice}{A numeric vector of length 2 restricting the constraint on a specific range of the \emph{other} dimension, namely the lag (for \code{dim = "var"}) or exposure (\code{dim = "lag"}) space. By default, no slicing is performed. See Details.}
+\item{odrng}{A numeric vector of length 2 restricting the constraint on a specific range of the \emph{other} dimension, namely the lag (for \code{dim = "var"}) or exposure (\code{dim = "lag"}) space. By default, no restriction is performed. See Details.}
 
 \item{...}{Parameters specific to the type of constraint to be applied. Includes for instance \code{shape} for \link{shapeConstr}, or \code{value} for \link{boundConstr}. See the main help page of the relevant generic method.}
 }
@@ -36,9 +36,9 @@ Constraints for DLMs and DLNMs apply to one of two dimensions of an exposure-lag
 By default, when \code{dim = "var"}, the constraint is applied across the whole lag space. This means that the exposure-response will be constrained at every lag. When \code{overall} is switched to \code{TRUE} (allowed only when \code{dim = "var"}), the constraint will only hold for the overall cumulative association (namely the net effect summed across lags), while it can be violated for exposure-responses defined at specific lags. See \link[dlnm:crossreduce]{crossreduce} for more information.
 }
 
-\subsection{Slicing}{
+\subsection{Restricting the range on the other dimension}{
 
-The \code{slice} argument can be used to restrict the constraint on a specific range of the other dimension. For instance, when \code{dim = "var"}, setting \code{slice = c(0, 5)} (say) will enforce the constraint on the exposure-response relationship only over lags 0 to 5, meaning it could be violated at other lags (> 5 in this example). Note that the actual range for slicing depends on the specific basis functions used for the opposite dimension (see the \code{range} argument in \link{shapeConstr} for additional details). When \code{overall = TRUE}, slicing will only constraint the cumulative association over the range specific by \code{slice} (see above).
+The \code{odrng} argument can be used to restrict the constraint on a specific range of the other dimension. For instance, when \code{dim = "var"}, setting \code{odrng = c(0, 5)} will enforce the constraint on the exposure-response relationship only over lags 0 to 5, meaning it could be violated at other lags (> 5 in this example). Note that the actual range depends on the specific basis functions used for the opposite dimension (see the \code{range} argument in \link{shapeConstr} for additional details). When \code{overall = TRUE}, it will only constraint the cumulative association over the range specified by \code{odrng} (see above).
 }
 
 \subsection{Note}{

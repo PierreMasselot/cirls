@@ -5,8 +5,8 @@
 ################################################################################
 
 coneproj.fit <- function(Dmat, dvec, Cmat, lb, ub, qp_pars){
-  #----- Construct Cmat and bvec from lb and ub
 
+  #----- Construct Cmat and bvec from lb and ub
   if (NROW(Cmat) > 0){
     # Get lb constraints
     lbcons <- lb > -Inf

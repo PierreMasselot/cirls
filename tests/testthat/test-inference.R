@@ -105,12 +105,18 @@ betasum <- sum(betas)
 reseq1 <- glm(y ~ x, method = cirls.fit, Cmat = list(x = t(rep(1, p))),
   lb = list(x = betasum), ub = list(x = betasum))
 
+# Simulate
+simone <- simulCoef(reseq1, 1)
+simsev <- simulCoef(reseq1, 10)
+
 # Compute vcov and ci
 v <- vcov(reseq1)
 ci <- confint(reseq1)
 
 # Test
 test_that("Inference with sum equality works", {
+  expect_equal(sum(simone[-1]), betasum)
+  expect_all_equal(rowSums(simsev[,-1]), betasum)
   expect_equal(sum(is.na(v)), 0)
   expect_equal(dim(v), rep(p + 1, 2))
   expect_true(all(diag(v) >= 0))
@@ -125,12 +131,18 @@ test_that("Inference with sum equality works", {
 reseq2 <- glm(y ~ x, method = cirls.fit,
   Cmat = list(x = t(c(1, rep(0, p - 1)))), lb = list(x = 0), ub = list(x = 0))
 
+# Simulate
+simone <- simulCoef(reseq2, 1)
+simsev <- simulCoef(reseq2, 10)
+
 # Compute vcov and ci
 v <- vcov(reseq2)
 ci <- confint(reseq2)
 
 # Test
 test_that("Inference with equality constraint on coefficient works", {
+  expect_equal(simone[2], 0)
+  expect_all_equal(simsev[,2], 0)
   expect_equal(v[2,2], 0)
   expect_equal(ci[2,1], ci[2,1])
 })

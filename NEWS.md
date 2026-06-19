@@ -1,3 +1,13 @@
+# 0.4.0-7
+
+## Changes
+- Changed the name of the argument `slice` to `odrng` in `cbConstr`.
+- Removed the dependency to `limSolve`, replacing it more directly by `limSolve`.
+
+## Bug fixed
+- Bug in `simulCoef` when trying to simulate a single coefficient vector with equality constraints. 
+- Now enforces positive definiteness in the QP when it is only near positive definite. Deals with the rare cases of some troublesome variables.
+
 # 0.4.0-6 - Reducing constraints
 
 ## Changes

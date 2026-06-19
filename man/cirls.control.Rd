@@ -7,7 +7,7 @@
 cirls.control(constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
   epsilon = 1e-08, maxit = 25, trace = FALSE, redundant = TRUE,
   equality = TRUE, warn = FALSE, qp_solver = "quadprog",
-  qp_pars = list())
+  qp_pars = list(), forcepd = TRUE)
 }
 \arguments{
 \item{constr}{A formula specifying constraints to be applied to specific terms in the model. See details in \link{buildCmat} for constraint specification.}
@@ -31,6 +31,8 @@ cirls.control(constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
 \item{qp_solver}{The quadratic programming solver. One of \code{"quadprog"} (the default), \code{"osqp"}, or \code{"coneproj"}.}
 
 \item{qp_pars}{List of parameters specific to the quadratic programming solver. See the help pages in the respective packages (links below).}
+
+\item{forcepd}{Logical indicating whether positive definiteness should be enforced in the rare cases of near non-positive definite covariance matrices. Can be needed for \code{quadprog} and \code{coneproj}}
 }
 \value{
 A named list containing arguments to be used in \link{cirls.fit}.
@@ -59,7 +61,7 @@ The function \link{cirls.fit} relies on a quadratic programming solver. Several 
 \item \code{"coneproj"} solves the quadratic program by a cone projection method. It relies on the function \link[coneproj:qprog]{qprog}.
 }
 
-Each solver has specific parameters that can be controlled through the argument \code{qp_pars}. Sensible defaults are set within \link{cirls.control} and the user typically doesn't need to provide custom parameters. \code{"quadprog"} is set as the default being generally more reliable than the other solvers. \code{"osqp"} is faster but can be less accurate, in which case it is recommended to increase convergence tolerance at the cost of speed.
+Each solver has specific parameters that can be controlled through the argument \code{qp_pars}. Sensible defaults are set within \link{cirls.control} and the user typically doesn't need to provide custom parameters. \code{"quadprog"} is set as the default being generally more reliable than the other solvers. \code{"osqp"} is faster but can be less accurate, in which case it is recommended to increase convergence tolerance at the cost of speed. \code{"coneproj"} is efficient for inequality constrained models but less recommended when there are equality constraints.
 }
 }
 \examples{

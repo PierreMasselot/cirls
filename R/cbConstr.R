@@ -12,11 +12,11 @@
 # dim is the dimension on which to apply the constraint
 # overall refers to whether the constraint has to be applied on the overall
 #     cumulative or everywhere
-# slice to provide a specific range (of the other dimension) on which to apply
+# odrng to provide a specific range (of the other dimension) on which to apply
 #     the constraint
 
 cbConstr <- function(x, constr, pars = list(), dim = "var", overall = FALSE,
-  slice = NULL)
+  odrng = NULL)
 {
 
   # Get info from crossbasis
@@ -41,11 +41,11 @@ cbConstr <- function(x, constr, pars = list(), dim = "var", overall = FALSE,
     # The constraint is on var, call directly the method
     Cvar <- do.call(fun, c(list(x = varbasis), pars))
 
-    # For lags, adjust with slice
-    slice <- chkrng(slice, lagrng, msg = FALSE)
-    lagseq <- seq(max(slice[1], lagrng[1]), min(slice[2], lagrng[2]), by = 1)
+    # For lags, adjust with the rang on other dimension
+    odrng <- chkrng(odrng, lagrng, msg = FALSE)
+    lagseq <- seq(max(odrng[1], lagrng[1]), min(odrng[2], lagrng[2]), by = 1)
     lagbasis <- do.call(dlnm::onebasis, c(list(x = lagseq), cbattr$arglag))
-    Clag <- shapeConstr(lagbasis, shape = "pos", range = slice)
+    Clag <- shapeConstr(lagbasis, shape = "pos", range = odrng)
     Clag$lb <- Clag$ub <- rep(1, NROW(Clag$Cmat))
 
     # Possibility to compute overall when dim = "var"
@@ -64,9 +64,9 @@ cbConstr <- function(x, constr, pars = list(), dim = "var", overall = FALSE,
     lagbasis <- do.call(dlnm::onebasis, c(list(x = lagrng), cbattr$arglag))
     Clag <- do.call(fun, c(list(x = lagbasis), pars))
 
-    # Var part is adjuste by slice
-    slice <- chkrng(slice, varrng, msg = FALSE)
-    Cvar <- shapeConstr(varbasis, shape = "pos", range = slice)
+    # Var part is adjuste by odrng
+    odrng <- chkrng(odrng, varrng, msg = FALSE)
+    Cvar <- shapeConstr(varbasis, shape = "pos", range = odrng)
     Cvar$lb <- Cvar$ub <- rep(1, NROW(Cvar$Cmat))
   }
 

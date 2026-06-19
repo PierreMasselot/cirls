@@ -9,7 +9,7 @@
 #' @param x A `crossbasis` object.
 #' @param dim Either `"var"` (the default) or `"lag"`. This is the dimension on which the constraint will be applied, constraining either the exposure-response or lag-response relationship, respectively.
 #' @param overall Only when `dim = "var"`, logical indicating whether the constraint should be applied only on the overall cumulative association or for each specific lag.
-#' @param slice A numeric vector of length 2 restricting the constraint on a specific range of the *other* dimension, namely the lag (for `dim = "var"`) or exposure (`dim = "lag"`) space. By default, no slicing is performed. See Details.
+#' @param odrng A numeric vector of length 2 restricting the constraint on a specific range of the *other* dimension, namely the lag (for `dim = "var"`) or exposure (`dim = "lag"`) space. By default, no restriction is performed. See Details.
 #' @param ... Parameters specific to the type of constraint to be applied. Includes for instance `shape` for [shapeConstr][shapeConstr()], or `value` for [boundConstr][boundConstr()]. See the main help page of the relevant generic method.
 #'
 #' @details
@@ -19,9 +19,9 @@
 #'
 #' By default, when `dim = "var"`, the constraint is applied across the whole lag space. This means that the exposure-response will be constrained at every lag. When `overall` is switched to `TRUE` (allowed only when `dim = "var"`), the constraint will only hold for the overall cumulative association (namely the net effect summed across lags), while it can be violated for exposure-responses defined at specific lags. See [crossreduce][dlnm::crossreduce()] for more information.
 #'
-#' ## Slicing
+#' ## Restricting the range on the other dimension
 #'
-#' The `slice` argument can be used to restrict the constraint on a specific range of the other dimension. For instance, when `dim = "var"`, setting `slice = c(0, 5)` (say) will enforce the constraint on the exposure-response relationship only over lags 0 to 5, meaning it could be violated at other lags (> 5 in this example). Note that the actual range for slicing depends on the specific basis functions used for the opposite dimension (see the `range` argument in [shapeConstr][shapeConstr()] for additional details). When `overall = TRUE`, slicing will only constraint the cumulative association over the range specific by `slice` (see above).
+#' The `odrng` argument can be used to restrict the constraint on a specific range of the other dimension. For instance, when `dim = "var"`, setting `odrng = c(0, 5)` will enforce the constraint on the exposure-response relationship only over lags 0 to 5, meaning it could be violated at other lags (> 5 in this example). Note that the actual range depends on the specific basis functions used for the opposite dimension (see the `range` argument in [shapeConstr][shapeConstr()] for additional details). When `overall = TRUE`, it will only constraint the cumulative association over the range specified by `odrng` (see above).
 #'
 #' ## Note
 #'
@@ -44,10 +44,10 @@
 #' @example inst/examples/ex_london_dlnm.R
 #'
 #' @export
-shapeConstr.crossbasis <- function(x, dim = "var", overall = FALSE, slice = NULL,
+shapeConstr.crossbasis <- function(x, dim = "var", overall = FALSE, odrng = NULL,
   ...)
 {
   # Call cbConstr
   cbConstr(x, constr = "shape", pars = list(...), dim = dim, overall = overall,
-    slice = slice)
+    odrng = odrng)
 }

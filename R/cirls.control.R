@@ -13,6 +13,7 @@
 #' @param warn Logical indicating if warning related to constraints should be produced.
 #' @param qp_solver The quadratic programming solver. One of `"quadprog"` (the default), `"osqp"`, or `"coneproj"`.
 #' @param qp_pars List of parameters specific to the quadratic programming solver. See the help pages in the respective packages (links below).
+#' @param forcepd Logical indicating whether positive definiteness should be enforced in the rare cases of near non-positive definite covariance matrices. Can be needed for `quadprog` and `coneproj`
 #'
 #' @details
 #' The `control` argument of [glm][stats::glm()] is by default passed to the `control` argument of [cirls.fit][cirls.fit()], which uses its elements as arguments for [cirls.control][cirls.control()]: the latter provides defaults and sanity checking. The control parameters can alternatively be passed through the `...` argument of [glm][stats::glm()].
@@ -32,7 +33,7 @@
 #' - `"osqp"` solves the quadratic program via the Alternating Direction Method of Multipliers (ADMM). It relies on the function [solve_osqp][osqp::solve_osqp()].
 #' - `"coneproj"` solves the quadratic program by a cone projection method. It relies on the function [qprog][coneproj::qprog()].
 #'
-#' Each solver has specific parameters that can be controlled through the argument `qp_pars`. Sensible defaults are set within [cirls.control][cirls.control()] and the user typically doesn't need to provide custom parameters. `"quadprog"` is set as the default being generally more reliable than the other solvers. `"osqp"` is faster but can be less accurate, in which case it is recommended to increase convergence tolerance at the cost of speed.
+#' Each solver has specific parameters that can be controlled through the argument `qp_pars`. Sensible defaults are set within [cirls.control][cirls.control()] and the user typically doesn't need to provide custom parameters. `"quadprog"` is set as the default being generally more reliable than the other solvers. `"osqp"` is faster but can be less accurate, in which case it is recommended to increase convergence tolerance at the cost of speed. `"coneproj"` is efficient for inequality constrained models but less recommended when there are equality constraints.
 #'
 #' @returns A named list containing arguments to be used in [cirls.fit][cirls.fit()].
 #'
@@ -44,7 +45,7 @@
 cirls.control <- function (constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
   epsilon = 1e-08, maxit = 25, trace = FALSE,
   redundant = TRUE, equality = TRUE, warn = FALSE,
-  qp_solver = "quadprog", qp_pars = list())
+  qp_solver = "quadprog", qp_pars = list(), forcepd = TRUE)
 {
 
   # Check valid convergence parameters
@@ -79,5 +80,5 @@ cirls.control <- function (constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
   list(constr = constr, Cmat = Cmat, lb = lb, ub = ub,
     epsilon = epsilon, maxit = maxit, trace = trace,
     redundant = redundant, equality = equality, warn = warn,
-    qp_solver = qp_solver, qp_pars = qp_pars)
+    qp_solver = qp_solver, qp_pars = qp_pars, forcepd = forcepd)
 }

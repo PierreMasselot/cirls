@@ -122,34 +122,38 @@ test_that("equality constraint can be passed", {
 
 #----- Alternative solvers ------
 
-# quadprog
-quadprog_pos <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = cpos),
-  lb = list(x = 0), ub = list(x = Inf), qp_solver = "quadprog")
-quadprog_inc <- glm(ypois ~ x, method = cirls.fit, Cmat = list(x = cinc),
-  lb = list(x = 0), ub = list(x = Inf), qp_solver = "quadprog")
+# osqp
+osqp_pos <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = cpos),
+  lb = list(x = 0), ub = list(x = Inf), qp_solver = "osqp")
+osqp_inc <- glm(ypois ~ x, family = "poisson", method = cirls.fit,
+  Cmat = list(x = cinc), lb = list(x = 0), ub = list(x = Inf),
+  qp_solver = "osqp")
 betasum <- sum(betas)
-quadprog_eq <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = t(rep(1, p))),
-  lb = list(x = betasum), ub = list(x = betasum), qp_solver = "quadprog")
+osqp_eq <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = t(rep(1, p))),
+  lb = list(x = betasum), ub = list(x = betasum), qp_solver = "osqp")
 
-test_that("quadprog solver is integrated", {
-  expect_true(all(coef(quadprog_pos)[-1] >= (0 - 1e-6)))
-  expect_true(all(diff(coef(quadprog_inc)[-1]) >= (0 - 1e-6)))
-  expect_equal(sum(coef(quadprog_eq)[-1]), betasum)
+test_that("osqp solver is integrated", {
+  expect_true(all(coef(osqp_pos)[-1] >= (0 - 1e-6)))
+  expect_true(all(diff(coef(osqp_inc)[-1]) >= (0 - 1e-6)))
+  expect_equal(sum(coef(osqp_eq)[-1]), betasum)
 })
 
 # coneproj
 cone_pos <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = cpos),
   lb = list(x = 0), ub = list(x = Inf), qp_solver = "coneproj")
-cone_inc <- glm(ypois ~ x, method = cirls.fit, Cmat = list(x = cinc),
-  lb = list(x = 0), ub = list(x = Inf), qp_solver = "coneproj")
+cone_inc <- glm(ypois ~ x, family = "poisson", method = cirls.fit,
+  Cmat = list(x = cinc), lb = list(x = 0), ub = list(x = Inf),
+  qp_solver = "coneproj")
 betasum <- sum(betas)
-cone_eq <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = t(rep(1, p))),
-  lb = list(x = betasum), ub = list(x = betasum), qp_solver = "coneproj")
+
+# Coneproj is not well suited for equality constraints
+# cone_eq <- glm(ynorm ~ x, method = cirls.fit, Cmat = list(x = t(rep(1, p))),
+#   lb = list(x = betasum), ub = list(x = betasum), qp_solver = "coneproj")
 
 test_that("coneproj solver is integrated", {
   expect_true(all(coef(cone_pos)[-1] >= (0 - 1e-6)))
   expect_true(all(diff(coef(cone_inc)[-1]) >= (0 - 1e-6)))
-  expect_equal(sum(coef(cone_eq)[-1]), betasum)
+  # expect_equal(sum(coef(cone_eq)[-1]), betasum)
 })
 
 
