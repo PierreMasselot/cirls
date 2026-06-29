@@ -7,7 +7,7 @@
 cirls.control(constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
   epsilon = 1e-08, maxit = 25, trace = FALSE, redundant = TRUE,
   equality = TRUE, warn = FALSE, qp_solver = "quadprog",
-  qp_pars = list(), forcepd = TRUE)
+  qp_pars = list(), qrtol = 1e-07)
 }
 \arguments{
 \item{constr}{A formula specifying constraints to be applied to specific terms in the model. See details in \link{buildCmat} for constraint specification.}
@@ -32,7 +32,7 @@ cirls.control(constr = NULL, Cmat = NULL, lb = NULL, ub = NULL,
 
 \item{qp_pars}{List of parameters specific to the quadratic programming solver. See the help pages in the respective packages (links below).}
 
-\item{forcepd}{Logical indicating whether positive definiteness should be enforced in the rare cases of near non-positive definite covariance matrices. Can be needed for \code{quadprog} and \code{coneproj}}
+\item{qrtol}{Tolerance parameter for detecting linear dependencies through QR decomposition. Passed to \code{tol} in \link[base:qr]{qr}.}
 }
 \value{
 A named list containing arguments to be used in \link{cirls.fit}.

@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-coneproj.fit <- function(Dmat, dvec, Cmat, lb, ub, qp_pars){
+coneproj.fit <- function(Rmat, effects, Cmat, lb, ub, qp_pars){
 
   #----- Construct Cmat and bvec from lb and ub
   if (NROW(Cmat) > 0){
@@ -25,8 +25,12 @@ coneproj.fit <- function(Dmat, dvec, Cmat, lb, ub, qp_pars){
 
   #----- Fit
 
+  # Compute matrices
+  qmat <- crossprod(Rmat)
+  cvec <- crossprod(effects, Rmat)
+
   # Fit
-  res <- coneproj::qprog(q = Dmat, c = dvec, amat = Amat, b = bvec,
+  res <- coneproj::qprog(q = qmat, c = cvec, amat = Amat, b = bvec,
     msg = qp_pars$msg)
 
   # Get active constraints

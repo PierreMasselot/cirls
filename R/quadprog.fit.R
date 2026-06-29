@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-quadprog.fit <- function(Dmat, dvec, Cmat, lb, ub, qp_pars){
+quadprog.fit <- function(Rmat, effects, Cmat, lb, ub, qp_pars){
 
   #----- Construct Cmat and bvec from lb and ub
   if (NROW(Cmat) > 0){
@@ -36,13 +36,17 @@ quadprog.fit <- function(Dmat, dvec, Cmat, lb, ub, qp_pars){
 
   #----- Fit QP
 
-  # Normalise the matrices to avoid errors due to huge numbers
-  sc <- norm(Dmat, "2")
-  Dmat <- Dmat / sc
-  dvec <- dvec / sc
+  # Normalise R matrix in case of big numbers
+  sc <- norm(Rmat, "2")
+  Rmat2 <- Rmat / sqrt(sc)
+  effects2 <- effects / sqrt(sc)
 
-  # Fit
-  res <- quadprog::solve.QP(Dmat, dvec, t(Amat), bvec, meq)
+  # Compute d vector
+  dvec <- crossprod(effects2, Rmat2)
+
+  # Fit QP
+  res <- quadprog::solve.QP(solve(Rmat2), dvec, t(Amat), bvec, meq,
+    factorized = TRUE)
 
   # Extract active constraints
   iact <- cmap[res$iact]

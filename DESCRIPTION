@@ -1,6 +1,6 @@
 Package: cirls
 Title: Constrained Iteratively Reweighted Least Squares
-Version: 0.4.0-7
+Version: 0.4.0-8
 Authors@R: c( 
     person(given = "Pierre",
            family = "Masselot",
@@ -24,8 +24,7 @@ Imports:
     coneproj,
     TruncatedNormal,
     stats,
-    lpSolve,
-    Matrix
+    lpSolve
 Depends: R (>= 4.1.0)
 Suggests: 
     dlnm,

@@ -214,7 +214,7 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
       ######################################################
 
       # Compute QR decomposition of design matrix
-      wxqr <- qr(wx, tol = tol)
+      wxqr <- qr(wx, tol = control$qrtol)
       Rmat <- qr.R(wxqr)
       effects <- qr.qty(wxqr, wz)
 
@@ -230,19 +230,9 @@ cirls.fit <- function (x, y, weights = rep.int(1, nobs), start = NULL,
         ub <- ub[!toremove]
       }
 
-      # Compute the elements of the QP
-      Dmat <- crossprod(Rmat[seqpiv,seqpiv])
-      dvec <- crossprod(effects[seqpiv], Rmat[seqpiv,seqpiv])
-
-      # Possibly force positive definiteness
-      if (control$forcepd) {
-        eigenvalues <- eigen(Dmat, only.values = TRUE)$values
-        if (any(eigenvalues < sqrt(.Machine$double.eps))) Dmat <-
-            as.matrix(Matrix::nearPD(Dmat)$mat)
-      }
-
       # Fit QP
-      fit <- do.call(solver_fun, list(Dmat = Dmat, dvec = dvec,
+      fit <- do.call(solver_fun, list(Rmat = Rmat[seqpiv,seqpiv],
+        effects = effects[seqpiv],
         Cmat = Cmat, lb = lb, ub = ub, qp_pars = control$qp_pars))
 
       # Check results

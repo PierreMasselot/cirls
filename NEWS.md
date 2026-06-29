@@ -1,3 +1,8 @@
+# 0.4.0-8
+
+## Bug fixed
+- Fixing a small computational issue in `cirls.fit`.
+
 # 0.4.0-7
 
 ## Changes
