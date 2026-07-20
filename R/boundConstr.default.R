@@ -9,7 +9,7 @@
 #' @order 2
 #' @export
 boundConstr.default <- function(x, value = 0, side = c("right", "left", "both"),
-  deg = NULL, intercept = FALSE, ...)
+  sm = 1, intercept = FALSE, ...)
 {
 
   # Extract info
@@ -18,10 +18,9 @@ boundConstr.default <- function(x, value = 0, side = c("right", "left", "both"),
   # Check side parameter
   side <- match.arg(side)
 
-  # Check degree parameters
-  deg <- deg %||% 1
-  if (deg > df | deg < 1) stop(
-      "'deg' should be an integer between 1 and the number of bases")
+  # Check the number of constraints parameters
+  if (sm > df | sm < 1) stop(
+      "'sm' should be an integer between 1 and the number of bases")
 
   # Check intercept
   if (!intercept & side != "right") warning(
@@ -30,11 +29,11 @@ boundConstr.default <- function(x, value = 0, side = c("right", "left", "both"),
   # Create Cmat depending on side
   cr <- cl <- NULL
   if (side != "right"){
-    degl <- deg - 1 + intercept
-    cl <- cbind(diag(degl), matrix(0, degl, df - degl))
+    ncl <- sm - 1 + intercept
+    cl <- cbind(diag(ncl), matrix(0, ncl, df - ncl))
   }
   if (side != "left"){
-    cr <- cbind(matrix(0, deg, df - deg), diag(deg))
+    cr <- cbind(matrix(0, sm, df - sm), diag(sm))
   }
   Cmat <- rbind(cr, cl)
 

@@ -74,9 +74,9 @@ m <- glm(Y ~ basis, method = "cirls.fit",
 pred <- basis %*% coef(m)[-1]
 expect_equal(tail(pred, 1), 1, ignore_attr = TRUE, tolerance = 10e-8)
 
-# Deg cannot be reduced here
+# sm cannot be reduced here
 expect_error(m <- glm(Y ~ basis, method = "cirls.fit",
-  constr = ~ bound(basis, value = 1, deg = 1)))
+  constr = ~ bound(basis, value = 1, sm = 1)))
 
 # Now on the left: this doesn't work
 expect_warning(m <- glm(Y ~ basis, method = "cirls.fit",
@@ -110,9 +110,9 @@ m <- glm(Y ~ basis, method = "cirls.fit",
 pred <- basis %*% coef(m)[-1]
 expect_equal(tail(pred, 1), 1, ignore_attr = TRUE, tolerance = 10e-8)
 
-# Deg can be reduced here
+# sm can be reduced here
 m <- glm(Y ~ basis, method = "cirls.fit",
-  constr = ~ bound(basis, value = 1, deg = 1))
+  constr = ~ bound(basis, value = 1, sm = 1))
 pred <- basis %*% coef(m)[-1]
 expect_equal(tail(pred, 1), 1, ignore_attr = TRUE, tolerance = 10e-8)
 
@@ -225,7 +225,7 @@ pred <- predict(m) - coef(m)[1]
 expect_equal(tail(pred, 1), 0, ignore_attr = TRUE, tolerance = 10e-8)
 
 m <- glm(Y ~ basis, method = "cirls.fit",
-  constr = ~ bound(basis, value = 0, deg = 1))
+  constr = ~ bound(basis, value = 0, sm = 1))
 pred <- predict(m) - coef(m)[1]
 expect_equal(tail(pred, 1), 0, ignore_attr = TRUE, tolerance = 10e-8)
 
@@ -252,3 +252,75 @@ expect_equal(pred[1], 1, ignore_attr = TRUE, tolerance = 10e-8)
 expect_equal(tail(pred, 1), 1, ignore_attr = TRUE, tolerance = 10e-8)
 
 })
+
+#-------------------------
+# Longer bounds
+#-------------------------
+
+test_that("Longer bounds work", {
+
+  # B-splines
+  basis <- bs(X, df = 10)
+  m <- glm(Y ~ basis, method = "cirls.fit",
+    constr = ~ bound(basis, value = 0, thr = .7))
+  pred <- basis %*% coef(m)[-1]
+  expect_all_equal(pred[X >= .7], 0)
+
+  # Another value
+  m <- glm(Y ~ basis, method = "cirls.fit",
+    constr = ~ bound(basis, value = 1, thr = .7))
+  pred <- basis %*% coef(m)[-1]
+  expect_all_equal(pred[X >= .7], 1)
+
+  # P-splines
+  basis <- ps(X, df = 10)
+  m <- glm(Y ~ basis, method = "cirls.fit",
+    constr = ~ bound(basis, value = 0, thr = .7))
+  pred <- basis %*% coef(m)[-1]
+  expect_all_equal(pred[X >= .7], 0)
+
+  # Natural splines
+  basis <- ns(X, df = 10)
+  m <- glm(Y ~ basis, method = "cirls.fit",
+    constr = ~ bound(basis, value = 0, thr = .7))
+  pred <- basis %*% coef(m)[-1]
+  expect_all_equal(pred[X >= .7], 0)
+
+  # Natural splines and another value
+  m <- glm(Y ~ basis, method = "cirls.fit",
+    constr = ~ bound(basis, value = 1, thr = .7))
+  pred <- basis %*% coef(m)[-1]
+  expect_all_equal(pred[X >= .7], 1)
+
+  # Onebasis
+  basis <- onebasis(X, fun = "bs", df = 10)
+  m <- glm(Y ~ basis, method = "cirls.fit",
+    constr = ~ bound(basis, value = 0, thr = .7))
+  pred <- basis %*% coef(m)[-1]
+  expect_all_equal(pred[X >= .7], 0)
+
+  # Factor
+  basis <- cut(X, breaks = 10)
+  m <- glm(Y ~ basis, method = "cirls.fit",
+    constr = ~ bound(basis, value = 0, thr = 8))
+  pred <- predict(m) - coef(m)[1]
+  expect_all_equal(pred[X >= .7], 0)
+
+  # Another value
+  m <- glm(Y ~ basis, method = "cirls.fit",
+    constr = ~ bound(basis, value = 1, thr = 8))
+  pred <- predict(m) - coef(m)[1]
+  expect_all_equal(pred[X >= .7], 1)
+
+  # Strata
+  basis <- dlnm:::strata(X, df = 10)
+  m <- glm(Y ~ basis, method = "cirls.fit",
+    constr = ~ bound(basis, value = 0, thr = .7))
+  pred <- predict(m) - coef(m)[1]
+  expect_all_equal(pred[X >= .7], 0)
+})
+
+
+# plot(X, pred)
+# abline(v = attr(basis, "knots"))
+# abline(h = 0)

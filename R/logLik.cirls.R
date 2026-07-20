@@ -33,12 +33,12 @@ logLik.cirls <- function(object, df = "edf", ...){
   df <- match.arg(df, names(dfvec))
 
   # Compute logLik
-  p <- dfvec["odf"]
+  p <- unname(dfvec["odf"])
   val <- p - object$aic/2
 
   # Compute expected reduction in df due to constraints
   attr(val, "nobs") <- sum(!is.na(object$residuals))
-  attr(val, "df") <- dfvec[df]
+  attr(val, "df") <- unname(dfvec[df])
   class(val) <- "logLik"
   val
 }

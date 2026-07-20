@@ -7,8 +7,8 @@
 
 # By default deg is set to the degree of the spline, for smoother convergence
 
-#' @rdname boundConstr
-#' @order 5
+#' @rdname boundConstr.bs
+#' @order 2
 #' @export
 boundConstr.ns <- function(x, ...)
 {

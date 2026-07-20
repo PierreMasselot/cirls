@@ -1,3 +1,8 @@
+# 0.4.0-9
+
+## New feature
+- `boundConstr` now include a new parameter `thr` that sets a threshold for bound constraints. Extend the constraint to at least `thr`.
+
 # 0.4.0-8
 
 ## Bug fixed

@@ -8,13 +8,24 @@
 #' @rdname boundConstr
 #' @order 3
 #' @export
-boundConstr.factor <- function(x, intercept = FALSE, ...){
+boundConstr.factor <- function(x, value = 0, side = "right", thr = NULL, sm = 1,
+  intercept = FALSE, ...){
 
   # Get the design matrix
   xmat <- stats::model.matrix(~ x)
+  df <- NCOL(xmat)
+
+  # Get levels to be constrained
+  if (!is.null(thr)){
+    sm <- switch(side,
+      right = df - thr + 1,
+      left = thr,
+      stop("When 'thr' is provided, 'side' should be either 'right' or 'left'"))
+  }
 
   # Get initial constraint matrix from default methods
-  cm <- boundConstr.default(xmat, intercept = TRUE, ...)
+  cm <- boundConstr.default(xmat, value = value, side = side, sm = sm,
+    intercept = TRUE, ...)
 
   # Apply contrast if intercept is not included
   # NB: no contrast is applied in R when the model does not include an intercept
