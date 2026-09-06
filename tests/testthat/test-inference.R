@@ -146,3 +146,29 @@ test_that("Inference with equality constraint on coefficient works", {
   expect_equal(v[2,2], 0)
   expect_equal(ci[2,1], ci[2,1])
 })
+
+
+#------------------------------
+# Test class system for simulations
+#------------------------------
+
+# Simulate coefficients
+ns <- 100
+simcoef <- simulCoef(res, nsim = ns)
+
+# Test class
+test_that("simulCoef returns the right object", {
+  expect_s3_class(simcoef, "sim.cirls")
+  expect_equal(nrow(simcoef), ns)
+})
+
+# Test both work
+v1 <- simulCoef(res, nsim = 1000, seed = 1) |> vcov.sim.cirls()
+v2 <- vcov.cirls(res, nsim = 1000, seed = 1)
+ci1 <- simulCoef(res, nsim = 1000, seed = 1) |> confint.sim.cirls()
+ci2 <- confint.cirls(res, nsim = 1000, seed = 1)
+
+test_that("'cirls and sim.cirls methods give the same result", {
+  expect_identical(v1, v2)
+  expect_identical(ci1, ci2)
+})

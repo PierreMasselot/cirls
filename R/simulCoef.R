@@ -9,7 +9,7 @@
 #' @description
 #' `simulCoef` simulates coefficients for a fitted `cirls` object and uses these simulations for inference. `confint` and `vcov` directly compute confidence intervals and the variance-covariance matrix for coefficients from a fitted `cirls` object. These methods for `cirls` objects supersede the default `glm` methods.
 #'
-#' @param object A fitted `cirls` object.
+#' @param object An object of class `cirls` or `sim.cirls`.
 #' @param nsim The number of simulations to perform.
 #' @param seed Either `NULL` or an integer that will be used in a call to [set.seed()] before simulating the coefficients.
 #' @param complete If `FALSE`, it does not return inference for undetermined coefficients in case of an over-determined model.
@@ -24,17 +24,17 @@
 #' To perform inference for coefficients the `simulCoef` function simulates from the distribution of \eqn{\mathbf{C}\beta} which follows a **Truncated Multivariate Normal** distribution \eqn{TMVN(\mathbf{C}\beta^{*}, \mathbf{C}\mathbf{\Sigma}^{*}\mathbf{C}^{T}, \mathbf{l}, \mathbf{u})} where \eqn{\mathbf{C}} is the constraint matrix with bound vectors \eqn{\mathbf{l}} and \eqn{\mathbf{u}}, and \eqn{\beta^{*}} and \eqn{\mathbf{\Sigma}^{*}} are the unconstrained coefficient vector and variance matrix. The TMVN simulations are then back-transformed to the domain of \eqn{\beta} to allow for inference.
 #'
 #' ## Functions
-#' `simulCoef` is the workhorse of the inference and is called internally by `confint` and `vcov`. All of these are custom methods for [cirls][cirls.fit()] objects that supersede the default methods used for [glm][stats::glm()] objects. `simulCoef` does not need to be used directly for confidence intervals and variance-covariance matrices, but it can be used to check other summaries of the coefficients distribution.
+#' `simulCoef` is the workhorse of the inference, performing the simulations described above. It is called internally by `confint.cirls` and `vcov.cirls` to compute confidence intervals and the variance-covariance matrix, respectively. These are custom methods for [cirls][cirls.fit()] objects that supersede the default methods used for [glm][stats::glm()] objects. Alternatively `simulCoef` can be used directly to simulate `nsim` coefficient to then be passed to `vcov.sim.cirls` and `confint.sim.cirls` methods. This avoids simulating several times when both confidence intervals and variance-covariance are needed for instance.
 #'
 #' @note
 #' These methods only work when there are less constraints than variables in `cirls` model, i.e. when `Cmat` has less rows than columns.
 #'
 #' @returns
-#' For `simulCoef`, a matrix with `nsim` rows containing simulated coefficients.
+#' For `simulCoef`: a `sim.cirls` object, that is a matrix of `nsim` rows containing simulated coefficients with the attributes `seed`, `complete` and `constrained`.
 #'
-#' For `confint`, a two-column matrix with columns giving lower and upper confidence limits for each parameter.
+#' For `confint` methods: a two-column matrix with columns giving lower and upper confidence limits for each parameter.
 #'
-#' For `vcov`, a matrix of the estimated covariances between the parameter estimates of the model.
+#' For `vcov` methods: a matrix of the estimated covariance between the parameter estimates of the model.
 #'
 #' @references
 #' Geweke, J.F., 1996. Bayesian Inference for Linear Models Subject to Linear Inequality Constraints, in: Lee, J.C., Johnson, W.O., Zellner, A. (Eds.), Modelling and Prediction Honoring Seymour Geisser. *Springer, New York, NY*, pp. 248–263. [DOI:10.1007/978-1-4612-2414-3_15](https://doi.org/10.1007/978-1-4612-2414-3_15)
@@ -43,7 +43,7 @@
 #'
 #' @seealso [rtmvnorm][TruncatedNormal::tmvnorm()] which is the routine used internally to simulate from a TMVN. [reduceCons][reduceCons()] to reduce the set of constraints.
 #'
-#' @example inst/examples/ex_warming_factor.R
+#' @example inst/examples/ex_warming_inference.R
 #'
 #' @order 1
 #' @export
@@ -133,9 +133,16 @@ simulCoef <- function(object, nsim = 1, seed = NULL, complete = TRUE,
     }
 
     # Simulate from truncated MVN, use the internal function directly
-    truncres[, !eqind] <- t(TruncatedNormal::mvrandn(n = nsim,
-      l = lowervec[!eqind], u = uppervec[!eqind],
-      Sig = simvcov, mu = simbeta))
+    # If a warning is thrown, stop the simulation and return NAs
+    tmvnsim <- tryCatch(TruncatedNormal::mvrandn(n = nsim,
+        l = lowervec[!eqind], u = uppervec[!eqind],
+        Sig = simvcov, mu = simbeta),
+      warning = function(w){
+        warning(paste0("Could not sample from TMVN, ",
+          "possibly due to instability in the unconstrained model"))
+        matrix(NA, length(simbeta), nsim)
+      })
+    truncres[, !eqind] <- t(tmvnsim)
 
     # truncres[,!eqind, drop = FALSE] <- suppressWarnings(
     #   TruncatedNormal::rtmvnorm(n = nsim, mu = simbeta, sigma = simvcov,
@@ -153,6 +160,7 @@ simulCoef <- function(object, nsim = 1, seed = NULL, complete = TRUE,
 
   #----- Return, including NAs if complete == TRUE
 
+  # Add NAs if aliased coefficients
   if (complete) {
     outsimu <- matrix(NA, nrow = nsim, ncol = length(aliased),
       dimnames = list(NULL, names(aliased)))
@@ -161,6 +169,10 @@ simulCoef <- function(object, nsim = 1, seed = NULL, complete = TRUE,
     outsimu <- simu
     colnames(outsimu) <- names(aliased[!aliased])
   }
+
+  # Object
+  attributes(outsimu) <- c(attributes(outsimu), list(class = "sim.cirls",
+    seed = seed, complete = complete, constrained = constrained))
 
   # Export
   outsimu

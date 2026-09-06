@@ -1,3 +1,11 @@
+# 0.4.0-10
+
+## New feature
+- Now `vcov` and `confint` have new methods for simulated coefficients directly.
+
+## Bug fixed
+- When TMVN simulation is not possible, returns a matrix of NAs.
+
 # 0.4.0-9
 
 ## New feature

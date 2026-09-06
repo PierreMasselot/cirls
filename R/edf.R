@@ -41,6 +41,7 @@
 #'
 #' @example inst/examples/ex_warming_factor.R
 #'
+#' @order 1
 #' @export
 edf <- function(object, nsim = 10000, seed = NULL){
 

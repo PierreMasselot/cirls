@@ -5,7 +5,7 @@
 ################################################################################
 
 #' @rdname simulCoef
-#' @order 3
+#' @order 4
 #' @export
 vcov.cirls <- function(object, complete = TRUE, nsim = 1000, constrained = TRUE,
   ...)
@@ -21,7 +21,7 @@ vcov.cirls <- function(object, complete = TRUE, nsim = 1000, constrained = TRUE,
       seed = seed, constrained = TRUE)
 
     # Compute empirical variance
-    v <- stats::var(simures)
+    v <- vcov.sim.cirls(simures)
   } else {
 
     # If trunc = FALSE return the unmodified vcov
